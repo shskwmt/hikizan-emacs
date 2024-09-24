@@ -1,0 +1,3 @@
+* hikizan emacs
+
+Minimal emacs configuration.
