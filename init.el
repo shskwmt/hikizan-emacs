@@ -13,7 +13,7 @@
 (require 'hikizan-org)
 (require 'hikizan-snippet)
 (require 'hikizan-programming)
-(require 'hikizan-ui
+(require 'hikizan-ui)
 
 (setq system-time-local "C") ;; to avoid Japanese in the time stamp
 (custom-set-variables
