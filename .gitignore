@@ -1,6 +1,9 @@
 bookmarks
+projects
+
 elpa/
 history
 transient/
 auto-save-list/
 server/
+org-persist/
