@@ -7,3 +7,4 @@ transient/
 auto-save-list/
 server/
 org-persist/
+eshell/
