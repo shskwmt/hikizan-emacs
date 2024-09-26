@@ -18,10 +18,16 @@
 (setq tab-always-indent 'complete)
 (setq tab-width 4)
 
+;; newline / whitespace
 (setq require-final-newline t)
 (setq show-trailing-whitespace t)
 (setq delete-trailing-lines t)
 
+;; line numbers
+(setq display-line-numbers-type 'relative)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+;; others
 (delete-selection-mode t)
 (electric-pair-mode t)
 (global-auto-revert-mode t)
