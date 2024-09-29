@@ -1,6 +1,7 @@
 bookmarks
 projects
 
+.cache/
 elpa/
 history
 transient/
