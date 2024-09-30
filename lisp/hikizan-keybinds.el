@@ -100,7 +100,7 @@
 
 (bind-map-set-keys hikizan-buffer-map
   "l" 'list-buffers
-  "k" 'kill-buffer
+  "d" 'kill-buffer
   "s" 'switch-to-buffer)
 
 (hikizan/bind-map-set-key "b" hikizan-buffer-map "buffer")
@@ -143,6 +143,7 @@
   "Window keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-window-map
+  "d" 'delete-window
   "h" 'windmove-left
   "l" 'windmove-right
   "k" 'windmove-up
@@ -163,6 +164,19 @@
   "s" 'bookmark-set)
 
 (hikizan/bind-map-set-key "B" hikizan-bookmark-map "bookmark")
+
+;;; register
+
+(defvar hikizan-register-map (make-sparse-keymap)
+  "Register keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-register-map
+  "p" 'point-to-register
+  "j" 'jump-to-register
+  "c" 'copy-to-register
+  "i" 'insert-register)
+
+(hikizan/bind-map-set-key "r" hikizan-register-map "register")
 
 ;;; org
 
