@@ -75,7 +75,7 @@
 ;;; leader
 
 (bind-map hikizan-leader-map
-  :keys ("M-m")
+  :keys ("M-SPC")
   :evil-keys ("SPC")
   :evil-states (normal motion visual))
 
@@ -90,6 +90,9 @@
 (add-hook 'magit-status-mode-hook
 	  (lambda ()
 	    (bind-map-set-keys magit-status-mode-map "SPC" hikizan-leader-map)))
+(add-hook 'Info-mode-hook
+	  (lambda ()
+	    (bind-map-set-keys Info-mode-map "SPC" hikizan-leader-map)))
 
 ;;; buffer
 (defvar hikizan-buffer-map (make-sparse-keymap)
