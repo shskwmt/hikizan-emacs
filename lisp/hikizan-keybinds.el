@@ -120,9 +120,11 @@
 
 (bind-map-set-keys hikizan-project-map
   "b" 'project-switch-to-buffer
+  "c" 'project-compile
+  "d" 'project-dired
   "e" 'project-eshell
   "f" 'project-find-file
-  "d" 'project-dired)
+  "p" 'project-switch-project)
 
 (hikizan/bind-map-set-key "p" hikizan-project-map "project")
 
