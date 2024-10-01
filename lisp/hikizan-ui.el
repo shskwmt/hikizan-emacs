@@ -1,6 +1,13 @@
 ;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
 
-(load-theme 'modus-vivendi)
+(use-package zenburn-theme
+  :ensure t
+  :init
+  (setq zenburn-use-variable-pitch t
+	zenburn-scale-org-headlines t
+	zenburn-scale-outline-headlines t)
+  :config
+  (load-theme 'zenburn t))
 
 (menu-bar-mode -1)
 (tool-bar-mode -1)
