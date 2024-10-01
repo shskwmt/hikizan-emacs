@@ -191,4 +191,16 @@
 
 (hikizan/bind-map-set-key "o" hikizan-org-map "org")
 
+;;; snippet
+
+(defvar hikizan-snippet-map (make-sparse-keymap)
+  "Snippet keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-snippet-map
+  "n" 'yas-new-snippet
+  "o" 'yas-visit-snippet-file
+  "i" 'yas-insert-snippet)
+
+(hikizan/bind-map-set-key "s" hikizan-snippet-map "snippet")
+
 (provide 'hikizan-keybinds)
