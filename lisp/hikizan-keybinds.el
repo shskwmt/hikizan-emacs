@@ -58,6 +58,11 @@
 
 ;;; hikezan keybinds
 
+(defconst hikizan-leader-key "M-SPC")
+(defconst hikizan-evil-leader-key "SPC")
+(defconst hikizan-major-mode-leader-key "M-m")
+(defconst hikizan-major-mode-evil-leader-key ",")
+
 (defvar hikizan-leader-map (make-sparse-keymap)
   "Base keymap for hikizan-emacs leader key commands.")
 
@@ -72,11 +77,18 @@
   (bind-map-set-keys hikizan-leader-map key map)
   (hikizan/declare-prefix key label))
 
+(defun hikizan/bind-major-mode-map (mode map)
+  "Bind a given MAP to the major mode leader keys."
+  (bind-map map
+    :keys (hikizan-major-mode-leader-key)
+    :evil-keys (hikizan-major-mode-evil-leader-key)
+    :evil-states (normal motion visual)))
+
 ;;; leader
 
 (bind-map hikizan-leader-map
-  :keys ("M-SPC")
-  :evil-keys ("SPC")
+  :keys (hikizan-leader-key)
+  :evil-keys (hikizan-evil-leader-key)
   :evil-states (normal motion visual))
 
 (bind-map-set-keys hikizan-leader-map
@@ -86,13 +98,13 @@
 ;; override leader key
 (add-hook 'dired-mode-hook
 	  (lambda ()
-	    (bind-map-set-keys dired-mode-map "SPC" hikizan-leader-map)))
+	    (bind-map-set-keys dired-mode-map hikizan-evil-leader-key hikizan-leader-map)))
 (add-hook 'magit-status-mode-hook
 	  (lambda ()
-	    (bind-map-set-keys magit-status-mode-map "SPC" hikizan-leader-map)))
+	    (bind-map-set-keys magit-status-mode-map hikizan-evil-leader-key hikizan-leader-map)))
 (add-hook 'Info-mode-hook
 	  (lambda ()
-	    (bind-map-set-keys Info-mode-map "SPC" hikizan-leader-map)))
+	    (bind-map-set-keys Info-mode-map hikizan-evil-leader-key hikizan-leader-map)))
 
 ;;; buffer
 (defvar hikizan-buffer-map (make-sparse-keymap)
@@ -202,5 +214,17 @@
   "i" 'yas-insert-snippet)
 
 (hikizan/bind-map-set-key "s" hikizan-snippet-map "snippet")
+
+;;; major-mode maps
+
+;;; org
+
+(defvar hikizan-org-mode-map (make-sparse-keymap)
+  "Org-mode keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-org-mode-map
+  "t" 'org-todo)
+
+(hikizan/bind-major-mode-map 'org-mode hikizan-org-mode-map)
 
 (provide 'hikizan-keybinds)
