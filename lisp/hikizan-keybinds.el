@@ -223,6 +223,8 @@
   "Org-mode keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-org-mode-map
+  "n" 'org-next-visible-heading
+  "p" 'org-previous-visible-heading
   "t" 'org-todo)
 
 (hikizan/bind-major-mode-map 'org-mode hikizan-org-mode-map)
