@@ -52,7 +52,7 @@
 
 ;;; hikezan keybinds
 
-(defconst hikizan-leader-key "C-,")
+(defconst hikizan-leader-key "M-x")
 (defconst hikizan-major-mode-leader-key "C-.")
 
 (defvar hikizan-leader-map (make-sparse-keymap)
@@ -83,7 +83,6 @@
 (bind-map-set-keys hikizan-leader-map
   "SPC" 'execute-extended-command
   "TAB" 'consult-buffer
-  ";" 'consult-recent-file
   "g" 'consult-goto-line
   "l" 'consult-line
   "y" 'consult-yank-from-kill-ring)
