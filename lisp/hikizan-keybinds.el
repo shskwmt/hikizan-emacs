@@ -41,16 +41,10 @@
         which-key-max-display-columns nil
         which-key-min-display-lines 6
         which-key-side-window-slot 10
-	which-key-idle-delay 0.05)
+	which-key-idle-delay 0.1)
   :config
   (which-key-setup-side-window-bottom)
   (which-key-mode))
-
-;; https://github.com/emacs-evil/evil
-(use-package evil
-  :ensure t
-  :config
-  (evil-mode 1))
 
 ;; https://github.com/justbur/emacs-bind-map
 (use-package bind-map
@@ -58,10 +52,8 @@
 
 ;;; hikezan keybinds
 
-(defconst hikizan-leader-key "M-SPC")
-(defconst hikizan-evil-leader-key "SPC")
-(defconst hikizan-major-mode-leader-key "M-m")
-(defconst hikizan-major-mode-evil-leader-key ",")
+(defconst hikizan-leader-key "C-,")
+(defconst hikizan-major-mode-leader-key "C-.")
 
 (defvar hikizan-leader-map (make-sparse-keymap)
   "Base keymap for hikizan-emacs leader key commands.")
@@ -80,31 +72,21 @@
 (defun hikizan/bind-major-mode-map (mode map)
   "Bind a given MAP to the major mode leader keys."
   (bind-map map
-    :keys (hikizan-major-mode-leader-key)
-    :evil-keys (hikizan-major-mode-evil-leader-key)
-    :evil-states (normal motion visual)))
+    :major-modes (mode)
+    :keys (hikizan-major-mode-leader-key)))
 
 ;;; leader
 
 (bind-map hikizan-leader-map
-  :keys (hikizan-leader-key)
-  :evil-keys (hikizan-evil-leader-key)
-  :evil-states (normal motion visual))
+  :keys (hikizan-leader-key))
 
 (bind-map-set-keys hikizan-leader-map
   "SPC" 'execute-extended-command
-  "TAB" 'switch-to-buffer)
-
-;; override leader key
-(add-hook 'dired-mode-hook
-	  (lambda ()
-	    (bind-map-set-keys dired-mode-map hikizan-evil-leader-key hikizan-leader-map)))
-(add-hook 'magit-status-mode-hook
-	  (lambda ()
-	    (bind-map-set-keys magit-status-mode-map hikizan-evil-leader-key hikizan-leader-map)))
-(add-hook 'Info-mode-hook
-	  (lambda ()
-	    (bind-map-set-keys Info-mode-map hikizan-evil-leader-key hikizan-leader-map)))
+  "TAB" 'consult-buffer
+  ";" 'consult-recent-file
+  "g" 'consult-goto-line
+  "l" 'consult-line
+  "y" 'consult-yank-from-kill-ring)
 
 ;;; buffer
 (defvar hikizan-buffer-map (make-sparse-keymap)
@@ -113,9 +95,34 @@
 (bind-map-set-keys hikizan-buffer-map
   "l" 'list-buffers
   "d" 'kill-buffer
-  "s" 'switch-to-buffer)
+  "s" 'consult-buffer)
 
 (hikizan/bind-map-set-key "b" hikizan-buffer-map "buffer")
+
+;;; bookmark
+(defvar hikizan-bookmark-map (make-sparse-keymap)
+  "Bookmark keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-bookmark-map
+  "j" 'consult-bookmark
+  "l" 'bookmark-bmenu-list
+  "s" 'bookmark-set)
+
+(hikizan/bind-map-set-key "B" hikizan-bookmark-map "bookmark")
+
+;;; consult
+(defvar hikizan-consult-map (make-sparse-keymap)
+  "Consult keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-consult-map
+  "b" 'consult-bookmark
+  "h" 'consult-history
+  "i" 'consult-info
+  "l" 'consult-line
+  "r" 'consult-ripgrep
+  "y" 'consult-yank-from-kill-ring)
+
+(hikizan/bind-map-set-key "c" hikizan-consult-map "consult")
 
 ;;; file
 (defvar hikizan-file-map (make-sparse-keymap)
@@ -131,7 +138,7 @@
   "Project keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-project-map
-  "b" 'project-switch-to-buffer
+  "b" 'consult-project-buffer
   "c" 'project-compile
   "d" 'project-dired
   "e" 'project-eshell
@@ -140,24 +147,13 @@
 
 (hikizan/bind-map-set-key "p" hikizan-project-map "project")
 
-;;; git
-
-(defvar hikizan-git-map (make-sparse-keymap)
-  "Git keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-git-map
-  "m" 'magit-status
-  "g" 'vc-git-grep)
-
-(hikizan/bind-map-set-key "g" hikizan-git-map "git")
-
 ;;; window
-
 (defvar hikizan-window-map (make-sparse-keymap)
   "Window keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-window-map
   "d" 'delete-window
+  "m" 'delete-other-windows
   "h" 'windmove-left
   "l" 'windmove-right
   "k" 'windmove-up
@@ -167,20 +163,7 @@
 
 (hikizan/bind-map-set-key "w" hikizan-window-map "window")
 
-;;; bookmark
-
-(defvar hikizan-bookmark-map (make-sparse-keymap)
-  "Bookmark keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-bookmark-map
-  "j" 'bookmark-jump
-  "l" 'bookmark-bmenu-list
-  "s" 'bookmark-set)
-
-(hikizan/bind-map-set-key "B" hikizan-bookmark-map "bookmark")
-
 ;;; register
-
 (defvar hikizan-register-map (make-sparse-keymap)
   "Register keymap for hikizan-emacs.")
 
@@ -193,18 +176,17 @@
 (hikizan/bind-map-set-key "r" hikizan-register-map "register")
 
 ;;; org
-
 (defvar hikizan-org-map (make-sparse-keymap)
   "Org keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-org-map
   "a" 'org-agenda
-  "c" 'org-capture)
+  "c" 'org-capture
+  "o" 'consult-org-agenda)
 
 (hikizan/bind-map-set-key "o" hikizan-org-map "org")
 
 ;;; snippet
-
 (defvar hikizan-snippet-map (make-sparse-keymap)
   "Snippet keymap for hikizan-emacs.")
 
@@ -218,7 +200,6 @@
 ;;; major-mode maps
 
 ;;; org
-
 (defvar hikizan-org-mode-map (make-sparse-keymap)
   "Org-mode keymap for hikizan-emacs.")
 
