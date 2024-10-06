@@ -197,8 +197,7 @@
 ;;; eshell-mode
 
 (defun eshell-mode-keybinds-hook ()
-  (local-set-key (kbd "C-c p") 'consult-history))
-
+  (local-set-key (kbd "C-c h") 'consult-history))
 (add-hook 'eshell-mode-hook 'eshell-mode-keybinds-hook)
 
 (provide 'hikizan-keybinds)
