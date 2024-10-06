@@ -200,4 +200,7 @@
 
 (hikizan/bind-map-set-key "s" hikizan-snippet-map "snippet")
 
+;;; overwrite default key bindings
+(global-set-key (kbd "C-x b") 'consult-buffer)
+
 (provide 'hikizan-keybinds)
