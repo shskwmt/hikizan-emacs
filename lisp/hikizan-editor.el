@@ -24,7 +24,7 @@
 (setq delete-trailing-lines t)
 
 ;; line numbers
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type t)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; others
