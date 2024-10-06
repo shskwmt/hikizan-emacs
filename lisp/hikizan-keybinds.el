@@ -102,16 +102,6 @@
 
 (hikizan/bind-map-set-key "B" hikizan-bookmark-map "bookmark")
 
-;;; consult
-(defvar hikizan-consult-map (make-sparse-keymap)
-  "Consult keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-consult-map
-  "h" 'consult-history
-  "i" 'consult-info)
-
-(hikizan/bind-map-set-key "c" hikizan-consult-map "consult")
-
 ;;; eval
 (defvar hikizan-eval-map (make-sparse-keymap)
   "Eval keymap for hikizan-emacs.")
@@ -132,6 +122,17 @@
 
 (hikizan/bind-map-set-key "f" hikizan-file-map "file")
 
+;;; org
+(defvar hikizan-org-map (make-sparse-keymap)
+  "Org keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-org-map
+  "a" 'org-agenda
+  "c" 'org-capture
+  "o" 'consult-org-agenda)
+
+(hikizan/bind-map-set-key "o" hikizan-org-map "org")
+
 ;;; project
 (defvar hikizan-project-map (make-sparse-keymap)
   "Project keymap for hikizan-emacs.")
@@ -146,6 +147,29 @@
   "r" 'consult-ripgrep)
 
 (hikizan/bind-map-set-key "p" hikizan-project-map "project")
+
+;;; register
+(defvar hikizan-register-map (make-sparse-keymap)
+  "Register keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-register-map
+  "p" 'point-to-register
+  "j" 'consult-register
+  "c" 'copy-to-register
+  "i" 'insert-register)
+
+(hikizan/bind-map-set-key "r" hikizan-register-map "register")
+
+;;; snippet
+(defvar hikizan-snippet-map (make-sparse-keymap)
+  "Snippet keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-snippet-map
+  "n" 'yas-new-snippet
+  "o" 'yas-visit-snippet-file
+  "i" 'yas-insert-snippet)
+
+(hikizan/bind-map-set-key "s" hikizan-snippet-map "snippet")
 
 ;;; window
 (defvar hikizan-window-map (make-sparse-keymap)
@@ -163,42 +187,18 @@
 
 (hikizan/bind-map-set-key "w" hikizan-window-map "window")
 
-;;; register
-(defvar hikizan-register-map (make-sparse-keymap)
-  "Register keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-register-map
-  "p" 'point-to-register
-  "j" 'consult-register
-  "c" 'copy-to-register
-  "i" 'insert-register)
-
-(hikizan/bind-map-set-key "r" hikizan-register-map "register")
-
-;;; org
-(defvar hikizan-org-map (make-sparse-keymap)
-  "Org keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-org-map
-  "a" 'org-agenda
-  "c" 'org-capture
-  "o" 'consult-org-agenda)
-
-(hikizan/bind-map-set-key "o" hikizan-org-map "org")
-
-;;; snippet
-(defvar hikizan-snippet-map (make-sparse-keymap)
-  "Snippet keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-snippet-map
-  "n" 'yas-new-snippet
-  "o" 'yas-visit-snippet-file
-  "i" 'yas-insert-snippet)
-
-(hikizan/bind-map-set-key "s" hikizan-snippet-map "snippet")
-
-;;; overwrite default key bindings
+;;; global key bindings
 (global-set-key (kbd "C-x b") 'consult-buffer)
 (global-set-key (kbd "M-y") 'consult-yank-from-kill-ring)
+(global-set-key (kbd "C-h C-i") 'consult-info)
+
+;;; mode key bindings
+
+;;; eshell-mode
+
+(defun eshell-mode-keybinds-hook ()
+  (local-set-key (kbd "C-c p") 'consult-history))
+
+(add-hook 'eshell-mode-hook 'eshell-mode-keybinds-hook)
 
 (provide 'hikizan-keybinds)
