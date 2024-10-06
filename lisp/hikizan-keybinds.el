@@ -107,12 +107,8 @@
   "Consult keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-consult-map
-  "b" 'consult-bookmark
   "h" 'consult-history
-  "i" 'consult-info
-  "l" 'consult-line
-  "r" 'consult-ripgrep
-  "y" 'consult-yank-from-kill-ring)
+  "i" 'consult-info)
 
 (hikizan/bind-map-set-key "c" hikizan-consult-map "consult")
 
@@ -146,7 +142,8 @@
   "d" 'project-dired
   "e" 'project-eshell
   "f" 'project-find-file
-  "p" 'project-switch-project)
+  "p" 'project-switch-project
+  "r" 'consult-ripgrep)
 
 (hikizan/bind-map-set-key "p" hikizan-project-map "project")
 
@@ -202,5 +199,6 @@
 
 ;;; overwrite default key bindings
 (global-set-key (kbd "C-x b") 'consult-buffer)
+(global-set-key (kbd "M-y") 'consult-yank-from-kill-ring)
 
 (provide 'hikizan-keybinds)
