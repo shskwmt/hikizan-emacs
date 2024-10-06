@@ -116,6 +116,17 @@
 
 (hikizan/bind-map-set-key "c" hikizan-consult-map "consult")
 
+;;; eval
+(defvar hikizan-eval-map (make-sparse-keymap)
+  "Eval keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-eval-map
+  "b" 'eval-buffer
+  "l" 'eval-last-sexp
+  "r" 'eval-region)
+
+(hikizan/bind-map-set-key "e" hikizan-eval-map "eval")
+
 ;;; file
 (defvar hikizan-file-map (make-sparse-keymap)
   "File keymap for hikizan-emacs.")
@@ -161,7 +172,7 @@
 
 (bind-map-set-keys hikizan-register-map
   "p" 'point-to-register
-  "j" 'jump-to-register
+  "j" 'consult-register
   "c" 'copy-to-register
   "i" 'insert-register)
 
