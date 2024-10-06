@@ -53,7 +53,6 @@
 ;;; hikezan keybinds
 
 (defconst hikizan-leader-key "M-x")
-(defconst hikizan-major-mode-leader-key "C-.")
 
 (defvar hikizan-leader-map (make-sparse-keymap)
   "Base keymap for hikizan-emacs leader key commands.")
@@ -68,12 +67,6 @@
   "Bind a given MAP to the KEY."
   (bind-map-set-keys hikizan-leader-map key map)
   (hikizan/declare-prefix key label))
-
-(defun hikizan/bind-major-mode-map (mode map)
-  "Bind a given MAP to the major mode leader keys."
-  (bind-map map
-    :major-modes (mode)
-    :keys (hikizan-major-mode-leader-key)))
 
 ;;; leader
 
@@ -195,18 +188,5 @@
   "i" 'yas-insert-snippet)
 
 (hikizan/bind-map-set-key "s" hikizan-snippet-map "snippet")
-
-;;; major-mode maps
-
-;;; org
-(defvar hikizan-org-mode-map (make-sparse-keymap)
-  "Org-mode keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-org-mode-map
-  "n" 'org-next-visible-heading
-  "p" 'org-previous-visible-heading
-  "t" 'org-todo)
-
-(hikizan/bind-major-mode-map 'org-mode hikizan-org-mode-map)
 
 (provide 'hikizan-keybinds)
