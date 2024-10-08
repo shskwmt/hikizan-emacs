@@ -119,7 +119,8 @@
   "File keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-file-map
-  "f" 'find-file)
+  "f" 'find-file
+  "r" 'rgrep)
 
 (hikizan/bind-map-set-key "f" hikizan-file-map "file")
 
