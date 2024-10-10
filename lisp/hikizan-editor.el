@@ -27,6 +27,13 @@
 (setq display-line-numbers-type t)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
+;; command logs
+(use-package command-log-mode
+  :ensure t
+  :config
+  (global-command-log-mode t)
+  (run-with-timer 60 60 'clm/save-command-log))
+
 ;; others
 (delete-selection-mode t)
 (electric-pair-mode t)

@@ -76,6 +76,7 @@
 (bind-map-set-keys hikizan-leader-map
   "SPC" 'execute-extended-command
   "TAB" 'consult-buffer
+  "c" 'clm/toggle-command-log-buffer
   "g" 'consult-goto-line
   "l" 'consult-line
   "y" 'consult-yank-from-kill-ring)
