@@ -7,4 +7,8 @@
 (use-package go-mode
   :ensure t)
 
+;;; terraform
+(use-package terraform-mode
+  :ensure t)
+
 (provide 'hikizan-programming)
