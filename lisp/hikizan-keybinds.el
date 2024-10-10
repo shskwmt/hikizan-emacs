@@ -158,7 +158,7 @@
   "c" 'project-compile
   "d" 'project-dired
   "e" 'project-eshell
-  "f" 'project-find-file
+  "f" 'consult-fd
   "p" 'project-switch-project
   "r" 'consult-ripgrep)
 
