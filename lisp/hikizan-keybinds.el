@@ -199,7 +199,8 @@
   "k" 'windmove-up
   "j" 'windmove-down
   "/" 'split-window-right
-  "-" 'split-window-below)
+  "-" 'split-window-below
+  "=" 'balance-windows)
 
 (hikizan/bind-map-set-key "w" hikizan-window-map "window")
 
