@@ -34,6 +34,11 @@
   (global-command-log-mode t)
   (run-with-timer 180 180 'clm/save-command-log))
 
+;; dired
+(setq dired-dwim-target t)
+(setq dired-recursive-copies 'always)
+(setq dired-isearch-filenames t)
+
 ;; others
 (delete-selection-mode t)
 (electric-pair-mode t)
