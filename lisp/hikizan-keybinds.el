@@ -87,6 +87,7 @@
 
 (bind-map-set-keys hikizan-ai-map
   "a" 'ellama-ask-about
+  "b" 'ellama-code-add
   "c" 'ellama-chat
   "r" 'ellama-code-review
   "s" 'ellama-summarize)

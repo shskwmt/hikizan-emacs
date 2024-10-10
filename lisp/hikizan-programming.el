@@ -16,9 +16,10 @@
   :ensure t
   :init
   (setopt ellama-language "English")
+  (setopt ellama-auto-scroll t)
   (require 'llm-ollama)
   (setopt ellama-provider
 	  (make-llm-ollama
-	   :chat-model "llama3.2" :embedding-model "llama3.2")))
+	   :chat-model "gemma" :embedding-model "gemma")))
 
 (provide 'hikizan-programming)
