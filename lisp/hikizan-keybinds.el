@@ -204,6 +204,7 @@
 (hikizan/bind-map-set-key "w" hikizan-window-map "window")
 
 ;;; global key bindings
+(global-set-key (kbd "C-o") 'ace-window)
 (global-set-key (kbd "C-x b") 'consult-buffer)
 (global-set-key (kbd "M-y") 'consult-yank-from-kill-ring)
 (global-set-key (kbd "C-h C-i") 'consult-info)
