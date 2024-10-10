@@ -88,7 +88,8 @@
 (bind-map-set-keys hikizan-buffer-map
   "l" 'list-buffers
   "d" 'kill-buffer
-  "r" 'revert-buffer
+  "r" 'rename-buffer
+  "R" 'revert-buffer
   "s" 'consult-buffer)
 
 (hikizan/bind-map-set-key "b" hikizan-buffer-map "buffer")
