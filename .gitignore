@@ -5,6 +5,7 @@ recentf
 
 .cache/
 elpa/
+ellama-sessions/
 history
 transient/
 auto-save-list/

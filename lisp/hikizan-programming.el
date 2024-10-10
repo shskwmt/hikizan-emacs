@@ -11,4 +11,14 @@
 (use-package terraform-mode
   :ensure t)
 
+;;; ellama
+(use-package ellama
+  :ensure t
+  :init
+  (setopt ellama-language "English")
+  (require 'llm-ollama)
+  (setopt ellama-provider
+	  (make-llm-ollama
+	   :chat-model "llama3.2" :embedding-model "llama3.2")))
+
 (provide 'hikizan-programming)

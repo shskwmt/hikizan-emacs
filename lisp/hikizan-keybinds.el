@@ -81,6 +81,18 @@
   "l" 'consult-line
   "y" 'consult-yank-from-kill-ring)
 
+;;; ai
+(defvar hikizan-ai-map (make-sparse-keymap)
+  "AI keymap for hikizan-emacs.")
+
+(bind-map-set-keys hikizan-ai-map
+  "a" 'ellama-ask-about
+  "c" 'ellama-chat
+  "r" 'ellama-code-review
+  "s" 'ellama-summarize)
+
+(hikizan/bind-map-set-key "a" hikizan-ai-map "ai")
+
 ;;; buffer
 (defvar hikizan-buffer-map (make-sparse-keymap)
   "Buffer keymap for hikizan-emacs.")
