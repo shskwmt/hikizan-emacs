@@ -89,6 +89,7 @@
   "a" 'ellama-ask-about
   "b" 'ellama-code-add
   "c" 'ellama-chat
+  "f" 'ellama-code-complete
   "r" 'ellama-code-review
   "s" 'ellama-summarize)
 
