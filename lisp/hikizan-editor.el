@@ -32,6 +32,8 @@
   :ensure t
   :config
   (setopt clm/log-command-exceptions* '(nil self-insert-command newline))
+  (add-hook 'kill-emacs-hook 'clm/save-command-log)
+  (add-hook 'kill-buffer-hook 'clm/save-command-log)
   (global-command-log-mode t))
 
 ;; dired
