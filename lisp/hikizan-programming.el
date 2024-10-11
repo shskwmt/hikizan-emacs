@@ -16,6 +16,12 @@
   :ensure t)
 
 ;;; ellama
+(unless (boundp 'ellama-chat-model)
+  (setq ellama-chat-model "gemma2"))
+
+(unless (boundp 'ellama-embedding-model)
+  (setq ellama-embedding-model "gemma2"))
+
 (use-package ellama
   :ensure t
   :init
@@ -24,6 +30,6 @@
   (require 'llm-ollama)
   (setopt ellama-provider
 	  (make-llm-ollama
-	   :chat-model "gemma" :embedding-model "gemma")))
+	   :chat-model ellama-chat-model :embedding-model ellama-embedding-model)))
 
 (provide 'hikizan-programming)
