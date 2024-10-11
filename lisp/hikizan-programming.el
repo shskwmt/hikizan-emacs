@@ -11,6 +11,10 @@
 (use-package terraform-mode
   :ensure t)
 
+;;; ein https://github.com/millejoh/emacs-ipython-notebook
+(use-package ein
+  :ensure t)
+
 ;;; ellama
 (use-package ellama
   :ensure t

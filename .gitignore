@@ -2,11 +2,12 @@ bookmarks
 projects
 kkcrc
 recentf
+history
 
 .cache/
 elpa/
 ellama-sessions/
-history
+request/
 transient/
 auto-save-list/
 server/
