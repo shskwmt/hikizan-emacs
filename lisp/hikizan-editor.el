@@ -31,8 +31,8 @@
 (use-package command-log-mode
   :ensure t
   :config
-  (global-command-log-mode t)
-  (run-with-timer 180 180 'clm/save-command-log))
+  (setopt clm/log-command-exceptions* '(nil self-insert-command newline))
+  (global-command-log-mode t))
 
 ;; dired
 (setq dired-dwim-target t)
