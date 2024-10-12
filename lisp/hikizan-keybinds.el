@@ -216,11 +216,13 @@
 (global-set-key (kbd "C->") 'text-scale-increase)
 (global-set-key (kbd "C-<") 'text-scale-decrease)
 (global-set-key (kbd "C-;") 'avy-goto-char)
+(global-set-key (kbd "C-.") 'embark-act)
+(global-set-key (kbd "C-,") 'embark-dwim)
+(global-set-key (kbd "C-h B") 'embark-bindings)
 
 ;;; mode key bindings
 
 ;;; eshell-mode
-
 (defun eshell-mode-keybinds-hook ()
   (local-set-key (kbd "C-c h") 'consult-history))
 (add-hook 'eshell-mode-hook 'eshell-mode-keybinds-hook)
