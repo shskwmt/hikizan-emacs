@@ -28,13 +28,18 @@
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; command logs
+(setq clm/command-log-buffer (get-buffer-create " *command-log*"))
+(defun hikizan/save-command-log ()
+  (if (bufferp clm/command-log-buffer)
+      (clm/save-command-log)))
+
 (use-package command-log-mode
   :ensure t
   :config
   (setopt clm/log-command-exceptions* '(nil self-insert-command newline))
+  (global-command-log-mode t)
   (add-hook 'kill-emacs-hook 'clm/save-command-log)
-  (add-function :after after-focus-change-function (lambda () (clm/save-command-log)))
-  (global-command-log-mode t))
+  (add-function :after after-focus-change-function (lambda () (clm/save-command-log))))
 
 ;; dired
 (setq dired-dwim-target t)
