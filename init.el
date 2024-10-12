@@ -17,16 +17,3 @@
 (require 'hikizan-keybinds)
 
 (setq system-time-local "C") ;; to avoid Japanese in the time stamp
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(ein ace-window ellama command-log-mode terraform-mode go-mode consult zenburn-theme bind-map corfu orderless vertico yasnippet-snippets yasnippet git-gutter magit which-key evil)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

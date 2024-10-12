@@ -1,13 +1,9 @@
 ;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
 
-(use-package zenburn-theme
+(use-package minimal-theme
   :ensure t
-  :init
-  (setq zenburn-use-variable-pitch t
-	zenburn-scale-org-headlines t
-	zenburn-scale-outline-headlines t)
   :config
-  (load-theme 'zenburn t))
+  (load-theme 'minimal-light t))
 
 (use-package ace-window
   :ensure t)
