@@ -78,6 +78,7 @@
   "TAB" 'consult-buffer
   "c" 'clm/toggle-command-log-buffer
   "g" 'consult-goto-line
+  "i" 'consult-imenu
   "l" 'consult-line
   "y" 'consult-yank-from-kill-ring)
 
