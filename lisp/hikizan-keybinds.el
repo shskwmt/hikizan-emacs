@@ -101,8 +101,9 @@
   "Buffer keymap for hikizan-emacs.")
 
 (bind-map-set-keys hikizan-buffer-map
-  "l" 'list-buffers
   "d" 'kill-buffer
+  "l" 'list-buffers
+  "o" 'consult-buffer-other-window
   "r" 'rename-buffer
   "R" 'revert-buffer
   "s" 'consult-buffer)
