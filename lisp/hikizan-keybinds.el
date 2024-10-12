@@ -209,6 +209,7 @@
 ;;; global key bindings
 (global-set-key (kbd "C-x o") 'ace-window)
 (global-set-key (kbd "C-x b") 'consult-buffer)
+(global-set-key (kbd "C-x TAB") 'consult-buffer)
 (global-set-key (kbd "M-y") 'consult-yank-from-kill-ring)
 (global-set-key (kbd "C-h C-i") 'consult-info)
 (global-set-key (kbd "C->") 'text-scale-increase)
