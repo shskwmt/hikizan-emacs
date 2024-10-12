@@ -8,9 +8,7 @@
 (prefer-coding-system 'utf-8)
 
 ;; backup files
-(setq make-backup-files t)
-(setq backup-directory-alist `((".*" . ,temporary-file-directory))
-      auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
+(setq make-backup-files nil)
 
 ;; tab / indent
 (indent-tabs-mode t)
