@@ -198,8 +198,9 @@
 (bind-map-set-keys hikizan-window-map
   "d" 'delete-window
   "m" 'delete-other-windows
-  "h" 'windmove-left
+  "o" 'ace-window
   "l" 'windmove-right
+  "h" 'windmove-left
   "k" 'windmove-up
   "j" 'windmove-down
   "/" 'split-window-right
