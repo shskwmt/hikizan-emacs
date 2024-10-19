@@ -3,6 +3,7 @@ projects
 kkcrc
 recentf
 history
+.lsp-session*
 
 .cache/
 elpa/
