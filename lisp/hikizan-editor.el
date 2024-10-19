@@ -44,6 +44,9 @@
 (setq dired-recursive-copies 'always)
 (setq dired-isearch-filenames t)
 
+;; org
+(setq org-startup-truncated nil)
+
 ;; others
 (delete-selection-mode t)
 (electric-pair-mode t)

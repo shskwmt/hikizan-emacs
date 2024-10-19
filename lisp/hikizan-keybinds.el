@@ -80,6 +80,7 @@
   "g" 'consult-goto-line
   "i" 'consult-imenu
   "l" 'consult-line
+  "t" 'toggle-truncate-lines
   "y" 'consult-yank-from-kill-ring)
 
 ;;; ai
