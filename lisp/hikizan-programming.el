@@ -17,10 +17,10 @@
 
 ;;; ellama
 (unless (boundp 'ellama-chat-model)
-  (setq ellama-chat-model "gemma2"))
+  (setq ellama-chat-model "llama3"))
 
 (unless (boundp 'ellama-embedding-model)
-  (setq ellama-embedding-model "gemma2"))
+  (setq ellama-embedding-model "llama3"))
 
 (use-package ellama
   :ensure t
