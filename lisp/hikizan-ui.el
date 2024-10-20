@@ -11,7 +11,7 @@
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
-(use-package nerd-icon-corfu
+(use-package nerd-icons-corfu
   :ensure t)
 
 (use-package nerd-icons-completion
