@@ -24,7 +24,7 @@
 (use-package minimal-theme
   :ensure t
   :config
-  (load-theme 'minimal-light t))
+  (load-theme 'minimal-black t))
 
 (use-package ace-window
   :ensure t)
