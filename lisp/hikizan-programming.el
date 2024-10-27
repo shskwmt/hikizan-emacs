@@ -7,6 +7,10 @@
 (use-package go-mode
   :ensure t)
 
+;;; yaml
+(use-package yaml-mode
+  :ensure t)
+
 ;;; terraform
 (use-package terraform-mode
   :ensure t)
