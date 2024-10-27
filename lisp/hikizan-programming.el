@@ -36,10 +36,10 @@
 
 ;;; ellama
 (unless (boundp 'ellama-chat-model)
-  (setq ellama-chat-model "llama3"))
+  (setq ellama-chat-model "llama3.1"))
 
 (unless (boundp 'ellama-embedding-model)
-  (setq ellama-embedding-model "llama3"))
+  (setq ellama-embedding-model "llama3.1"))
 
 (use-package ellama
   :ensure t
