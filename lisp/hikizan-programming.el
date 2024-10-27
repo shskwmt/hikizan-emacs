@@ -11,6 +11,10 @@
 (use-package yaml-mode
   :ensure t)
 
+;; Dockerfile
+(use-package dockerfile-mode
+  :ensure t)
+
 ;; terraform
 (use-package terraform-mode
   :ensure t)
