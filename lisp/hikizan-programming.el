@@ -1,21 +1,21 @@
 ;;; hikizan-programming.el --- programming  -*- lexical-binding: t; -*-
 
-;;; ruby
+;; ruby
 (add-to-list 'auto-mode-alist '("\\.rbs\\'" . ruby-mode))
 
-;;; go
+;; go
 (use-package go-mode
   :ensure t)
 
-;;; yaml
+;; yaml
 (use-package yaml-mode
   :ensure t)
 
-;;; terraform
+;; terraform
 (use-package terraform-mode
   :ensure t)
 
-;;; lsp
+;; lsp
 (use-package lsp-mode
   :ensure t
   :init
@@ -30,11 +30,11 @@
   :ensure t
   :commands (lsp-ui-mode))
 
-;;; ein https://github.com/millejoh/emacs-ipython-notebook
+;; ein https://github.com/millejoh/emacs-ipython-notebook
 (use-package ein
   :ensure t)
 
-;;; ellama
+;; ellama
 (unless (boundp 'ellama-chat-model)
   (setq ellama-chat-model "llama3.1"))
 

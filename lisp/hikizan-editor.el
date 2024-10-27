@@ -39,6 +39,12 @@
   (add-hook 'kill-emacs-hook 'clm/save-command-log)
   (add-function :after after-focus-change-function (lambda () (clm/save-command-log))))
 
+;; editor config
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
+
 ;; dired
 (setq dired-dwim-target t)
 (setq dired-recursive-copies 'always)
