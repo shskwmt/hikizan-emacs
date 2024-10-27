@@ -29,7 +29,27 @@
 ;; M-
 (global-unset-key (kbd "M-`")) ;; tmm-menubar
 
-;;; packages
+;;; global key bindings
+(global-set-key (kbd "C-x o") 'ace-window)
+(global-set-key (kbd "C-x b") 'consult-buffer)
+(global-set-key (kbd "C-x TAB") 'consult-buffer)
+(global-set-key (kbd "M-y") 'consult-yank-from-kill-ring)
+(global-set-key (kbd "C-h C-i") 'consult-info)
+(global-set-key (kbd "C->") 'text-scale-increase)
+(global-set-key (kbd "C-<") 'text-scale-decrease)
+(global-set-key (kbd "C-;") 'avy-goto-char)
+(global-set-key (kbd "C-.") 'embark-act)
+(global-set-key (kbd "C-,") 'embark-dwim)
+(global-set-key (kbd "C-h B") 'embark-bindings)
+
+;;; mode key bindings
+
+;; eshell-mode
+(defun eshell-mode-keybinds-hook ()
+  (local-set-key (kbd "C-c h") 'consult-history))
+(add-hook 'eshell-mode-hook 'eshell-mode-keybinds-hook)
+
+;;; which-key
 
 ;; https://github.com/justbur/emacs-which-key
 (use-package which-key
@@ -77,7 +97,7 @@
   "SPC" 'execute-extended-command
   "TAB" 'consult-buffer
   "c" 'clm/toggle-command-log-buffer
-  "g" 'consult-goto-line
+  "g" 'goto-line
   "i" 'consult-imenu
   "l" 'consult-line
   "t" 'toggle-truncate-lines
@@ -132,16 +152,6 @@
   "r" 'eval-region)
 
 (hikizan/bind-map-set-key "e" hikizan-eval-map "eval")
-
-;;; file
-(defvar hikizan-file-map (make-sparse-keymap)
-  "File keymap for hikizan-emacs.")
-
-(bind-map-set-keys hikizan-file-map
-  "f" 'find-file
-  "r" 'rgrep)
-
-(hikizan/bind-map-set-key "f" hikizan-file-map "file")
 
 ;;; org
 (defvar hikizan-org-map (make-sparse-keymap)
@@ -209,25 +219,5 @@
   "=" 'balance-windows)
 
 (hikizan/bind-map-set-key "w" hikizan-window-map "window")
-
-;;; global key bindings
-(global-set-key (kbd "C-x o") 'ace-window)
-(global-set-key (kbd "C-x b") 'consult-buffer)
-(global-set-key (kbd "C-x TAB") 'consult-buffer)
-(global-set-key (kbd "M-y") 'consult-yank-from-kill-ring)
-(global-set-key (kbd "C-h C-i") 'consult-info)
-(global-set-key (kbd "C->") 'text-scale-increase)
-(global-set-key (kbd "C-<") 'text-scale-decrease)
-(global-set-key (kbd "C-;") 'avy-goto-char)
-(global-set-key (kbd "C-.") 'embark-act)
-(global-set-key (kbd "C-,") 'embark-dwim)
-(global-set-key (kbd "C-h B") 'embark-bindings)
-
-;;; mode key bindings
-
-;;; eshell-mode
-(defun eshell-mode-keybinds-hook ()
-  (local-set-key (kbd "C-c h") 'consult-history))
-(add-hook 'eshell-mode-hook 'eshell-mode-keybinds-hook)
 
 (provide 'hikizan-keybinds)
