@@ -1,5 +1,5 @@
 ;;; init.el --- -*- lexical-binding: t; -*-
-(setq debug-on-error t)
+;;(setq debug-on-error t)
 
 (defvar hikizan-dir (file-name-directory load-file-name))
 (defvar hikizan-lisp-dir (expand-file-name "lisp" hikizan-dir))
@@ -9,7 +9,6 @@
 (require 'hikizan-package-manager)
 (require 'hikizan-project)
 (require 'hikizan-editor)
-(require 'hikizan-completion)
 (require 'hikizan-org)
 (require 'hikizan-snippet)
 (require 'hikizan-programming)

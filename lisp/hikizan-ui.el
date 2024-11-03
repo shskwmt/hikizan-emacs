@@ -21,11 +21,6 @@
   (nerd-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
-(use-package minimal-theme
-  :ensure t
-  :config
-  (load-theme 'minimal-black t))
-
 (use-package ace-window
   :ensure t)
 
