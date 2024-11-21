@@ -36,4 +36,129 @@
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
 
+;;; dedicated windows
+
+;; util functions
+
+(defun hikizan/get-or-create-buffer-from-file-name (file-name)
+  "Return the buffer associated with the given FILE-NAME.
+If no such buffer exists, open the file and create a new buffer."
+  (let ((buffer (get-file-buffer file-name)))
+    (if buffer
+        buffer
+      (find-file file-name)
+      (get-file-buffer file-name))))
+
+(defun hikizan/get-window-from-file-name (file-name)
+  "Return the window associated with the given FILE-NAME, or nil if no such window exists."
+  (get-buffer-window (hikizan/get-or-create-buffer-from-file-name file-name)))
+
+(defun hikizan/split-bottom-most-window (size)
+  "Return the bottom-most window."
+  (split-window (frame-root-window) size 'below))
+
+(defun hikizan/split-right-most-window (size)
+  "Return the bottom-most window."
+  (split-window-right (- size) (frame-root-window)))
+
+(defun hikizan/open-dedicated-window-bottom (buffer size)
+  "Open dedicated window bottom."
+  (let ((new-window (hikizan/split-bottom-most-window size)))
+    (set-window-buffer new-window buffer)
+    (set-window-dedicated-p new-window t)
+    new-window))
+
+(defun hikizan/open-dedicated-window-right (buffer size)
+  "Open dedicated window right."
+  (let ((new-window (hikizan/split-right-most-window size)))
+    (set-window-buffer new-window buffer)
+    (set-window-dedicated-p new-window t)
+    new-window))
+
+;; buffer-list window
+
+(defun hikizan/get-buffer-list-window ()
+  "Get the *buffer-list* window."
+  (get-buffer-window (list-buffers-noselect)))
+
+(defun hikizan/open-buffer-list-window ()
+  "Open the *buffer-list* window."
+  (interactive)
+  (let ((window (hikizan/get-buffer-list-window)))
+    (unless (windowp window)
+      (select-window (hikizan/open-dedicated-window-bottom (list-buffers-noselect) 30)))))
+
+(defun hikizan/close-buffer-list-window ()
+  "Close the *buffer-list* window."
+  (interactive)
+  (let ((window (hikizan/get-buffer-list-window)))
+    (if (windowp window)
+	(delete-window window))))
+
+(defun hikizan/toggle-buffer-list-window ()
+  "Toggle the *buffer-list* window."
+  (interactive)
+  (let ((window (hikizan/get-buffer-list-window)))
+    (if (windowp window)
+	(hikizan/close-buffer-list-window)
+      (hikizan/open-buffer-list-window))))
+
+;; scratch window
+
+(defun hikizan/get-scratch-buffer ()
+  "Get the *scratch* buffer."
+  (get-buffer "*scratch*"))
+
+(defun hikizan/get-scratch-window ()
+  "Get the *scratch* window."
+  (get-buffer-window (hikizan/get-scratch-buffer)))
+
+(defun hikizan/open-scratch-window ()
+  "Open the *scratch* window."
+  (interactive)
+  (let ((window (hikizan/get-scratch-window)))
+    (unless (windowp window)
+      (select-window (hikizan/open-dedicated-window-bottom (hikizan/get-scratch-buffer) 30)))))
+
+(defun hikizan/close-scratch-window ()
+  "Close the *scratch* window."
+  (interactive)
+  (let ((window (hikizan/get-scratch-window)))
+    (if (windowp window)
+	(delete-window window))))
+
+(defun hikizan/toggle-scratch-window ()
+  "Toggle the *scratch* window."
+  (interactive)
+  (let ((window (hikizan/get-scratch-window)))
+    (if (windowp window)
+	(hikizan/close-scratch-window)
+      (hikizan/open-scratch-window))))
+
+;; org note window
+
+(defun hikizan/open-org-note-window ()
+  "Open the org note window."
+  (interactive)
+  (let ((window (hikizan/get-window-from-file-name org-default-notes-file)))
+    (unless (windowp window)
+      (select-window (hikizan/open-dedicated-window-right
+		      (hikizan/get-or-create-buffer-from-file-name org-default-notes-file)
+		      70)))))
+
+(defun hikizan/close-org-note-window ()
+  "Close the org note window."
+  (interactive)
+  (let ((window (hikizan/get-window-from-file-name org-default-notes-file)))
+    (if (windowp window)
+	(delete-window window))))
+
+(defun hikizan/toggle-org-note-window ()
+  "Toggle the org note window."
+  (interactive)
+  (let ((window (hikizan/get-window-from-file-name org-default-notes-file)))
+    (if (windowp window)
+	(hikizan/close-org-note-window)
+      (hikizan/open-org-note-window))))
+
 (provide 'hikizan-ui)
