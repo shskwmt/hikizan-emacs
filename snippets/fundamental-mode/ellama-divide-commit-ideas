@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ellama-divide-commit-ideas
+# key: ellama-divide-commit-ideas
+# --
+The provided context shows the differences in this commit. I think this commit is too large for a single commit, and I would like to divide it into several parts. Could you give me some ideas?

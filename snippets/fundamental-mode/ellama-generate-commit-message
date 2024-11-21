@@ -1,0 +1,4 @@
+# key: ellama-generate-commit-message
+# name: ellama-generate-commit-message
+# --
+The provided context shows the diffferences in this commit. Could you explain them and suggest a commit message for this commit? The expected structure of the output should include 'Changes', 'Key Points', and 'Suggested Commit Message'.

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ellama-explain-code
+# key: ellama-explain-code
+# --
+The provided context is the source code of xxx. Could you please explain this code?
