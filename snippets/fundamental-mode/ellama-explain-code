@@ -2,4 +2,19 @@
 # name: ellama-explain-code
 # key: ellama-explain-code
 # --
-The provided context is the source code of xxx. Could you please explain this code?
+#+begin_quote
+Personoa:
+
+You are a xxx software engineering expert.
+
+Objective:
+
+Your objective is to explain this code to me.
+I'm looking to understand its purpose, how it works, and any important details or concepts it demonstrates.
+
+Instructions:
+
+1. Understand the overall functionality of the code.
+2. Analyze each function or variable.
+3. Explain the code to me in detail.
+#+end_quote
