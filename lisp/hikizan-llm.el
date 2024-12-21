@@ -102,16 +102,24 @@ Code:
 
 %s")
 
+(defun hikizan/llm-explain-code-internal (&optional provider)
+  (let ((content (hikizan/extract-buffer-or-active-region-string))
+	(prov (if provider
+		  provider
+		ellama-provider)))
+    (ellama-instant (format hikizan/llm-explain-code-prompt content)
+			:provider prov)))
+
 (defun hikizan/llm-explain-code ()
   "Explain the source code of this buffer."
   (interactive)
-  (let ((content (if (region-active-p)
-		    (buffer-substring-no-properties
-		     (region-beginning)
-		     (region-end))
-		  (buffer-substring-no-properties
-		   (point-min)
-		   (point-max)))))
-    (ellama-instant (format hikizan/llm-explain-code-prompt content))))
+  (hikizan/llm-explain-code-internal ellama-provider-llama3_1))
+
+(defun hikizan/llm-explain-code-detail ()
+  "Explain the source code of this buffer."
+  (interactive)
+  (let ((content (hikizan/extract-buffer-or-active-region-string)))
+    (ellama-instant (format hikizan/llm-explain-code-prompt content)
+		    :provider ellama-provider-gemma2)))
 
 (provide 'hikizan-llm)
