@@ -15,7 +15,13 @@
   (require 'llm-ollama)
   (setopt ellama-provider
 	  (make-llm-ollama
-	   :chat-model ellama-chat-model :embedding-model ellama-embedding-model)))
+	   :chat-model ellama-chat-model :embedding-model ellama-embedding-model))
+  (setopt ellama-provider-llama3_1 (make-llm-ollama
+				    :chat-model "llama3.1"
+				    :embedding-model "llama3.1"))
+  (setopt ellama-provider-gemma2 (make-llm-ollama
+				  :chat-model "gemma2"
+				  :embedding-model "gemma2")))
 
 (setq ellama-generate-commit-message-template
       "Personoa:
