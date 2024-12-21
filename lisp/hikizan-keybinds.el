@@ -8,6 +8,7 @@
 (global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
 
 ;; hikizan llm
+(global-set-key (kbd "C-c la") 'hikizan/llm-ask-about)
 (global-set-key (kbd "C-c lc") 'hikizan/llm-generate-commit-message)
 (global-set-key (kbd "C-c le") 'hikizan/llm-explain-code)
 (global-set-key (kbd "C-c lr") 'hikizan/llm-review-english)

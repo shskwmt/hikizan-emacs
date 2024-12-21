@@ -23,6 +23,29 @@
 				  :chat-model "gemma2"
 				  :embedding-model "gemma2")))
 
+(setq hikizan/llm-ask-about-prompt
+      "Objective:
+
+To response the command is your objective.
+
+Command:
+
+%s
+
+Context:
+
+```
+%s
+```")
+
+(defun hikizan/llm-ask-about ()
+  "Ask about the buffer or the active region."
+  (interactive)
+  (let ((command (read-string "Ask about the buffer or the region: "))
+	(context (hikizan/extract-buffer-or-active-region-string)))
+    (ellama-instant (format hikizan/llm-ask-about-prompt command context)
+		    :provider ellama-provider-llama3_1)))
+
 (setq ellama-generate-commit-message-template
       "Personoa:
 
