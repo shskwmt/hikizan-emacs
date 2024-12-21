@@ -70,7 +70,7 @@ Diff:
 
 %s")
 
-(defun hikizan-llm-generate-commit-message ()
+(defun hikizan/llm-generate-commit-message ()
   "Generate a commit message based on the result of 'git diff --cached'"
   (interactive)
   (ellama-instant (format ellama-generate-commit-message-template
