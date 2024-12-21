@@ -1,9 +1,16 @@
 ;;; hikizan-keybinds.el --- keybinds -*- lexical-binding: t; -*-
 
 ;;; global key bindings
+
+;; hikizan toggle
 (global-set-key (kbd "C-x C-b") 'hikizan/toggle-buffer-list-window)
 (global-set-key (kbd "C-c s") 'hikizan/toggle-scratch-window)
 (global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
+
+;; hikizan llm
+(global-set-key (kbd "C-c lc") 'hikizan/llm-generate-commit-message)
+
+;; others
 (global-set-key (kbd "C-x o") 'ace-window)
 (global-set-key (kbd "C->") 'text-scale-increase)
 (global-set-key (kbd "C-<") 'text-scale-decrease)
