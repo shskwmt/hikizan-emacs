@@ -168,4 +168,25 @@ My English sentences:
     (ellama-instant (format hikizan/llm-review-english-prompt content)
 		    :provider ellama-provider-llama3_1)))
 
+(setq hikizan/llm-categorize-buffer-list-prompt
+      "Persona:
+
+You are a software engineer and you use emacs as a text editor.
+
+Objective:
+
+To categorize the buffer list is your objective.
+
+Buffer list:
+
+%s")
+
+(defun hikizan/llm-categorize-buffer-list ()
+  "Categorize buffer list."
+  (interactive)
+  (let ((buffer-list (with-current-buffer (list-buffers-noselect)
+		       (buffer-substring-no-properties (point-min) (point-max)))))
+    (ellama-instant (format hikizan/llm-categorize-buffer-list-prompt buffer-list)
+		    :provider ellama-provider-llama3_1)))
+
 (provide 'hikizan-llm)
