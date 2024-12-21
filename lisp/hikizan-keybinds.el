@@ -9,6 +9,7 @@
 
 ;; hikizan llm
 (global-set-key (kbd "C-c lc") 'hikizan/llm-generate-commit-message)
+(global-set-key (kbd "C-c le") 'hikizan/llm-explain-code)
 
 ;; others
 (global-set-key (kbd "C-x o") 'ace-window)
