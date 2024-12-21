@@ -76,4 +76,36 @@ Diff:
   (ellama-instant (format ellama-generate-commit-message-template
 			  (shell-command-to-string "git diff --cached"))))
 
+(setq hikizan/llm-explain-code-prompt
+      "Personoa:
+
+You are a software engineering expert.
+
+Objective:
+
+Your objective is to explain this code to me.
+I'm looking to understand its purpose, how it works, and any important details or concepts it demonstrates.
+
+Instructions:
+
+1. Understand the overall functionality of the code.
+2. Analyze each function or variable.
+3. Explain the code to me in detail.
+
+Code:
+
+%s")
+
+(defun hikizan/llm-explain-code ()
+  "Explain the source code of this buffer."
+  (interactive)
+  (let ((content (if (region-active-p)
+		    (buffer-substring-no-properties
+		     (region-beginning)
+		     (region-end))
+		  (buffer-substring-no-properties
+		   (point-min)
+		   (point-max)))))
+    (ellama-instant (format hikizan/llm-explain-code-prompt content))))
+
 (provide 'hikizan-llm)
