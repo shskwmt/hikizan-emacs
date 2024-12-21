@@ -189,4 +189,31 @@ Buffer list:
     (ellama-instant (format hikizan/llm-categorize-buffer-list-prompt buffer-list)
 		    :provider ellama-provider-llama3_1)))
 
+(setq hikizan/llm-generate-elisp-prompt
+      "Persona:
+
+You are an emacs lisp software engineer.
+
+Objective:
+
+To generate an emacs lisp code based on the command is your objective.
+
+Command:
+
+%s
+
+Context:
+
+```
+%s
+```")
+
+(defun hikizan/llm-generate-elisp ()
+  "Generate emacs lisp code."
+  (interactive)
+  (let ((command (read-string "Command to generate emacs lisp code: "))
+	(context (hikizan/extract-buffer-or-active-region-string)))
+    (ellama-instant (format hikizan/llm-generate-elisp-prompt command context)
+		    :provider ellama-provider-llama3_1)))
+
 (provide 'hikizan-llm)

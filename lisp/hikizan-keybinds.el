@@ -12,6 +12,7 @@
 (global-set-key (kbd "C-c lb") 'hikizan/llm-categorize-buffer-list)
 (global-set-key (kbd "C-c lc") 'hikizan/llm-generate-commit-message)
 (global-set-key (kbd "C-c le") 'hikizan/llm-explain-code)
+(global-set-key (kbd "C-c ll") 'hikizan/llm-generate-elisp)
 (global-set-key (kbd "C-c lr") 'hikizan/llm-review-english)
 
 ;; others
