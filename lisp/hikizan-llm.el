@@ -152,7 +152,6 @@ You are an English teacher.
 
 Objective:
 
-Your objectives is the following;
 1. Review my English sentences
 2. Translate my English sentences to Japanese
 
@@ -166,7 +165,6 @@ My English sentences:
   "Review English sentences."
   (interactive)
   (let ((content (hikizan/extract-buffer-or-active-region-string)))
-    (message (format hikizan/llm-review-english-prompt content))
     (ellama-instant (format hikizan/llm-review-english-prompt content)
 		    :provider ellama-provider-llama3_1)))
 
