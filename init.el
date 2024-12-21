@@ -7,6 +7,7 @@
 (add-to-list 'load-path hikizan-lisp-dir)
 
 (require 'hikizan-package-manager)
+(require 'hikizan-util)
 (require 'hikizan-project)
 (require 'hikizan-editor)
 (require 'hikizan-org)
