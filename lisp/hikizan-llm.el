@@ -1,8 +1,24 @@
-# key: ellama-generate-commit-message
-# name: ellama-generate-commit-message
-# --
-#+begin_quote
-Personoa:
+;;; hikizan-llm.el --- llm  -*- lexical-binding: t; -*-
+
+;; ellama
+(unless (boundp 'ellama-chat-model)
+  (setq ellama-chat-model "llama3.1"))
+
+(unless (boundp 'ellama-embedding-model)
+  (setq ellama-embedding-model "llama3.1"))
+
+(use-package ellama
+  :ensure t
+  :init
+  (setopt ellama-language "English")
+  (setopt ellama-auto-scroll t)
+  (require 'llm-ollama)
+  (setopt ellama-provider
+	  (make-llm-ollama
+	   :chat-model ellama-chat-model :embedding-model ellama-embedding-model)))
+
+(setq ellama-generate-commit-message-template
+      "Personoa:
 
 You are a software engineering expert.
 
@@ -49,4 +65,15 @@ chore: [describe non-functional update]
 
 - [Optional: Briefly explain the change or update.]
 #+end_src
-#+end_quote
+
+Diff:
+
+%s")
+
+(defun hikizan-llm-generate-commit-message ()
+  "Generate a commit message based on the result of 'git diff --cached'"
+  (interactive)
+  (ellama-instant (format ellama-generate-commit-message-template
+			  (shell-command-to-string "git diff --cached"))))
+
+(provide 'hikizan-llm)
