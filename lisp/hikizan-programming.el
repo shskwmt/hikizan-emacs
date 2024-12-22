@@ -38,4 +38,21 @@
 (use-package ein
   :ensure t)
 
+;;; functions
+
+(defun extract-golang-functions ()
+  "Extract all Golang function names from the current buffer."
+  (interactive)
+  (let ((function-names '())
+	(regex "^\\(func .*\\)$"))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward regex nil t)
+	(push (substring-no-properties (match-string 1)) function-names)))
+    (let ((new-buffer (generate-new-buffer "*Go Function Names*")))
+      (with-current-buffer new-buffer
+	(dolist (name (reverse function-names))
+	  (insert name "\n"))
+	(pop-to-buffer new-buffer)))))
+
 (provide 'hikizan-programming)
