@@ -165,8 +165,7 @@ My English sentences:
   "Review English sentences."
   (interactive)
   (let ((content (hikizan/extract-buffer-or-active-region-string)))
-    (ellama-instant (format hikizan/llm-review-english-prompt content)
-		    :provider ellama-provider-llama3_1)))
+    (ellama-instant (format hikizan/llm-review-english-prompt content))))
 
 (setq hikizan/llm-categorize-buffer-list-prompt
       "Persona:
