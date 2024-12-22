@@ -10,11 +10,11 @@
 ;; hikizan llm
 (global-set-key (kbd "C-c La") 'hikizan/llm-ask-about)
 (global-set-key (kbd "C-c Lb") 'hikizan/llm-categorize-buffer-list)
-(global-set-key (kbd "C-c Lc") 'hikizan/llm-generate-commit-message)
 (global-set-key (kbd "C-c Lec") 'hikizan/llm-explain-code)
 (global-set-key (kbd "C-c Led") 'hikizan/llm-explain-code-detail)
-(global-set-key (kbd "C-c Ll") 'hikizan/llm-generate-elisp)
-(global-set-key (kbd "C-c Lr") 'hikizan/llm-review-english)
+(global-set-key (kbd "C-c Lgc") 'hikizan/llm-generate-commit-message)
+(global-set-key (kbd "C-c Lgl") 'hikizan/llm-generate-elisp)
+(global-set-key (kbd "C-c Lre") 'hikizan/llm-review-english)
 
 ;; others
 (global-set-key (kbd "C-x o") 'ace-window)
