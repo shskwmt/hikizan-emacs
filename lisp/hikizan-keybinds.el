@@ -8,12 +8,13 @@
 (global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
 
 ;; hikizan llm
-(global-set-key (kbd "C-c la") 'hikizan/llm-ask-about)
-(global-set-key (kbd "C-c lb") 'hikizan/llm-categorize-buffer-list)
-(global-set-key (kbd "C-c lc") 'hikizan/llm-generate-commit-message)
-(global-set-key (kbd "C-c le") 'hikizan/llm-explain-code)
-(global-set-key (kbd "C-c ll") 'hikizan/llm-generate-elisp)
-(global-set-key (kbd "C-c lr") 'hikizan/llm-review-english)
+(global-set-key (kbd "C-c La") 'hikizan/llm-ask-about)
+(global-set-key (kbd "C-c Lb") 'hikizan/llm-categorize-buffer-list)
+(global-set-key (kbd "C-c Lc") 'hikizan/llm-generate-commit-message)
+(global-set-key (kbd "C-c Lec") 'hikizan/llm-explain-code)
+(global-set-key (kbd "C-c Led") 'hikizan/llm-explain-code-detail)
+(global-set-key (kbd "C-c Ll") 'hikizan/llm-generate-elisp)
+(global-set-key (kbd "C-c Lr") 'hikizan/llm-review-english)
 
 ;; others
 (global-set-key (kbd "C-x o") 'ace-window)
