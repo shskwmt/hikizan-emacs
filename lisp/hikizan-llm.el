@@ -212,7 +212,6 @@ Context:
   (interactive)
   (let ((command (read-string "Command to generate emacs lisp code: "))
 	(context (hikizan/extract-buffer-or-active-region-string)))
-    (ellama-instant (format hikizan/llm-generate-elisp-prompt command context)
-		    :provider ellama-provider-llama3_1)))
+    (ellama-instant (format hikizan/llm-generate-elisp-prompt command context))))
 
 (provide 'hikizan-llm)
