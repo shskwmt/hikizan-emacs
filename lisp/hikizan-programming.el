@@ -40,7 +40,7 @@
 
 ;;; functions
 
-(defun extract-golang-functions ()
+(defun hikizan/extract-golang-functions ()
   "Extract all Golang function names from the current buffer."
   (interactive)
   (let ((function-names '())
