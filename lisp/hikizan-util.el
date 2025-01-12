@@ -11,4 +11,36 @@
 		   (point-max)))))
     content))
 
+(defun hikizan/find-string-position-in-buffer (buffer search-string)
+  "Find the position of SEARCH-STRING in the specified BUFFER."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (if (search-forward search-string nil t)
+	  (point)
+	nil)))
+  )
+
+(defun hikizan/get-string-from-point (buffer point)
+  "Get the string from BUFFER starting at POINT."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char point)  ; 指定されたポイントに移動
+      (buffer-substring-no-properties point (point-max)))))
+
+(defun hikizan/write-string-to-file (filename content)
+  "Write CONTENT to FILENAME."
+  (with-temp-buffer
+    (insert content)
+    (write-region (point-min) (point-max) filename)))
+
+(defun hikizan/eval-elisp-file (file-path)
+  "Evaluate the Elisp code in the specified FILE-PATH."
+  (with-temp-buffer
+    (insert-file-contents file-path)
+    (print file-path)
+    (condition-case err
+	(eval-buffer)
+      (error (message "error: %s" (error-message-string err))))))
+
 (provide 'hikizan-util)
