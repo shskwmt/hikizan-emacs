@@ -25,7 +25,7 @@
   "Get the string from BUFFER starting at POINT."
   (with-current-buffer buffer
     (save-excursion
-      (goto-char point)  ; 指定されたポイントに移動
+      (goto-char point)
       (buffer-substring-no-properties point (point-max)))))
 
 (defun hikizan/write-string-to-file (filename content)
@@ -33,6 +33,12 @@
   (with-temp-buffer
     (insert content)
     (write-region (point-min) (point-max) filename)))
+
+(defun hikizan/grep (pattern file-pattern path)
+  "Execute grep and return the result string."
+  (with-temp-buffer
+    (call-process "rg" nil (current-buffer) nil "-nHS" "-e" pattern "-g" file-pattern path)
+    (buffer-string)))
 
 (defun hikizan/eval-elisp-file (file-path)
   "Evaluate the Elisp code in the specified FILE-PATH."
