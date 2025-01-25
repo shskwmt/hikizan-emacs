@@ -40,6 +40,12 @@
     (call-process "rg" nil (current-buffer) nil "-nHS" "-e" pattern "-g" file-pattern path)
     (buffer-string)))
 
+(defun hikizan/grep-files (pattern file-pattern path)
+  "Execute grep and return the result string."
+  (with-temp-buffer
+    (call-process "rg" nil (current-buffer) nil "-lS" "-e" pattern "-g" file-pattern path)
+    (buffer-string)))
+
 (defun hikizan/eval-elisp-file (file-path)
   "Evaluate the Elisp code in the specified FILE-PATH."
   (with-temp-buffer
