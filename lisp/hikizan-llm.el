@@ -22,6 +22,9 @@
   (setopt ellama-provider-gemma2 (make-llm-ollama
 				  :chat-model "gemma2"
 				  :embedding-model "gemma2"))
+  (setopt ellama-provider-phi4 (make-llm-ollama
+				  :chat-model "phi4"
+				  :embedding-model "phi4"))
   (setopt ellama-provider-deepseek (make-llm-ollama
 				  :chat-model "deepseek-r1:14b"
 				  :embedding-model "deepseek-r1")))
@@ -47,7 +50,7 @@ Context:
   (let ((command (read-string "Ask about the buffer or the region: "))
 	(context (hikizan/extract-buffer-or-active-region-string)))
     (ellama-instant (format hikizan/llm-ask-about-prompt command context)
-		    :provider ellama-provider-deepseek)))
+		    :provider ellama-provider-phi4)))
 
 (setq ellama-generate-commit-message-template
       "Personoa:
@@ -107,7 +110,7 @@ Diff:
   (interactive)
   (ellama-instant (format ellama-generate-commit-message-template
 			  (shell-command-to-string "git diff --cached"))
-		  :provider ellama-provider-deepseek))
+		  :provider ellama-provider-phi4))
 
 (setq hikizan/llm-explain-code-prompt
       "Personoa:
@@ -134,7 +137,7 @@ Code:
   (interactive)
   (let ((content (hikizan/extract-buffer-or-active-region-string))
 	(ellama-instant (format hikizan/llm-explain-code-prompt content)
-			:provider ellama-provider-deepseek))))
+			:provider ellama-provider-phi4))))
 
 (setq hikizan/llm-review-english-prompt
       "Persona:
@@ -157,7 +160,7 @@ My English sentences:
   (interactive)
   (let ((content (hikizan/extract-buffer-or-active-region-string)))
     (ellama-instant (format hikizan/llm-review-english-prompt content)
-		    :provider ellama-provider-deepseek)))
+		    :provider ellama-provider-phi4)))
 
 (setq hikizan/llm-categorize-buffer-list-prompt
       "Persona:
@@ -178,7 +181,7 @@ Buffer list:
   (let ((buffer-list (with-current-buffer (list-buffers-noselect)
 		       (buffer-substring-no-properties (point-min) (point-max)))))
     (ellama-instant (format hikizan/llm-categorize-buffer-list-prompt buffer-list)
-		    :provider ellama-provider-deepseek)))
+		    :provider ellama-provider-phi4)))
 
 (setq hikizan/llm-generate-elisp-prompt
       "Persona:
@@ -205,6 +208,6 @@ Context:
   (let ((command (read-string "Command to generate emacs lisp code: "))
 	(context (hikizan/extract-buffer-or-active-region-string)))
     (ellama-instant (format hikizan/llm-generate-elisp-prompt command context)
-		    :provider ellama-provider-deepseek)))
+		    :provider ellama-provider-phi4)))
 
 (provide 'hikizan-llm)
