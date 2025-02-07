@@ -1,5 +1,7 @@
 ;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
 
+(load-theme 'whiteboard)
+
 (add-to-list 'default-frame-alist '(font . "NotoMono NF-12.0"))
 (setq use-default-font-for-symbols nil)
 
