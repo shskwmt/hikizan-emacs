@@ -2,10 +2,10 @@
 
 ;; ellama
 (unless (boundp 'ellama-chat-model)
-  (setq ellama-chat-model "llama3.1"))
+  (setq ellama-chat-model "gemma2"))
 
 (unless (boundp 'ellama-embedding-model)
-  (setq ellama-embedding-model "llama3.1"))
+  (setq ellama-embedding-model "gemma2"))
 
 (use-package ellama
   :ensure t
@@ -16,9 +16,6 @@
   (setopt ellama-provider
 	  (make-llm-ollama
 	   :chat-model ellama-chat-model :embedding-model ellama-embedding-model))
-  (setopt ellama-provider-llama3_1 (make-llm-ollama
-				    :chat-model "llama3.1"
-				    :embedding-model "llama3.1"))
   (setopt ellama-provider-gemma2 (make-llm-ollama
 				  :chat-model "gemma2"
 				  :embedding-model "gemma2"))
@@ -50,7 +47,7 @@ Context:
   (let ((command (read-string "Ask about the buffer or the region: "))
 	(context (hikizan/extract-buffer-or-active-region-string)))
     (ellama-instant (format hikizan/llm-ask-about-prompt command context)
-		    :provider ellama-provider-phi4)))
+		    :provider ellama-provider-gemma2)))
 
 (setq ellama-generate-commit-message-template
       "Personoa:
@@ -110,7 +107,7 @@ Diff:
   (interactive)
   (ellama-instant (format ellama-generate-commit-message-template
 			  (shell-command-to-string "git diff --cached"))
-		  :provider ellama-provider-phi4))
+		  :provider ellama-provider-gemma2))
 
 (setq hikizan/llm-explain-code-prompt
       "Personoa:
@@ -137,7 +134,7 @@ Code:
   (interactive)
   (let ((content (hikizan/extract-buffer-or-active-region-string))
 	(ellama-instant (format hikizan/llm-explain-code-prompt content)
-			:provider ellama-provider-phi4))))
+			:provider ellama-provider-gemma2))))
 
 (setq hikizan/llm-review-english-prompt
       "Persona:
@@ -160,7 +157,7 @@ My English sentences:
   (interactive)
   (let ((content (hikizan/extract-buffer-or-active-region-string)))
     (ellama-instant (format hikizan/llm-review-english-prompt content)
-		    :provider ellama-provider-phi4)))
+		    :provider ellama-provider-gemma2)))
 
 (setq hikizan/llm-categorize-buffer-list-prompt
       "Persona:
@@ -181,7 +178,7 @@ Buffer list:
   (let ((buffer-list (with-current-buffer (list-buffers-noselect)
 		       (buffer-substring-no-properties (point-min) (point-max)))))
     (ellama-instant (format hikizan/llm-categorize-buffer-list-prompt buffer-list)
-		    :provider ellama-provider-phi4)))
+		    :provider ellama-provider-gemma2)))
 
 (setq hikizan/llm-generate-elisp-prompt
       "Persona:
@@ -208,6 +205,6 @@ Context:
   (let ((command (read-string "Command to generate emacs lisp code: "))
 	(context (hikizan/extract-buffer-or-active-region-string)))
     (ellama-instant (format hikizan/llm-generate-elisp-prompt command context)
-		    :provider ellama-provider-phi4)))
+		    :provider ellama-provider-gemma2)))
 
 (provide 'hikizan-llm)
