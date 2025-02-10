@@ -4,10 +4,10 @@
   :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89)))
-      (black "#000000")
+      (black "black")
       (blue "blue")
       (red "red")
-      (white "#ffffff")
+      (white "white")
       (brightblack "brightblack")
       (brightcyan "brightcyan")
       )
