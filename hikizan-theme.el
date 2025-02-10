@@ -7,6 +7,7 @@
       (default "default")
       (black "black")
       (blue "blue")
+      (skyblue "SkyBlue4")
       (red "red")
       (white "white")
       (brightwhite "brightwhite")
@@ -46,14 +47,14 @@
    `(success ((,class (:foreground ,default))))
 
    ;; Font lock faces
-   `(font-lock-builtin-face ((,class (:foreground ,default))))
+   `(font-lock-builtin-face ((,class (:foreground ,skyblue))))
    `(font-lock-comment-face ((,class (:foreground ,brightwhite))))
-   `(font-lock-constant-face ((,class (:foreground ,default))))
-   `(font-lock-function-name-face ((,class (:foreground ,default))))
-   `(font-lock-keyword-face ((,class (:foreground ,default))))
+   `(font-lock-constant-face ((,class (:foreground ,skyblue))))
+   `(font-lock-function-name-face ((,class (:foreground ,skyblue))))
+   `(font-lock-keyword-face ((,class (:foreground ,skyblue))))
    `(font-lock-string-face ((,class (:foreground ,default))))
-   `(font-lock-type-face ((,class (:foreground ,default))))
-   `(font-lock-variable-name-face ((,class (:foreground ,default))))
+   `(font-lock-type-face ((,class (:foreground ,skyblue))))
+   `(font-lock-variable-name-face ((,class (:foreground ,skyblue))))
 
    ;; Button and link faces
    `(link ((,class (:underline t :foreground ,default))))
@@ -118,6 +119,7 @@
 
    ;; magit
    `(magit-section ((,class (:foreground ,default :background ,default))))
+   `(magit-section-highlight ((,class (:foreground ,default :background ,default))))
    `(magit-diff-file-heading-selection ((,class (:foreground ,default))))
    `(magit-diff-hunk-heading ((,class (:foreground ,default :background ,default))))
    `(magit-diff-hunk-heading-selectgion ((,class (:foreground ,default :background ,brightblack))))
