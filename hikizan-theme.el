@@ -7,7 +7,7 @@
       (default "default")
       (black "black")
       (blue "blue")
-      (skyblue "SkyBlue4")
+      (skyblue "SkyBlue2")
       (red "red")
       (white "white")
       (brightwhite "brightwhite")
