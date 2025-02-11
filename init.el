@@ -8,6 +8,7 @@
 
 (require 'hikizan-package-manager)
 (require 'hikizan-util)
+(require 'hikizan-completion)
 (require 'hikizan-project)
 (require 'hikizan-editor)
 (require 'hikizan-org)
