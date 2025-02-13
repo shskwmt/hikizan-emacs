@@ -130,6 +130,12 @@
    `(magit-diff-added-highlight ((,class (:foreground ,blue :background ,default))))
    `(magit-diff-removed ((,class (:foreground ,red :background ,default))))
    `(magit-diff-removed-highlight ((,class (:foreground ,red :background ,default))))
+
+   ;; ein
+   `(ein:basecell-input-area-face ((,class (:background ,default))))
+
+   ;; completions
+   `(completions-annotations ((,class (:foreground ,brightwhite))))
    ))
 
 (provide-theme 'hikizan)
