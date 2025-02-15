@@ -37,7 +37,10 @@
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
 
-;;; dedicated windows
+;;; popup windows
+
+(use-package popwin
+  :ensure t)
 
 ;; util functions
 
@@ -54,27 +57,12 @@ If no such buffer exists, open the file and create a new buffer."
   "Return the window associated with the given FILE-NAME, or nil if no such window exists."
   (get-buffer-window (hikizan/get-or-create-buffer-from-file-name file-name)))
 
-(defun hikizan/split-bottom-most-window (size)
-  "Return the bottom-most window."
-  (split-window (frame-root-window) size 'below))
-
-(defun hikizan/split-right-most-window (size)
-  "Return the bottom-most window."
-  (split-window-right (- size) (frame-root-window)))
-
-(defun hikizan/open-dedicated-window-bottom (buffer size)
+(defun hikizan/open-dedicated-window-bottom (buffer height)
   "Open dedicated window bottom."
-  (let ((new-window (hikizan/split-bottom-most-window size)))
-    (set-window-buffer new-window buffer)
-    (set-window-dedicated-p new-window t)
-    new-window))
-
-(defun hikizan/open-dedicated-window-right (buffer size)
-  "Open dedicated window right."
-  (let ((new-window (hikizan/split-right-most-window size)))
-    (set-window-buffer new-window buffer)
-    (set-window-dedicated-p new-window t)
-    new-window))
+  (popwin:popup-buffer buffer
+		       :tail t
+		       :dedicated t
+		       :height height))
 
 ;; buffer-list window
 
@@ -87,7 +75,7 @@ If no such buffer exists, open the file and create a new buffer."
   (interactive)
   (let ((window (hikizan/get-buffer-list-window)))
     (unless (windowp window)
-      (select-window (hikizan/open-dedicated-window-bottom (list-buffers-noselect) 30)))))
+      (hikizan/open-dedicated-window-bottom (list-buffers-noselect) 0.4))))
 
 (defun hikizan/close-buffer-list-window ()
   "Close the *buffer-list* window."
@@ -119,7 +107,7 @@ If no such buffer exists, open the file and create a new buffer."
   (interactive)
   (let ((window (hikizan/get-scratch-window)))
     (unless (windowp window)
-      (select-window (hikizan/open-dedicated-window-bottom (hikizan/get-scratch-buffer) 30)))))
+      (hikizan/open-dedicated-window-bottom (hikizan/get-scratch-buffer) 0.4))))
 
 (defun hikizan/close-scratch-window ()
   "Close the *scratch* window."
@@ -143,9 +131,10 @@ If no such buffer exists, open the file and create a new buffer."
   (interactive)
   (let ((window (hikizan/get-window-from-file-name org-default-notes-file)))
     (unless (windowp window)
-      (select-window (hikizan/open-dedicated-window-right
-		      (hikizan/get-or-create-buffer-from-file-name org-default-notes-file)
-		      70)))))
+      (popwin:popup-buffer (hikizan/get-or-create-buffer-from-file-name org-default-notes-file)
+			   :tail t
+			   :dedicated t
+			   :height 0.4))))
 
 (defun hikizan/close-org-note-window ()
   "Close the org note window."
