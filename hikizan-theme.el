@@ -131,6 +131,14 @@
    `(magit-diff-removed ((,class (:foreground ,red :background ,default))))
    `(magit-diff-removed-highlight ((,class (:foreground ,red :background ,default))))
 
+   ;; smerge
+   `(smerge-markers ((,class (:background ,brightblack))))
+   `(smerge-upper ((,class (:background ,default))))
+   `(smerge-base ((,class (:background ,default))))
+   `(smerge-lower ((,class (:background ,default))))
+   `(smerge-refined-added ((,class (:foreground ,blue :background ,default))))
+   `(smerge-refined-removed ((,class (:foreground ,red :background ,default))))
+
    ;; ein
    `(ein:basecell-input-area-face ((,class (:background ,default))))
 
