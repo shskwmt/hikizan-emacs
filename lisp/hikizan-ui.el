@@ -151,4 +151,35 @@ If no such buffer exists, open the file and create a new buffer."
 	(hikizan/close-org-note-window)
       (hikizan/open-org-note-window))))
 
+;; message window
+(defun hikizan/get-messages-buffer ()
+  "Get the *Message* buffer."
+  (get-buffer "*Messages*"))
+
+(defun hikizan/get-messages-window ()
+  "Get the *Messages* window."
+  (get-buffer-window (hikizan/get-messages-buffer)))
+
+(defun hikizan/open-messages-window ()
+  "Open the *Messages* window."
+  (interactive)
+  (let ((window (hikizan/get-messages-window)))
+    (unless (windowp window)
+      (hikizan/open-dedicated-window-bottom (hikizan/get-messages-buffer) 0.4))))
+
+(defun hikizan/close-messages-window ()
+  "Close the *Messages* window."
+  (interactive)
+  (let ((window (hikizan/get-messages-window)))
+    (if (windowp window)
+	(delete-window window))))
+
+(defun hikizan/toggle-messages-window ()
+  "Toggle the *Messages* window."
+  (interactive)
+  (let ((window (hikizan/get-messages-window)))
+    (if (windowp window)
+	(hikizan/close-messages-window)
+      (hikizan/open-messages-window))))
+
 (provide 'hikizan-ui)

@@ -6,6 +6,7 @@
 (global-set-key (kbd "C-x C-b") 'hikizan/toggle-buffer-list-window)
 (global-set-key (kbd "C-c s") 'hikizan/toggle-scratch-window)
 (global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
+(global-set-key (kbd "C-c m") 'hikizan/toggle-messages-window)
 
 ;; hikizan llm
 (global-set-key (kbd "C-c La") 'hikizan/llm-ask-about)
