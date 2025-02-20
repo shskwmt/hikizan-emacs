@@ -1,5 +1,7 @@
 ;;; hikizan-editor.el --- editor  -*- lexical-binding: t; -*-
 
+;;; configurations
+
 ;; lockfiles
 (setq create-lockfiles nil)
 
@@ -25,20 +27,6 @@
 (setq display-line-numbers-type t)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
-;; command logs
-(setq clm/command-log-buffer (get-buffer-create " *command-log*"))
-(defun hikizan/save-command-log ()
-  (if (bufferp clm/command-log-buffer)
-      (clm/save-command-log)))
-
-(use-package command-log-mode
-  :ensure t
-  :config
-  (setopt clm/log-command-exceptions* '(nil self-insert-command newline))
-  (global-command-log-mode t)
-  (add-hook 'kill-emacs-hook 'clm/save-command-log)
-  (add-function :after after-focus-change-function (lambda () (clm/save-command-log))))
-
 ;; editor config
 (use-package editorconfig
   :ensure t
@@ -57,5 +45,36 @@
 (delete-selection-mode t)
 (electric-pair-mode t)
 (global-auto-revert-mode t)
+
+;;; command logs
+(setq clm/command-log-buffer (get-buffer-create " *command-log*"))
+(defun hikizan/save-command-log ()
+  (if (bufferp clm/command-log-buffer)
+      (clm/save-command-log)))
+
+(use-package command-log-mode
+  :ensure t
+  :config
+  (setopt clm/log-command-exceptions* '(nil self-insert-command newline))
+  (global-command-log-mode t)
+  (add-hook 'kill-emacs-hook 'clm/save-command-log)
+  (add-function :after after-focus-change-function (lambda () (clm/save-command-log))))
+
+;;; functions
+(defun kill-ring-save-for-windows ()
+  "Copy region to the Windows clipboard using clip.exe"
+  (interactive)
+  (if (use-region-p)
+      (progn
+	(if (executable-find "clip.exe")
+	    (let ((text (buffer-substring-no-properties
+			 (region-beginning)
+			 (region-end))))
+	      (with-temp-buffer
+		(insert text)
+		(call-process-region (point-min) (point-max) "clip.exe")))
+	  (message "clip.exe not found"))
+	(kill-ring-save (region-beginning) (region-end)))
+    (message "No region selected")))
 
 (provide 'hikizan-editor)
