@@ -62,19 +62,30 @@
 
 ;;; functions
 (defun kill-ring-save-for-windows ()
-  "Copy region to the Windows clipboard using clip.exe"
+  "Copy region to Windows clipboard with PowerShell asynchronously and execute kill-ring-save immediately."
   (interactive)
   (if (use-region-p)
-      (progn
-	(if (executable-find "clip.exe")
-	    (let ((text (buffer-substring-no-properties
-			 (region-beginning)
-			 (region-end))))
-	      (with-temp-buffer
-		(insert text)
-		(call-process-region (point-min) (point-max) "clip.exe")))
-	  (message "clip.exe not found"))
-	(kill-ring-save (region-beginning) (region-end)))
+      (let ((begin (region-beginning))
+            (end (region-end))
+            (text (buffer-substring-no-properties
+                   (region-beginning)
+                   (region-end))))
+        ;; First, do the standard kill-ring-save immediately
+        (kill-ring-save begin end)
+
+        ;; Then start the async PowerShell process for Windows clipboard
+        (when (executable-find "powershell.exe")
+          (let ((proc (make-process
+                       :name "powershell-clipboard"
+                       :buffer nil
+                       :command '("powershell.exe"
+                                  "-command"
+                                  "[Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -Assembly PresentationCore; [System.Windows.Clipboard]::SetText([Console]::In.ReadToEnd())")
+                       :sentinel (lambda (_proc event)
+                                   (when (string= event "finished\n")
+                                     (message "Text copied to Windows clipboard"))))))
+            (process-send-string proc text)
+            (process-send-eof proc))))
     (message "No region selected")))
 
 (provide 'hikizan-editor)
