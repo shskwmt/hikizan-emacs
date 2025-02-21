@@ -132,8 +132,8 @@ If no such buffer exists, open the file and create a new buffer."
   (let ((window (hikizan/get-window-from-file-name org-default-notes-file)))
     (unless (windowp window)
       (popwin:popup-buffer (hikizan/get-or-create-buffer-from-file-name org-default-notes-file)
-			   :tail t
 			   :dedicated t
+			   :stick t
 			   :height 0.4))))
 
 (defun hikizan/close-org-note-window ()
