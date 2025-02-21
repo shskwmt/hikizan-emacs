@@ -117,19 +117,11 @@
    ;; avy
    `(avy-lead-face ((,class (:foreground ,default :background ,brightblack))))
 
-   ;; magit
-   `(magit-section ((,class (:foreground ,default :background ,default))))
-   `(magit-section-highlight ((,class (:background ,default))))
-   `(magit-diff-file-heading-selection ((,class (:foreground ,default))))
-   `(magit-diff-hunk-heading ((,class (:background ,default))))
-   `(magit-diff-hunk-heading-selectgion ((,class (:background ,brightblack))))
-   `(magit-diff-hunk-heading-highlight ((,class (:background ,default))))
-   `(magit-diff-base-highlight ((,class (:background ,default))))
-   `(magit-diff-context-highlight ((,class (:background ,default))))
-   `(magit-diff-added ((,class (:foreground ,blue :background ,default))))
-   `(magit-diff-added-highlight ((,class (:foreground ,blue :background ,default))))
-   `(magit-diff-removed ((,class (:foreground ,red :background ,default))))
-   `(magit-diff-removed-highlight ((,class (:foreground ,red :background ,default))))
+   ;; diff
+   `(diff-header ((,class (:background ,default))))
+   `(diff-file-header ((,class (:background ,default))))
+   `(diff-removed ((,class (:foreground ,red :background ,default))))
+   `(diff-added ((,class (:foreground ,blue :background ,default))))
 
    ;; smerge
    `(smerge-markers ((,class (:background ,brightblack))))
