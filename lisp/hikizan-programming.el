@@ -1,5 +1,11 @@
 ;;; hikizan-programming.el --- programming  -*- lexical-binding: t; -*-
 
+;; flycheck
+(use-package flycheck
+  :ensure t
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode))
+
 ;; ruby
 (add-to-list 'auto-mode-alist '("\\.rbs\\'" . ruby-mode))
 
