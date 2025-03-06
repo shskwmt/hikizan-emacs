@@ -17,7 +17,6 @@
 (global-set-key (kbd "C-c Lre") 'hikizan/llm-review-english)
 
 ;; others
-(global-set-key (kbd "C-x o") 'ace-window)
 (global-set-key (kbd "C->") 'text-scale-increase)
 (global-set-key (kbd "C-<") 'text-scale-decrease)
 (global-set-key (kbd "C-c j") 'avy-goto-char)
