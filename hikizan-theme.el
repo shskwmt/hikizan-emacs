@@ -1,50 +1,51 @@
+;;; hikizan-theme --- theme -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;;; The theme of hikizan-emacs.
+
+;;; Code:
 ;;;###theme-autoload
 (deftheme hikizan
-  :background-mode 'dark
   :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89)))
-      (default "default")
-      (black "black")
-      (blue "blue")
+      (background "color-16")
+      (foreground "white")
       (skyblue "SkyBlue2")
-      (red "red")
-      (white "white")
       (brightwhite "brightwhite")
       (brightblack "brightblack")
-      (brightcyan "brightcyan")
       )
   (custom-theme-set-faces
    'hikizan
-   `(default ((,class (:foreground ,default :background ,default))))
+   `(default ((,class (:background ,background :foreground ,foreground))))
 
    ;; Highlighting faces
    `(fringe ((,class (:background ,brightblack))))
-   `(highlight ((,class (:foreground ,default :background ,brightblack))))
+   `(highlight ((,class (:foreground ,foreground :background ,brightblack))))
    `(region ((,class (:background ,brightblack))))
    `(secondary-selection ((,class (:background ,brightblack))))
-   `(isearch ((,class (:foreground ,default :background ,brightblack))))
+   `(isearch ((,class (:foreground ,foreground :background ,brightblack))))
    `(lazy-highlight ((,class (:background ,brightblack))))
    `(trailing-whitespace ((,class (:background ,brightblack))))
 
    ;; Mode line faces
    `(mode-line ((,class
    		 (:box (:line-width -1 :style released-button)
-   		  :background ,brightblack :foreground ,default))))
+   		  :background ,brightblack :foreground ,foreground))))
    `(mode-line-inactive ((,class
    			  (:box (:line-width -1 :style released-button)
-   			   :background ,default :foreground ,default))))
-   `(compilation-mode-line-fail ((,class (:foreground ,default))))
-   `(compilation-mode-line-run  ((,class (:foreground ,default))))
-   `(compilation-mode-line-exit ((,class (:foreground ,default))))
+   			   :foreground ,foreground))))
+   `(compilation-mode-line-fail ((,class (:foreground ,foreground))))
+   `(compilation-mode-line-run  ((,class (:foreground ,foreground))))
+   `(compilation-mode-line-exit ((,class (:foreground ,foreground))))
 
    ;; Escape and prompt faces
-   `(minibuffer-prompt ((,class (:foreground ,default))))
-   `(escape-glyph ((,class (:foreground ,default))))
-   `(homoglyph ((,class (:foreground ,default))))
-   `(error ((,class (:foreground ,default))))
-   `(warning ((,class (:foreground ,default))))
-   `(success ((,class (:foreground ,default))))
+   `(minibuffer-prompt ((,class (:foreground ,skyblue))))
+   `(escape-glyph ((,class (:foreground ,foreground))))
+   `(homoglyph ((,class (:foreground ,foreground))))
+   `(error ((,class (:foreground ,foreground))))
+   `(warning ((,class (:foreground ,foreground))))
+   `(success ((,class (:foreground ,foreground))))
 
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground ,skyblue))))
@@ -52,90 +53,61 @@
    `(font-lock-constant-face ((,class (:foreground ,skyblue))))
    `(font-lock-function-name-face ((,class (:foreground ,skyblue))))
    `(font-lock-keyword-face ((,class (:foreground ,skyblue))))
-   `(font-lock-string-face ((,class (:foreground ,default))))
+   `(font-lock-string-face ((,class (:foreground ,foreground))))
    `(font-lock-type-face ((,class (:foreground ,skyblue))))
    `(font-lock-variable-name-face ((,class (:foreground ,skyblue))))
 
    ;; Button and link faces
-   `(link ((,class (:underline t :foreground ,default))))
-   `(link-visited ((,class (:underline t :foreground ,default))))
+   `(link ((,class (:underline t :foreground ,foreground))))
+   `(link-visited ((,class (:underline t :foreground ,foreground))))
 
    ;; Message faces
-   `(message-header-name ((,class (:foreground ,default))))
-   `(message-header-cc ((,class (:foreground ,default))))
-   `(message-header-other ((,class (:foreground ,default))))
-   `(message-header-subject ((,class (:foreground ,default))))
-   `(message-header-to ((,class (:foreground ,default))))
-   `(message-cited-text ((,class (:foreground ,default))))
-   `(message-separator ((,class (:foreground ,default))))
-
-   ;; SMerge faces
-   `(smerge-refined-change ((,class (:background ,default))))
+   `(message-header-name ((,class (:foreground ,foreground))))
+   `(message-header-cc ((,class (:foreground ,foreground))))
+   `(message-header-other ((,class (:foreground ,foreground))))
+   `(message-header-subject ((,class (:foreground ,foreground))))
+   `(message-header-to ((,class (:foreground ,foreground))))
+   `(message-cited-text ((,class (:foreground ,foreground))))
+   `(message-separator ((,class (:foreground ,foreground))))
 
    ;; Flyspell faces
-   `(flyspell-duplicate ((,class (:underline ,default))))
-   `(flyspell-incorrect ((,class (:underline ,default))))
+   `(flyspell-duplicate ((,class (:underline ,foreground))))
+   `(flyspell-incorrect ((,class (:underline ,foreground))))
 
    ;; Realgud
-   `(realgud-overlay-arrow1  ((,class (:foreground ,default))))
-   `(realgud-overlay-arrow2  ((,class (:foreground ,default))))
-   `(realgud-overlay-arrow3  ((,class (:foreground ,default))))
-   `(realgud-bp-disabled-face      ((,class (:foreground ,default))))
-   `(realgud-bp-line-enabled-face  ((,class (:underline ,default))))
-   `(realgud-bp-line-disabled-face ((,class (:underline ,default))))
-   `(realgud-file-name             ((,class (:foreground ,default))))
-   `(realgud-line-number           ((,class (:foreground ,default))))
-   `(realgud-backtrace-number      ((,class (:foreground ,default :weight bold))))
-
-   ;; Semantic faces
-   `(semantic-decoration-on-includes ((,class (:underline ,default))))
-   `(semantic-decoration-on-private-members-face
-     ((,class (:background ,default))))
-   `(semantic-decoration-on-protected-members-face
-     ((,class (:background ,default))))
-   `(semantic-decoration-on-unknown-includes
-     ((,class (:background ,default))))
-   `(semantic-decoration-on-unparsed-includes
-     ((,class (:background ,default))))
-   `(semantic-tag-boundary-face ((,class (:overline ,default))))
-   `(semantic-unmatched-syntax-face ((,class (:underline ,default))))
+   `(realgud-overlay-arrow1  ((,class (:foreground ,foreground))))
+   `(realgud-overlay-arrow2  ((,class (:foreground ,foreground))))
+   `(realgud-overlay-arrow3  ((,class (:foreground ,foreground))))
+   `(realgud-bp-disabled-face      ((,class (:foreground ,foreground))))
+   `(realgud-bp-line-enabled-face  ((,class (:underline ,foreground))))
+   `(realgud-bp-line-disabled-face ((,class (:underline ,foreground))))
+   `(realgud-file-name             ((,class (:foreground ,foreground))))
+   `(realgud-line-number           ((,class (:foreground ,foreground))))
+   `(realgud-backtrace-number      ((,class (:foreground ,foreground :weight bold))))
 
    ;; outline
-   `(outline-1 ((,class (:foreground ,default))))
-   `(outline-2 ((,class (:foreground ,default))))
-   `(outline-3 ((,class (:foreground ,default))))
-   `(outline-4 ((,class (:foreground ,default))))
-   `(outline-5 ((,class (:foreground ,default))))
+   `(outline-1 ((,class (:foreground ,foreground))))
+   `(outline-2 ((,class (:foreground ,foreground))))
+   `(outline-3 ((,class (:foreground ,foreground))))
+   `(outline-4 ((,class (:foreground ,foreground))))
+   `(outline-5 ((,class (:foreground ,foreground))))
 
    ;; org
-   `(org-headline-done ((,class (:foreground ,default))))
-   `(org-level-1 ((,class (:foreground ,default))))
-   `(org-date ((,class (:foreground ,default))))
-   `(org-done ((,class (:foreground ,default))))
-   `(org-todo ((,class (:foreground ,default))))
+   `(org-headline-done ((,class (:foreground ,foreground))))
+   `(org-level-1 ((,class (:foreground ,foreground))))
+   `(org-date ((,class (:foreground ,foreground))))
+   `(org-done ((,class (:foreground ,foreground))))
+   `(org-todo ((,class (:foreground ,foreground))))
 
    ;; avy
-   `(avy-lead-face ((,class (:foreground ,default :background ,brightblack))))
-
-   ;; diff
-   `(diff-header ((,class (:background ,default))))
-   `(diff-file-header ((,class (:background ,default))))
-   `(diff-removed ((,class (:foreground ,red :background ,default))))
-   `(diff-added ((,class (:foreground ,blue :background ,default))))
-
-   ;; smerge
-   `(smerge-markers ((,class (:background ,brightblack))))
-   `(smerge-upper ((,class (:background ,default))))
-   `(smerge-base ((,class (:background ,default))))
-   `(smerge-lower ((,class (:background ,default))))
-   `(smerge-refined-added ((,class (:foreground ,blue :background ,default))))
-   `(smerge-refined-removed ((,class (:foreground ,red :background ,default))))
+   `(avy-lead-face ((,class (:foreground ,foreground :background ,brightblack))))
 
    ;; ein
-   `(ein:basecell-input-area-face ((,class (:background ,default))))
+   `(ein:basecell-input-area-face ((,class (:background ,background))))
 
    ;; completions
    `(completions-annotations ((,class (:foreground ,brightwhite))))
    ))
 
 (provide-theme 'hikizan)
+;;; hikizan-theme.el ends here
