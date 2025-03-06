@@ -1,5 +1,6 @@
 ;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
 
+;;; Code:
 (load-theme 'hikizan t)
 
 (add-to-list 'default-frame-alist '(font . "NotoMono NF-12.0"))
@@ -22,9 +23,6 @@
   :config
   (nerd-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
-
-(use-package ace-window
-  :ensure t)
 
 (use-package avy
   :ensure t)
@@ -183,3 +181,4 @@ If no such buffer exists, open the file and create a new buffer."
       (hikizan/open-messages-window))))
 
 (provide 'hikizan-ui)
+;;; hikizan-ui.el ends here
