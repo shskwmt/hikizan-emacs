@@ -60,6 +60,7 @@ If no such buffer exists, open the file and create a new buffer."
   (popwin:popup-buffer buffer
 		       :tail t
 		       :dedicated t
+		       :stick t
 		       :height height))
 
 ;; buffer-list window
@@ -129,10 +130,7 @@ If no such buffer exists, open the file and create a new buffer."
   (interactive)
   (let ((window (hikizan/get-window-from-file-name org-default-notes-file)))
     (unless (windowp window)
-      (popwin:popup-buffer (hikizan/get-or-create-buffer-from-file-name org-default-notes-file)
-			   :dedicated t
-			   :stick t
-			   :height 0.4))))
+      (hikizan/open-dedicated-window-bottom (hikizan/get-or-create-buffer-from-file-name org-default-notes-file) 0.4))))
 
 (defun hikizan/close-org-note-window ()
   "Close the org note window."
