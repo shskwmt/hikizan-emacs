@@ -15,6 +15,7 @@
 (global-set-key (kbd "C-c Lgc") 'hikizan/llm-generate-commit-message)
 (global-set-key (kbd "C-c Lgl") 'hikizan/llm-generate-elisp)
 (global-set-key (kbd "C-c Lre") 'hikizan/llm-review-english)
+(global-set-key (kbd "C-c e") 'ellama-transient-main-menu)
 
 ;; others
 (global-set-key (kbd "C->") 'text-scale-increase)
