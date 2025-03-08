@@ -89,11 +89,10 @@
      "d4352d0d2466c4c03f1fdedfe30a6e57d1bbb99c9082185ad0a7a4279261fd68"
      default))
  '(package-selected-packages
-   '(command-log-mode consult dockerfile-mode editorconfig ein ellama
-		      flycheck git-gutter go-mode lsp-ui
-		      nerd-icons-completion nerd-icons-corfu
-		      nerd-icons-dired orderless popwin terraform-mode
-		      which-key yaml-mode yasnippet-snippets)))
+   '(avy command-log-mode dockerfile-mode editorconfig ein ellama
+	 flycheck git-gutter go-mode lsp-ui nerd-icons-completion
+	 nerd-icons-corfu nerd-icons-dired orderless popwin
+	 terraform-mode which-key yaml-mode yasnippet-snippets)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

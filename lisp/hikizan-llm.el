@@ -5,7 +5,7 @@
   (setq ellama-chat-model "llama3.2"))
 
 (unless (boundp 'ellama-embedding-model)
-  (setq ellama-embedding-model "llama3.2"))
+  (setq ellama-embedding-model "nomic-embed-text"))
 
 (use-package ellama
   :ensure t
