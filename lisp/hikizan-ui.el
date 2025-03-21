@@ -1,8 +1,6 @@
 ;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
 
 ;;; Code:
-(load-theme 'hikizan t)
-
 (add-to-list 'default-frame-alist '(font . "NotoMono NF-12.0"))
 (setq use-default-font-for-symbols nil)
 
