@@ -16,3 +16,4 @@ server/
 org-persist/
 eshell/
 url/
+eln-cache/
