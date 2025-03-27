@@ -13,6 +13,10 @@
 (use-package go-mode
   :ensure t)
 
+;; rust
+(use-package rust-mode
+  :ensure t)
+
 ;; yaml
 (use-package yaml-mode
   :ensure t)
