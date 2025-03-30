@@ -10,6 +10,8 @@
 (use-package ellama
   :ensure t
   :init
+  (setq ellama-keymap-prefix "C-c e")
+  (ellama-setup-keymap)
   (setopt ellama-language "English")
   (setopt ellama-auto-scroll t)
   (require 'llm-ollama)
