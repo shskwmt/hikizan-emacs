@@ -1,5 +1,11 @@
 ;;; hikizan-editor.el --- editor  -*- lexical-binding: t; -*-
 
+;;; mozc
+(use-package mozc
+  :ensure t
+  :config
+  (setq default-input-method "japanese-mozc"))
+
 ;;; configurations
 
 ;; lockfiles

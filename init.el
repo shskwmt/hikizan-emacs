@@ -90,7 +90,7 @@
      default))
  '(package-selected-packages
    '(avy command-log-mode dockerfile-mode editorconfig ein ellama
-	 flycheck git-gutter go-mode lsp-ui magit
+	 flycheck git-gutter go-mode lsp-ui magit mozc
 	 nerd-icons-completion nerd-icons-corfu nerd-icons-dired
 	 orderless popwin rust-mode terraform-mode which-key yaml-mode
 	 yasnippet-snippets)))
