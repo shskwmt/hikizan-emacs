@@ -33,6 +33,9 @@
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
 
+;; prevent to create a new window
+(setq display-buffer-base-action '((display-buffer-same-window)))
+
 ;;; popup windows
 
 (use-package popwin
