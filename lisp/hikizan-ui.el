@@ -56,12 +56,11 @@ If no such buffer exists, open the file and create a new buffer."
   "Return the window associated with the given FILE-NAME, or nil if no such window exists."
   (get-buffer-window (hikizan/get-or-create-buffer-from-file-name file-name)))
 
-(defun hikizan/open-dedicated-window-bottom (buffer height)
-  "Open dedicated window bottom."
+(defun hikizan/open-dedicated-window-bottom (buffer height &optional tail)
+  "Open BUFFER with dedicated popup window bottom. HEIGHT is the height of window."
   (popwin:popup-buffer buffer
-		       :tail t
+		       :tail tail
 		       :dedicated t
-		       :stick t
 		       :height height))
 
 ;; buffer-list window
@@ -162,7 +161,7 @@ If no such buffer exists, open the file and create a new buffer."
   (interactive)
   (let ((window (hikizan/get-messages-window)))
     (unless (windowp window)
-      (hikizan/open-dedicated-window-bottom (hikizan/get-messages-buffer) 0.4))))
+      (hikizan/open-dedicated-window-bottom (hikizan/get-messages-buffer) 0.4 t))))
 
 (defun hikizan/close-messages-window ()
   "Close the *Messages* window."
