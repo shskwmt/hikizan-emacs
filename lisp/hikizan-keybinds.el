@@ -11,7 +11,7 @@
 ;; others
 (global-set-key (kbd "C->") 'text-scale-increase)
 (global-set-key (kbd "C-<") 'text-scale-decrease)
-(global-set-key (kbd "C-c j") 'avy-goto-char)
+(global-set-key (kbd "C-;") 'avy-goto-char)
 (global-set-key (kbd "M-w") 'kill-ring-save)
 (global-set-key (kbd "M-n") (lambda () (interactive) (scroll-up 1)))
 (global-set-key (kbd "M-p") (lambda () (interactive) (scroll-down 1)))
