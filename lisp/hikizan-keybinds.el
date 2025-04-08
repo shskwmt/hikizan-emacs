@@ -13,8 +13,8 @@
 (global-set-key (kbd "C-<") 'text-scale-decrease)
 (global-set-key (kbd "C-;") 'avy-goto-char)
 (global-set-key (kbd "M-w") 'kill-ring-save)
-(global-set-key (kbd "M-n") (lambda () (interactive) (scroll-up 1)))
-(global-set-key (kbd "M-p") (lambda () (interactive) (scroll-down 1)))
+(global-set-key (kbd "M-n") (lambda () (interactive) (scroll-other-window 1)))
+(global-set-key (kbd "M-p") (lambda () (interactive) (scroll-other-window-down 1)))
 
 ;;; which-key
 
