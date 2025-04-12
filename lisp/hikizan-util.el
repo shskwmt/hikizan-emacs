@@ -18,8 +18,14 @@
       (goto-char (point-min))
       (if (search-forward search-string nil t)
 	  (point)
-	nil)))
-  )
+	nil))))
+
+(defun hikizan/copy-buffer-file-name ()
+  "Copy buffer file name."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if (stringp file-name)
+	(kill-new file-name))))
 
 (defun hikizan/get-string-from-point (buffer point)
   "Get the string from BUFFER starting at POINT."
