@@ -8,13 +8,19 @@
 (global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
 (global-set-key (kbd "C-c m") 'hikizan/toggle-messages-window)
 
-;; others
-(global-set-key (kbd "C->") 'text-scale-increase)
-(global-set-key (kbd "C-<") 'text-scale-decrease)
-(global-set-key (kbd "C-;") 'avy-goto-char)
-(global-set-key (kbd "M-w") 'kill-ring-save)
+;; scroll
 (global-set-key (kbd "M-n") (lambda () (interactive) (scroll-other-window 1)))
 (global-set-key (kbd "M-p") (lambda () (interactive) (scroll-other-window-down 1)))
+
+;; text scale
+(global-set-key (kbd "C->") 'text-scale-increase)
+(global-set-key (kbd "C-<") 'text-scale-decrease)
+
+;; avy
+(global-set-key (kbd "C-;") 'avy-goto-char)
+
+;; org
+(global-set-key (kbd "C-c n") 'hikizan/open-org-notes)
 
 ;;; which-key
 

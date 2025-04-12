@@ -10,4 +10,9 @@
         ("m" "Memo" entry (file org-default-notes-file)
 	 "* %?\n  %T")))
 
+(defun hikizan/open-org-notes ()
+  "Open org notes file"
+  (interactive)
+  (find-file org-default-notes-file))
+
 (provide 'hikizan-org)
