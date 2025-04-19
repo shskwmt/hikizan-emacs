@@ -1,22 +1,29 @@
 ;;; hikizan-llm.el --- llm  -*- lexical-binding: t; -*-
 
-;; ellama
-(unless (boundp 'ellama-chat-model)
-  (setq ellama-chat-model "llama3.2"))
+;; Package management and dependencies
+(require 'use-package)
 
-(unless (boundp 'ellama-embedding-model)
-  (setq ellama-embedding-model "nomic-embed-text"))
+;; LLM Configuration Customization
+
+;; ellama
+(unless (boundp 'hikizan/ellama-chat-model)
+  (setq hikizan/ellama-chat-model "llama3.2"))
+
+(unless (boundp 'hikizan/ellama-embedding-model)
+  (setq hikizan/ellama-embedding-model "nomic-embed-text"))
 
 (use-package ellama
   :ensure t
-  :init
+  :custom
   (setq ellama-keymap-prefix "C-c e")
   (setopt ellama-language "English")
   (setopt ellama-auto-scroll t)
+  :config
   (require 'llm-ollama)
   (setopt ellama-provider
 	  (make-llm-ollama
-	   :chat-model ellama-chat-model :embedding-model ellama-embedding-model)))
+	   :chat-model hikizan/ellama-chat-model
+	   :embedding-model hikizan/ellama-embedding-model)))
 
 ;; GPTel Configuration
 (use-package gptel
