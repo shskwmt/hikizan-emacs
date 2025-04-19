@@ -61,4 +61,10 @@
 	(eval-buffer)
       (error (message "error: %s" (error-message-string err))))))
 
+(defun hikizan/safe-elisp-eval (elisp)
+  "Safely evaluate ELISP with error handling."
+  (condition-case err
+      (format "Evaluation Results:\n%s" (eval (read elisp)))
+    (error (format "Error: %s" err))))
+
 (provide 'hikizan-util)
