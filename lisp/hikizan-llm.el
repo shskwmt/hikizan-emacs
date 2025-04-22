@@ -1,23 +1,32 @@
-;;; hikizan-llm.el --- llm  -*- lexical-binding: t; -*-
+;;; hikizan-llm.el --- LLM configuration -*- lexical-binding: t; -*-
 
-;; Package management and dependencies
+;;; Commentary:
+;; Configuration for LLM integrations
+
+;;; Code:
+
 (require 'use-package)
 
-;; LLM Configuration Customization
+;;;; User Configurable Variables
 
-;; ellama
-(unless (boundp 'hikizan/ellama-chat-model)
-  (setq hikizan/ellama-chat-model "llama3.2"))
+(defvar hikizan/ellama-chat-model "llama3.2"
+  "Default chat model for Ellama.")
 
-(unless (boundp 'hikizan/ellama-embedding-model)
-  (setq hikizan/ellama-embedding-model "nomic-embed-text"))
+(defvar hikizan/ellama-embedding-model "nomic-embed-text"
+  "Default embedding model for Ellama.")
+
+(defvar hikizan/claude-api-key ""
+  "Claude api key.")
+
+;;;; Ellama setup
 
 (use-package ellama
   :ensure t
-  :custom
+  :init
   (setq ellama-keymap-prefix "C-c e")
-  (setopt ellama-language "English")
-  (setopt ellama-auto-scroll t)
+  :custom
+  (ellama-language "English")
+  (ellama-auto-scroll t)
   :config
   (require 'llm-ollama)
   (setopt ellama-provider
@@ -25,21 +34,19 @@
 	   :chat-model hikizan/ellama-chat-model
 	   :embedding-model hikizan/ellama-embedding-model)))
 
-;; GPTel Configuration
+;;;; GPTel setup
+
 (use-package gptel
   :ensure t
   :custom
   (gptel-model "claude-3-5-haiku-20241022")
   :config
-  ;; Centralized backend configuration
   (setq gptel-backend
 	(gptel-make-anthropic "Claude"
 	  :key (lambda ()
 		 (or hikizan/claude-api-key
 		     (error "Claude API key not set")))
 	  :stream t))
-
-  ;; Set gptel-tools
   (setq gptel-tools
 	(list
 	 (gptel-make-tool
@@ -51,6 +58,5 @@
 			 :description "Elisp code to execute"))
 	  :category "emacs"))))
 
-;; Provide the package
 (provide 'hikizan-llm)
 ;;; hikizan-llm.el ends here
