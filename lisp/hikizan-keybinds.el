@@ -1,28 +1,37 @@
-;;; hikizan-keybinds.el --- keybinds -*- lexical-binding: t; -*-
+;;; hikizan-keybinds.el --- Keybindings configuration -*- lexical-binding: t; -*-
 
-;;; global key bindings
+;;; Commentary:
+;; Key bindings and which-key setup for hikizan configuration.
 
-;; hikizan toggle
+;; Code:
+
+;;;; Keybindings
+
+;; Toggle windows
 (global-set-key (kbd "C-c b") 'hikizan/toggle-buffer-list-window)
 (global-set-key (kbd "C-c s") 'hikizan/toggle-scratch-window)
 (global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
 (global-set-key (kbd "C-c m") 'hikizan/toggle-messages-window)
 
-;; scroll
+;; Scrolling
 (global-set-key (kbd "M-n") (lambda () (interactive) (scroll-other-window 1)))
 (global-set-key (kbd "M-p") (lambda () (interactive) (scroll-other-window-down 1)))
 
-;; text scale
+;; Text scale
 (global-set-key (kbd "C->") 'text-scale-increase)
 (global-set-key (kbd "C-<") 'text-scale-decrease)
 
-;; avy
+;; Navigation
 (global-set-key (kbd "C-;") 'avy-goto-char)
 
-;; org
+;; Org-mode
 (global-set-key (kbd "C-c n") 'hikizan/open-org-notes)
 
-;;; which-key
+;; LLM tools
+(global-set-key (kbd "C-c g") 'gptel)
+(global-set-key (kbd "C-c t") 'gptel-tool)
+
+;;; which-key Configuration
 
 ;; https://github.com/justbur/emacs-which-key
 (use-package which-key
@@ -40,3 +49,5 @@
   (which-key-mode))
 
 (provide 'hikizan-keybinds)
+
+;;; hikizan-keybinds.el ends here
