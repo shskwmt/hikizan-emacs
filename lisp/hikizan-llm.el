@@ -41,6 +41,8 @@
   :custom
   (gptel-model "claude-3-5-haiku-20241022")
   :config
+  (setq gptel-log-level 'debug)
+  (setq gptel-confirm-tool-calls t)
   (setq gptel-backend
 	(gptel-make-anthropic "Claude"
 	  :key (lambda ()
