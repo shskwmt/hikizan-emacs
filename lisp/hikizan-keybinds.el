@@ -1,9 +1,9 @@
 ;;; hikizan-keybinds.el --- Keybindings configuration -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Key bindings and which-key setup for hikizan configuration.
+;; Configuration for key bindings, evil mode, and which-key
 
-;; Code:
+;;; Code:
 
 ;;;; Keybindings
 
@@ -47,6 +47,33 @@
   :config
   (which-key-setup-side-window-bottom)
   (which-key-mode))
+
+;;; evil Configuration
+(use-package evil
+  :ensure t
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  :config
+  ;; change mode-line color by evil state
+  (let ((default-color (cons (face-background 'mode-line)
+                             (face-foreground 'mode-line))))
+    (add-hook 'post-command-hook
+	      (lambda ()
+		(let ((color (cond ((minibufferp) default-color)
+				   ((evil-insert-state-p) '("#e80000" . "#ffffff"))
+				   ((evil-emacs-state-p)  '("#444488" . "#ffffff"))
+				   ((buffer-modified-p)   '("#006fa0" . "#ffffff"))
+				   (t default-color))))
+		  (set-face-background 'mode-line (car color))
+		  (set-face-foreground 'mode-line (cdr color))))))
+  (evil-mode 1))
+
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
 
 (provide 'hikizan-keybinds)
 
