@@ -31,6 +31,9 @@
 (global-set-key (kbd "C-c g") 'gptel)
 (global-set-key (kbd "C-c t") 'gptel-tool)
 
+;; Completion
+(global-set-key (kbd "C-<tab>") 'completion-at-point)
+
 ;;; which-key Configuration
 
 ;; https://github.com/justbur/emacs-which-key

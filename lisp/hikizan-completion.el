@@ -1,6 +1,9 @@
 ;;; hikizan-completion.el --- completion  -*- lexical-binding: t; -*-
 
-;;; packages
+;;; Commentary:
+;; Completion settings for hikizan-emacs
+
+;;; Code:
 
 ;; savehist
 (use-package savehist
@@ -16,3 +19,4 @@
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (provide 'hikizan-completion)
+;;; hikizan-completion.el ends here
