@@ -9,35 +9,35 @@
 
 ;;;; Custom Configurable Variables
 
-(defgroup hikizan-llm nil
+(defgroup hikizan/llm nil
   "Customization group for Hikizan LLM configurations."
   :group 'tools
-  :prefix "hikizan-llm-")
+  :prefix "hikizan/llm-")
 
-(defcustom hikizan-llm-ellama-chat-model "llama3.2"
+(defcustom hikizan/llm-ellama-chat-model "llama3.2"
   "Default chat model for Ellama."
   :type 'string
-  :group 'hikizan-llm)
+  :group 'hikizan/llm)
 
-(defcustom hikizan-llm-ellama-embedding-model "nomic-embed-text"
+(defcustom hikizan/llm-ellama-embedding-model "nomic-embed-text"
   "Default embedding model for Ellama."
   :type 'string
-  :group 'hikizan-llm)
+  :group 'hikizan/llm)
 
-(defcustom hikizan-llm-claude-api-key ""
+(defcustom hikizan/llm-claude-api-key ""
   "API key for Claude LLM."
   :type 'string
-  :group 'hikizan-llm
+  :group 'hikizan/llm
   :safe #'stringp)
 
 ;;;; Utility Functions
 
-(defun hikizan-llm--get-claude-api-key ()
+(defun hikizan/llm--get-claude-api-key ()
   "Retrieve Claude API key with error handling."
-  (or hikizan-llm-claude-api-key
+  (or hikizan/llm-claude-api-key
       (user-error "Claude API key not configured")))
 
-(defun hikizan-llm--create-system-prompt ()
+(defun hikizan/llm--create-system-prompt ()
   "Generate a comprehensive system prompt for GPTel."
   (concat
    "** Role\n"
@@ -71,8 +71,8 @@
   (require 'llm-ollama)
   (setopt ellama-provider
           (make-llm-ollama
-           :chat-model hikizan-llm-ellama-chat-model
-           :embedding-model hikizan-llm-ellama-embedding-model)))
+           :chat-model hikizan/llm-ellama-chat-model
+           :embedding-model hikizan/llm-ellama-embedding-model)))
 
 ;;;; GPTel Configuration
 
@@ -84,12 +84,12 @@
   (setq gptel-log-level 'debug)
   (setq gptel-confirm-tool-calls t)
   (setq gptel-include-tool-results t)
-  (setq gptel--system-message (hikizan-llm--create-system-prompt))
+  (setq gptel--system-message (hikizan/llm--create-system-prompt))
 
   ;; Claude Backend Configuration
   (setq gptel-backend
         (gptel-make-anthropic "Claude"
-          :key #'hikizan-llm--get-claude-api-key
+          :key #'hikizan/llm--get-claude-api-key
           :stream t))
   
   ;; Emacs Lisp Evaluation Tool
