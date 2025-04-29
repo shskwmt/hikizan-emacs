@@ -30,12 +30,23 @@
   :group 'hikizan/llm
   :safe #'stringp)
 
+(defcustom hikizan/llm-gemini-api-key ""
+  "API key for Gemini LLM."
+  :type 'string
+  :group 'hikizan/llm
+  :safe #'stringp)
+
 ;;;; Utility Functions
 
 (defun hikizan/llm--get-claude-api-key ()
   "Retrieve Claude API key with error handling."
   (or hikizan/llm-claude-api-key
       (user-error "Claude API key not configured")))
+
+(defun hikizan/llm--get-gemini-api-key ()
+  "Retrieve Gemini API key with error handling."
+  (or hikizan/llm-gemini-api-key
+      (user-error "Gemini API key not configured")))
 
 (defun hikizan/llm--create-system-prompt ()
   "Generate a comprehensive system prompt for GPTel."
@@ -79,7 +90,7 @@
 (use-package gptel
   :ensure t
   :custom
-  (gptel-model "claude-3-5-haiku-20241022")
+  (gptel-model "gemini-2.5-pro-preview-03-25")
   :config
   (setq gptel-log-level 'debug)
   (setq gptel-confirm-tool-calls t)
@@ -88,8 +99,8 @@
 
   ;; Claude Backend Configuration
   (setq gptel-backend
-        (gptel-make-anthropic "Claude"
-          :key #'hikizan/llm--get-claude-api-key
+        (gptel-make-gemini "Gemini"
+          :key #'hikizan/llm--get-gemini-api-key
           :stream t))
   
   ;; Emacs Lisp Evaluation Tool
