@@ -1,5 +1,12 @@
 ;;; hikizan-util.el --- util -*- lexical-binding: t; -*-
 
+;;; Commentary:
+;; Utility functions
+
+;;; Code:
+
+(require 'project)
+
 (defun hikizan/extract-buffer-or-active-region-string ()
   "Extract the buffer or the active region string."
   (let ((content (if (region-active-p)
@@ -26,6 +33,16 @@
   (let ((file-name (buffer-file-name)))
     (if (stringp file-name)
 	(kill-new file-name))))
+
+(defun hikizan/copy-buffer-file-relative-path ()
+  "Copy buffer file relative path."
+  (interactive)
+  (let* ((project (project-current))
+	 (project-root (if project (project-root project)))
+	 (buffer-file (buffer-file-name))
+	 (relative-path (if (and project-root buffer-file)
+                            (file-relative-name buffer-file project-root))))
+    (kill-new relative-path)))
 
 (defun hikizan/get-string-from-point (buffer point)
   "Get the string from BUFFER starting at POINT."
