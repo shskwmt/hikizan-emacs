@@ -31,6 +31,16 @@
 (global-set-key (kbd "C-c g") 'gptel)
 (global-set-key (kbd "C-c t") 'gptel-tool)
 
+;; Consult
+(global-set-key (kbd "C-x b") 'consult-buffer)
+(global-set-key (kbd "M-y") 'consult-yank-pop)
+(global-set-key (kbd "M-g o") 'consult-outline)
+(global-set-key (kbd "M-g i") 'consult-imenu)
+(global-set-key (kbd "M-s d") 'consult-fd)
+(global-set-key (kbd "M-s g") 'consult-git-grep)
+(global-set-key (kbd "M-s r") 'consult-ripgrep)
+(global-set-key (kbd "M-s l") 'consult-line)
+
 ;;; which-key Configuration
 
 ;; https://github.com/justbur/emacs-which-key
