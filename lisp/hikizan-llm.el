@@ -90,7 +90,7 @@
 (use-package gptel
   :ensure t
   :custom
-  (gptel-model "gemini-2.5-pro-preview-03-25")
+  (gptel-model "gemini-2.5-pro-preview-05-06")
   :config
   (setq gptel-log-level 'debug)
   (setq gptel-confirm-tool-calls t)
