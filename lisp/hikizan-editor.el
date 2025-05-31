@@ -51,6 +51,7 @@
 (delete-selection-mode t)
 (electric-pair-mode t)
 (global-auto-revert-mode t)
+(setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
 ;;; command logs
 (setq clm/command-log-buffer (get-buffer-create " *command-log*"))
