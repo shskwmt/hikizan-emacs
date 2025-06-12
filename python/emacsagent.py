@@ -3,6 +3,8 @@ import os
 import subprocess
 import tempfile
 import time
+import re
+
 from typing import Annotated, Sequence, TypedDict
 
 from langchain_core.messages import BaseMessage, ToolMessage, SystemMessage, HumanMessage
@@ -111,6 +113,65 @@ def execute_elisp_code(code: str) -> str:
 
 # --- Agent Definition ---
 
+def _format_and_print_message(message: BaseMessage):
+    """Formats and prints a message based on its type and role."""
+    if hasattr(message, "tool_calls") and message.tool_calls:
+        # The model is asking to call a tool
+        function_name = message.tool_calls[0]["name"]
+        function_args = message.tool_calls[0]["args"]
+        print(f"\n\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
+
+    elif hasattr(message, "role") and message.role == "tool":
+        # A tool has been called and returned a result
+        print(f"\n\033[1;32mTool Result:\n{message.content}\033[0m")
+
+    else:  # Assistant message
+        content = message.content
+        # Ensure content is a string before proceeding.
+        if isinstance(content, list):
+            # If content is a list (e.g., from multi-part messages), join it.
+            content = "".join(str(part) for part in content if part)
+
+        if not isinstance(content, str):
+            content = str(content)  # Fallback for other non-string types
+
+        # Use a regex to find all code blocks, including the language identifier
+        pattern = r"```(\w*)\n(.*?)```"
+        matches = list(re.finditer(pattern, content, re.DOTALL))
+
+        if not matches:
+            # No code blocks found, print as is.
+            print(f"\n\033[1;32mAssistant:\n{content}\033[0m")
+            return
+
+        print("\n\033[1;32mAssistant: [0m")
+        last_end = 0
+        for match in matches:
+            # Print the text before the current code block
+            pre_code_text = content[last_end:match.start()].strip()
+            if pre_code_text:
+                print(pre_code_text)
+
+            # Extract language and code
+            language = match.group(1).strip()
+            code_content = match.group(2).strip()
+
+            # Format the header for the code block
+            lang_display = f" {language.capitalize()} Code " if language else " Code "
+            header = f"---{lang_display}---"
+
+            # Print the formatted code block
+            print(f"\n\033[1;36m{header}\033[0m")
+            print(f"\033[36m{code_content}\033[0m")
+            print(f"\033[1;36m{'-' * len(header)}\033[0m")
+
+            last_end = match.end()
+
+        # Print any remaining text after the last code block
+        post_code_text = content[last_end:].strip()
+        if post_code_text:
+            print(f"\n{post_code_text}")
+
 class EmacsAgent:
     """Encapsulates the agent's logic, tools, and execution graph."""
     def __init__(self):
@@ -188,26 +249,19 @@ class EmacsAgent:
         initial_history_length = len(self.conversation_history)
         final_messages = []
 
-        # The `stream` method provides real-time updates
+        # The `stream` method provides real-time updates on the state
         for event in self.graph.stream(initial_state, stream_mode="values"):
-            # `event` is the entire state, print the latest message
+            # `event` is the entire state. Get the latest message to print.
             latest_message = event["messages"][-1]
             final_messages = event["messages"]
 
-            if len(event["messages"]) > len(self.conversation_history):
-                new_messages = event["messages"][len(self.conversation_history):]
+            # Format and print the latest message from the stream.
+            # The stream yields state updates, so this prints the result of each step.
+            # We check the message is not the initial human message of the turn.
+            if not isinstance(latest_message, HumanMessage):
+                _format_and_print_message(latest_message)
 
-            if hasattr(latest_message, "tool_calls") and latest_message.tool_calls:
-                # The model is asking to call a tool
-                function_name = latest_message.tool_calls[0]["name"]
-                function_args = latest_message.tool_calls[0]["args"]
-                print(f"\n\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
-            elif hasattr(latest_message, "role") and latest_message.role == "tool":
-                # A tool has been called and returned a result
-                print(f"\n\033[1;32mTool Result:\n{latest_message.content}\033[0m")
-            else:
-                print(f"\n\033[1;32mAssistant:\n{latest_message.content}\033[0m")
-
+        # After the stream is complete, update the conversation history
         if len(final_messages) > initial_history_length:
             new_messages = final_messages[initial_history_length:]
             self.conversation_history.extend(new_messages)
