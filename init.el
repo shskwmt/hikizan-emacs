@@ -14,7 +14,6 @@
 (require 'hikizan-org)
 (require 'hikizan-snippet)
 (require 'hikizan-programming)
-(require 'hikizan-llm)
 (require 'hikizan-ui)
 (require 'hikizan-keybinds)
 
