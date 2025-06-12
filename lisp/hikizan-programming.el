@@ -35,6 +35,7 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook
+  (ruby-mode . lsp)
   (go-mode . lsp)
   (lsp-mode . lsp-enable-which-key-integration)
   :commands (lsp))
