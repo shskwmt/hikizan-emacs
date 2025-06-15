@@ -87,7 +87,6 @@ def execute_elisp_code(code: str) -> str:
     Returns:
     str: the result or an error message
     """
-    print(f"Emacs LISP code: {code}")
     temp_file_path = write_elisp_code_to_temp_file(code)
     print(f"Emacs LISP code written to: {temp_file_path}")
 
@@ -105,7 +104,6 @@ def execute_elisp_code(code: str) -> str:
         with open(temp_log_file_path, 'r', encoding='utf-8') as log_file:
             content = log_file.read()
 
-        print(f"==========elisp result begin==========\n{content}\n==========elisp result end==========")
         return content
     except Exception as e:
         return f"Error: {str(e)}"
