@@ -28,8 +28,7 @@
 (global-set-key (kbd "C-c n") 'hikizan/open-org-notes)
 
 ;; LLM tools
-(global-set-key (kbd "C-c g") 'gptel)
-(global-set-key (kbd "C-c t") 'gptel-tool)
+(global-set-key (kbd "C-c a") 'hikizan/run-emacs-agent)
 
 ;; Consult
 (global-set-key (kbd "C-x b") 'consult-buffer)

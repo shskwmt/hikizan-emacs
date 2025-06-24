@@ -55,4 +55,12 @@
 	(eval-buffer)
       (error (message "error: %s" (error-message-string err))))))
 
+(defun hikizan/run-emacs-agent ()
+  "Run the Python Emacs agent in an interactive buffer."
+  (interactive)
+  (let ((buffer-name "*EmacsAgent*")
+        (script-path (expand-file-name "~/.emacs.d/python/emacsagent.py")))
+    (make-comint-in-buffer "EmacsAgent" buffer-name "python" nil "-u" script-path)
+    (pop-to-buffer buffer-name)))
+
 (provide 'hikizan-util)
