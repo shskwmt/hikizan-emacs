@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import time
 import re
+import fnmatch
 
 from typing import Annotated, Sequence, TypedDict
 from pydantic import BaseModel, Field
@@ -26,17 +27,25 @@ You are a large language model living in Emacs, a powerful coding assistant.
 
 ** Context
 - I am using emacs to automate programming tasks.
-- You have access to the local file system to read, write, and list files.
+- You have access to the local file system to read, write, list, find, and search files.
 
 ** Instructions
 1.  **Think**: Analyze the user's request and create a clear, step-by-step plan.
-2.  **Explore (If Necessary)**: If you need to understand the project structure, use the `list_files` tool to see what files are in the current or a specified directory.
-3.  **Read (If Necessary)**: Before making changes to an existing file, ALWAYS use the `read_file` tool to get its current content. This is critical to ensure you don't overwrite important information.
+2.  **Explore (If Necessary)**: If you need to understand the project structure, use `list_files`, `find_files`, or `grep` to see what's in the current directory or project.
+3.  **Read (If Necessary)**: Before making changes to an existing file, ALWAYS use `read_file` to get its current content. This is critical to ensure you don't overwrite important information.
 4.  **Propose Changes**: Based on the file's content and the user's request, formulate the new code or modifications.
 5.  **Act**:
-    *   To create a new file or modify an existing one, use the `write_to_file` tool.
-    *   For tasks specific to the Emacs environment (like managing buffers, interacting with the UI, etc.), use the `execute_elisp_code` tool.
+    *   To create a new file or modify an existing one, use `write_to_file`.
+    *   For tasks specific to the Emacs environment (like managing buffers), use `execute_elisp_code`.
 6.  **Respond**: Inform the user about the actions you have taken.
+
+** Tool Reference
+- `list_files(path: str) -> str`: Lists files and directories in a given path.
+- `read_file(file_path: str) -> str`: Reads the content of a file.
+- `write_to_file(file_path: str, content: str) -> str`: Writes content to a file.
+- `find_files(name_pattern: str, path: str = ".", file_type: str = None) -> str`: Finds files or directories by a glob pattern (e.g., '*.py'). `file_type` can be 'f' for files or 'd' for directories.
+- `grep(pattern: str, path: str = ".", ignore_case: bool = False) -> str`: Searches for a regex pattern in files recursively and returns matching lines.
+- `execute_elisp_code(code: str) -> str`: Executes Emacs Lisp code. Must print the result to be captured.
 
 ** Instructions of the `execute_elisp_code`
 
@@ -48,6 +57,7 @@ example
 ```
 
 *** ELISP Code Examples:
+
 #+begin_src emacs-lisp
 ;; Retrieve a list of buffers
 (with-current-buffer (list-buffers-noselect)
@@ -112,7 +122,7 @@ def execute_elisp_code(code: str) -> str:
     except Exception as e:
         return f"Error: {str(e)}"
 
-# New File System Tools
+# File System Tools
 class ReadFileArgs(BaseModel):
     file_path: str = Field(description="The path to the file to read.")
 
@@ -157,64 +167,127 @@ def list_files(path: str = ".") -> str:
     except Exception as e:
         return f"An unexpected error occurred while listing files: {str(e)}"
 
+# Grep and Find Tools
+class GrepArgs(BaseModel):
+    pattern: str = Field(description="The regex pattern to search for.")
+    path: str = Field(description="The directory or file to search in. Defaults to the current directory.", default=".")
+    ignore_case: bool = Field(description="If True, performs a case-insensitive search.", default=False)
+
+@tool(args_schema=GrepArgs)
+def grep(pattern: str, path: str = ".", ignore_case: bool = False) -> str:
+    """
+    Searches for a pattern in files recursively.
+    Returns matching lines with file paths and line numbers.
+    """
+    if not os.path.exists(path):
+        return f"Error: Path '{path}' does not exist."
+
+    matches = []
+    regex_flags = re.IGNORECASE if ignore_case else 0
+    try:
+        compiled_pattern = re.compile(pattern, flags=regex_flags)
+    except re.error as e:
+        return f"Error: Invalid regex pattern: {e}"
+
+    if os.path.isfile(path):
+        try:
+            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line_num, line in enumerate(f, 1):
+                    if compiled_pattern.search(line):
+                        matches.append(f"{path.replace('\\\\', '/')}:{line_num}:{line.strip()}")
+        except Exception as e:
+            return f"Error reading file {path}: {e}"
+    elif os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                try:
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        for line_num, line in enumerate(f, 1):
+                            if compiled_pattern.search(line):
+                                matches.append(f"{file_path.replace('\\\\', '/')}:{line_num}:{line.strip()}")
+                except Exception:
+                    continue
+    else:
+        return f"Error: Path '{path}' is not a file or directory."
+
+    if not matches:
+        return f"No matches found for pattern '{pattern}' in '{path}'."
+
+    return "\n".join(matches)
+
+class FindFilesArgs(BaseModel):
+    name_pattern: str = Field(description="The glob pattern for the file or directory name (e.g., '*.py', 'my_dir').")
+    path: str = Field(description="The directory to start the search from. Defaults to the current directory.", default=".")
+    file_type: str = Field(description="Type of item to find: 'f' for file, 'd' for directory. Defaults to finding both.", default=None)
+
+@tool(args_schema=FindFilesArgs)
+def find_files(name_pattern: str, path: str = ".", file_type: str = None) -> str:
+    """
+    Finds files or directories by name pattern recursively.
+    """
+    if not os.path.isdir(path):
+        return f"Error: The path '{path}' is not a valid directory."
+
+    matches = []
+    for root, dirs, files in os.walk(path):
+        if file_type != 'f':
+            for d in fnmatch.filter(dirs, name_pattern):
+                matches.append(os.path.join(root, d).replace('\\\\', '/'))
+        if file_type != 'd':
+            for f in fnmatch.filter(files, name_pattern):
+                matches.append(os.path.join(root, f).replace('\\\\', '/'))
+
+    if not matches:
+        return f"No items found matching pattern '{name_pattern}' in '{path}'."
+
+    return "\n".join(matches)
+
 
 # --- Agent Definition ---
 
 def _format_and_print_message(message: BaseMessage):
     """Formats and prints a message based on its type and role."""
     if hasattr(message, "tool_calls") and message.tool_calls:
-        # The model is asking to call a tool
         function_name = message.tool_calls[0]["name"]
         function_args = message.tool_calls[0]["args"]
         print(f"\n\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
 
     elif hasattr(message, "role") and message.role == "tool":
-        # A tool has been called and returned a result
         print(f"\n\033[1;32mTool Result:\n{message.content}\033[0m")
 
     else:  # Assistant message
         content = message.content
-        # Ensure content is a string before proceeding.
         if isinstance(content, list):
-            # If content is a list (e.g., from multi-part messages), join it.
             content = "".join(str(part) for part in content if part)
-
         if not isinstance(content, str):
-            content = str(content)  # Fallback for other non-string types
+            content = str(content)
 
-        # Use a regex to find all code blocks, including the language identifier
         pattern = r"```(\w*)\n(.*?)```"
         matches = list(re.finditer(pattern, content, re.DOTALL))
 
         if not matches:
-            # No code blocks found, print as is.
             print(f"\n\033[1;32mAssistant:\n{content}\033[0m")
             return
 
         print("\n\033[1;32mAssistant: [0m")
         last_end = 0
         for match in matches:
-            # Print the text before the current code block
             pre_code_text = content[last_end:match.start()].strip()
             if pre_code_text:
                 print(pre_code_text)
 
-            # Extract language and code
             language = match.group(1).strip()
             code_content = match.group(2).strip()
-
-            # Format the header for the code block
             lang_display = f" {language.capitalize()} Code " if language else " Code "
             header = f"---{lang_display}---"
 
-            # Print the formatted code block
             print(f"\n\033[1;36m{header}\033[0m")
             print(f"\033[36m{code_content}\033[0m")
             print(f"\033[1;36m{'-' * len(header)}\033[0m")
 
             last_end = match.end()
 
-        # Print any remaining text after the last code block
         post_code_text = content[last_end:].strip()
         if post_code_text:
             print(f"\n{post_code_text}")
@@ -230,7 +303,7 @@ class EmacsAgent:
             temperature=LLM_TEMPERATURE,
             google_api_key=GOOGLE_API_KEY
         )
-        self.tools = [execute_elisp_code, read_file, write_to_file, list_files]
+        self.tools = [execute_elisp_code, read_file, write_to_file, list_files, grep, find_files]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
         self.graph = self._build_graph()
         self.system_prompt = SYSTEM_PROMPT
@@ -239,19 +312,15 @@ class EmacsAgent:
     def _build_graph(self) -> StateGraph:
         """Builds and compiles the LangGraph execution graph."""
         workflow = StateGraph(AgentState)
-
         workflow.add_node("llm", self.call_model)
         workflow.add_node("tools", self.call_tool)
-
         workflow.set_entry_point("llm")
-
         workflow.add_conditional_edges(
             "llm",
             self.should_continue,
             {"continue": "tools", "end": END},
         )
         workflow.add_edge("tools", "llm")
-
         return workflow.compile()
 
     def should_continue(self, state: AgentState) -> str:
@@ -263,7 +332,6 @@ class EmacsAgent:
 
     def call_model(self, state: AgentState, config: RunnableConfig):
         """Invokes the LLM with the current state and tools."""
-        # Bind the tools to the LLM so it knows what functions it can call
         model_with_tools = self.llm.bind_tools(self.tools)
         response = model_with_tools.invoke(state["messages"], config)
         return {"messages": [response]}
@@ -288,27 +356,16 @@ class EmacsAgent:
     def run(self, query: str):
         """Runs the agent from an initial user query."""
         self.conversation_history.append(HumanMessage(content=query))
-
-        initial_state = {
-            "messages": self.conversation_history.copy()
-        }
-
+        initial_state = {"messages": self.conversation_history.copy()}
         initial_history_length = len(self.conversation_history)
         final_messages = []
 
-        # The `stream` method provides real-time updates on the state
         for event in self.graph.stream(initial_state, stream_mode="values"):
-            # `event` is the entire state. Get the latest message to print.
             latest_message = event["messages"][-1]
             final_messages = event["messages"]
-
-            # Format and print the latest message from the stream.
-            # The stream yields state updates, so this prints the result of each step.
-            # We check the message is not the initial human message of the turn.
             if not isinstance(latest_message, HumanMessage):
                 _format_and_print_message(latest_message)
 
-        # After the stream is complete, update the conversation history
         if len(final_messages) > initial_history_length:
             new_messages = final_messages[initial_history_length:]
             self.conversation_history.extend(new_messages)
@@ -321,10 +378,7 @@ class EmacsAgent:
     def show_history(self):
         print("\n=== Conversation Histories ===")
         for i, msg in enumerate(self.conversation_history):
-            if hasattr(msg, "role"):
-                role = msg.role
-            else:
-                role = msg.__class__.__name__
+            role = getattr(msg, "role", msg.__class__.__name__)
             print(f"{i+1}. [{role}]: {msg.content[:100]}{'...' if len(msg.content) > 100 else ''}")
         print("==============================\n")
 
@@ -340,7 +394,6 @@ def main():
 
     try:
         agent = EmacsAgent()
-
         while True:
             query = input("\n> ")
             if query.lower() in ["exit", "quit"]:
@@ -351,9 +404,7 @@ def main():
             elif query.lower() == "history":
                 agent.show_history()
                 continue
-
             agent.run(query)
-
     except ValueError as e:
         print(f"\n\033[1;31mInitialization Error: {e}\033[0m")
     except Exception as e:
