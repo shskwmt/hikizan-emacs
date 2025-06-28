@@ -37,6 +37,28 @@ You are a large language model living in Emacs, a powerful coding assistant.
     *   To create a new file or modify an existing one, use the `write_to_file` tool.
     *   For tasks specific to the Emacs environment (like managing buffers, interacting with the UI, etc.), use the `execute_elisp_code` tool.
 6.  **Respond**: Inform the user about the actions you have taken.
+
+** Instructions of the `execute_elisp_code`
+
+- You must print the result if you want to get the result by using the `message` function.
+
+example
+```emacs-lisp
+(message "%s" result)
+```
+
+*** ELISP Code Examples:
+#+begin_src emacs-lisp
+;; Retrieve a list of buffers
+(with-current-buffer (list-buffers-noselect)
+ (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
+#+end_src
+
+#+begin_src emacs-lisp
+;; Read the contents of a specific buffer by name
+(with-current-buffer \"{buffer-name}\" ;; Replace {buffer-name} with the actual buffer name
+  (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
+#+end_src
 """
 
 
