@@ -29,6 +29,7 @@
 
 ;; LLM tools
 (global-set-key (kbd "C-c a") 'hikizan/run-emacs-agent)
+(global-set-key (kbd "C-c r") 'hikizan/restart-emacs-agent)
 
 ;; Consult
 (global-set-key (kbd "C-x b") 'consult-buffer)

@@ -22,6 +22,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MODEL_NAME = "gemini-2.5-pro"
 LLM_TEMPERATURE = 0
 THINKING_BUDGET = 128
+TIMEOUT = 60
 SYSTEM_PROMPT = """
 ** Role
 You are a large language model living in Emacs, a powerful coding assistant.
@@ -177,45 +178,35 @@ class GrepArgs(BaseModel):
 @tool(args_schema=GrepArgs)
 def grep(pattern: str, path: str = ".", ignore_case: bool = False) -> str:
     """
-    Searches for a pattern in files recursively.
+    Searches for a pattern in files recursively using ripgrep.
     Returns matching lines with file paths and line numbers.
     """
     if not os.path.exists(path):
         return f"Error: Path '{path}' does not exist."
 
-    matches = []
-    regex_flags = re.IGNORECASE if ignore_case else 0
     try:
-        compiled_pattern = re.compile(pattern, flags=regex_flags)
-    except re.error as e:
-        return f"Error: Invalid regex pattern: {e}"
+        command = ['rg', '--no-heading', '--with-filename', '--line-number']
+        if ignore_case:
+            command.append('--ignore-case')
 
-    if os.path.isfile(path):
-        try:
-            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-                for line_num, line in enumerate(f, 1):
-                    if compiled_pattern.search(line):
-                        matches.append(f"{path.replace('\\\\', '/')}:{line_num}:{line.strip()}")
-        except Exception as e:
-            return f"Error reading file {path}: {e}"
-    elif os.path.isdir(path):
-        for root, _, files in os.walk(path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                try:
-                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        for line_num, line in enumerate(f, 1):
-                            if compiled_pattern.search(line):
-                                matches.append(f"{file_path.replace('\\\\', '/')}:{line_num}:{line.strip()}")
-                except Exception:
-                    continue
-    else:
-        return f"Error: Path '{path}' is not a file or directory."
+        command.extend([pattern, path])
 
-    if not matches:
-        return f"No matches found for pattern '{pattern}' in '{path}'."
+        result = subprocess.run(command, capture_output=True, text=True, check=True, encoding='utf-8')
 
-    return "\n".join(matches)
+        output = result.stdout.strip()
+        if not output:
+            return f"No matches found for pattern '{pattern}' in '{path}'."
+
+        return output
+    except FileNotFoundError:
+        return "Error: 'rg' (ripgrep) command not found. Please ensure ripgrep is installed and in your PATH."
+    except subprocess.CalledProcessError as e:
+        # ripgrep exits with 1 if no matches are found.
+        if e.returncode == 1 and not e.stdout and not e.stderr:
+            return f"No matches found for pattern '{pattern}' in '{path}'."
+        return f"Error executing ripgrep: {e.stderr}"
+    except Exception as e:
+        return f"An unexpected error occurred while running ripgrep: {str(e)}"
 
 class FindFilesArgs(BaseModel):
     name_pattern: str = Field(description="The glob pattern for the file or directory name (e.g., '*.py', 'my_dir').")
@@ -303,9 +294,11 @@ class EmacsAgent:
             model=MODEL_NAME,
             thinking_budget=THINKING_BUDGET,
             temperature=LLM_TEMPERATURE,
+            timeout=TIMEOUT,
             google_api_key=GOOGLE_API_KEY,
             transport="grpc",
         )
+
         self.tools = [execute_elisp_code, read_file, write_to_file, list_files, grep, find_files]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
         self.graph = self._build_graph()
