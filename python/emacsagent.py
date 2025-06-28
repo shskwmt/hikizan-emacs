@@ -6,6 +6,7 @@ import time
 import re
 
 from typing import Annotated, Sequence, TypedDict
+from pydantic import BaseModel, Field
 
 from langchain_core.messages import BaseMessage, ToolMessage, SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -17,36 +18,25 @@ from langgraph.graph.message import add_messages
 # --- Constants ---
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-MODEL_NAME = "gemini-2.5-pro-preview-06-05"
-LLM_TEMPERATURE = 0  # Lowered for more predictable code-related outputs
+MODEL_NAME = "gemini-2.5-pro"
+LLM_TEMPERATURE = 0
 SYSTEM_PROMPT = """
 ** Role
-You are a large language model living in Emacs and helpful assistant.
+You are a large language model living in Emacs, a powerful coding assistant.
 
 ** Context
 - I am using emacs to automate programming tasks.
+- You have access to the local file system to read, write, and list files.
 
 ** Instructions
-- Write efficient ELISP code to perform the objective.
-- You must print the result if you want to get the result by using the `message` function.
-
-example
-```emacs-lisp
-(message "%s" result)
-```
-
-** ELISP Code Examples:
-#+begin_src emacs-lisp
-;; Retrieve a list of buffers
-(with-current-buffer (list-buffers-noselect)
- (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
-#+end_src
-
-#+begin_src emacs-lisp
-;; Read the contents of a specific buffer by name
-(with-current-buffer \"{buffer-name}\" ;; Replace {buffer-name} with the actual buffer name
-  (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
-#+end_src
+1.  **Think**: Analyze the user's request and create a clear, step-by-step plan.
+2.  **Explore (If Necessary)**: If you need to understand the project structure, use the `list_files` tool to see what files are in the current or a specified directory.
+3.  **Read (If Necessary)**: Before making changes to an existing file, ALWAYS use the `read_file` tool to get its current content. This is critical to ensure you don't overwrite important information.
+4.  **Propose Changes**: Based on the file's content and the user's request, formulate the new code or modifications.
+5.  **Act**:
+    *   To create a new file or modify an existing one, use the `write_to_file` tool.
+    *   For tasks specific to the Emacs environment (like managing buffers, interacting with the UI, etc.), use the `execute_elisp_code` tool.
+6.  **Respond**: Inform the user about the actions you have taken.
 """
 
 
@@ -59,33 +49,25 @@ class AgentState(TypedDict):
 
 # --- Tools ---
 
+# Tool for executing Emacs Lisp
 def write_elisp_code_to_temp_file(code: str) -> str:
     """
     Create a temp file and write the provided code into the temp file.
     Returns the temp file path.
-
-    Parameters:
-    code (str): Emacs Lisp code to write.
-
-    Returns:
-    str: temp file path.
     """
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.el') as temp_file:
         temp_file.write(code)
         file_path = temp_file.name.replace("\\", "/")
         return file_path
 
-@tool("execute_elisp_code", return_direct=True)
+class ElispCode(BaseModel):
+    code: str = Field(description="The Emacs Lisp code to execute. It must print its result to be captured.")
+
+@tool(args_schema=ElispCode)
 def execute_elisp_code(code: str) -> str:
     """
     Executes the Emacs Lisp code.
     Returns the result or an error message.
-
-    Parameters:
-    code (str): Emacs Lisp code to execute.
-
-    Returns:
-    str: the result or an error message
     """
     temp_file_path = write_elisp_code_to_temp_file(code)
     print(f"Emacs LISP code written to: {temp_file_path}")
@@ -107,6 +89,51 @@ def execute_elisp_code(code: str) -> str:
         return content
     except Exception as e:
         return f"Error: {str(e)}"
+
+# New File System Tools
+class ReadFileArgs(BaseModel):
+    file_path: str = Field(description="The path to the file to read.")
+
+class WriteToFileArgs(BaseModel):
+    file_path: str = Field(description="The path to the file to write to.")
+    content: str = Field(description="The content to write to the file.")
+
+class ListFilesArgs(BaseModel):
+    path: str = Field(description="The directory path to list files from. Defaults to the current directory.", default=".")
+
+@tool(args_schema=ReadFileArgs)
+def read_file(file_path: str) -> str:
+    """Reads the contents of a file and returns them as a string."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return f"Error: File not found at {file_path}"
+    except Exception as e:
+        return f"An unexpected error occurred while reading the file: {str(e)}"
+
+@tool(args_schema=WriteToFileArgs)
+def write_to_file(file_path: str, content: str) -> str:
+    """Writes the given content to a specified file, overwriting it if it exists."""
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return f"Successfully wrote to {file_path}"
+    except Exception as e:
+        return f"An unexpected error occurred while writing to the file: {str(e)}"
+
+@tool(args_schema=ListFilesArgs)
+def list_files(path: str = ".") -> str:
+    """Lists all files and directories in a given path."""
+    try:
+        if not os.path.isdir(path):
+            return f"Error: The path '{path}' is not a valid directory."
+        files = os.listdir(path)
+        if not files:
+            return f"The directory '{path}' is empty."
+        return "\n".join(files)
+    except Exception as e:
+        return f"An unexpected error occurred while listing files: {str(e)}"
 
 
 # --- Agent Definition ---
@@ -181,7 +208,7 @@ class EmacsAgent:
             temperature=LLM_TEMPERATURE,
             google_api_key=GOOGLE_API_KEY
         )
-        self.tools = [execute_elisp_code]
+        self.tools = [execute_elisp_code, read_file, write_to_file, list_files]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
         self.graph = self._build_graph()
         self.system_prompt = SYSTEM_PROMPT
