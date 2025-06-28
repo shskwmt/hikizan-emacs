@@ -340,6 +340,9 @@ class EmacsAgent:
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             for tool_call in last_message.tool_calls:
                 tool_result = self.tools_by_name[tool_call["name"]].invoke(tool_call["args"])
+                # Ensure tool_result is not empty
+                if not tool_result:
+                    tool_result = "Tool returned no output."
                 outputs.append(
                     ToolMessage(
                         content=str(tool_result),
