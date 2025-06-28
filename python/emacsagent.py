@@ -21,6 +21,7 @@ from langgraph.graph.message import add_messages
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MODEL_NAME = "gemini-2.5-pro"
 LLM_TEMPERATURE = 0
+THINKING_BUDGET = 128
 SYSTEM_PROMPT = """
 ** Role
 You are a large language model living in Emacs, a powerful coding assistant.
@@ -300,8 +301,10 @@ class EmacsAgent:
 
         self.llm = ChatGoogleGenerativeAI(
             model=MODEL_NAME,
+            thinking_budget=THINKING_BUDGET,
             temperature=LLM_TEMPERATURE,
-            google_api_key=GOOGLE_API_KEY
+            google_api_key=GOOGLE_API_KEY,
+            transport="grpc",
         )
         self.tools = [execute_elisp_code, read_file, write_to_file, list_files, grep, find_files]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
