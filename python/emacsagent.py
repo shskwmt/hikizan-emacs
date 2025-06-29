@@ -280,17 +280,21 @@ def find_files(name_pattern: str, path: str = ".", file_type: str = None) -> str
     return "\n".join(matches)
 
 
-# --- Agent Definition ---
+# --- Message Formatting ---
 
-def _format_and_print_message(message: BaseMessage):
-    """Formats and prints a message based on its type and role."""
+def _format_and_print_message(message: BaseMessage, node_name: str = None):
+    """Formats and prints a message based on its type and role, with optional node context."""
+
+    # Create node prefix if provided
+    node_prefix = f"\033[1;36m[{node_name.upper()}]\033[0m " if node_name else ""
+
     if hasattr(message, "tool_calls") and message.tool_calls:
         function_name = message.tool_calls[0]["name"]
         function_args = message.tool_calls[0]["args"]
-        print(f"\n\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
+        print(f"\n{node_prefix}\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
 
     elif hasattr(message, "role") and message.role == "tool":
-        print(f"\n\033[1;32mTool Result:\n{message.content}\033[0m")
+        print(f"\n{node_prefix}\033[1;32mTool Result:\n{message.content}\033[0m")
 
     else:  # Assistant message
         content = message.content
@@ -299,37 +303,13 @@ def _format_and_print_message(message: BaseMessage):
         if not isinstance(content, str):
             content = str(content)
 
-        pattern = r"```(\w*)\n(.*?)```"
-        matches = list(re.finditer(pattern, content, re.DOTALL))
+        print(f"\n{node_prefix}\033[1;32mAssistant:\n{content}\033[0m")
 
-        if not matches:
-            print(f"\n\033[1;32mAssistant:\n{content}\033[0m")
-            return
 
-        print("\n\033[1;32mAssistant: [0m")
-        last_end = 0
-        for match in matches:
-            pre_code_text = content[last_end:match.start()].strip()
-            if pre_code_text:
-                print(pre_code_text)
-
-            language = match.group(1).strip()
-            code_content = match.group(2).strip()
-            lang_display = f" {language.capitalize()} Code " if language else " Code "
-            header = f"---{lang_display}---"
-
-            print(f"\n\033[1;36m{header}\033[0m")
-            print(f"\033[36m{code_content}\033[0m")
-            print(f"\033[1;36m{'-' * len(header)}\033[0m")
-
-            last_end = match.end()
-
-        post_code_text = content[last_end:].strip()
-        if post_code_text:
-            print(f"\n{post_code_text}")
+# --- Emacs Agent Definition ---
 
 class EmacsAgent:
-    """Encapsulates the agent's logic, tools, and execution graph."""
+    """Emacs Agent with detailed execution logging and node context tracking."""
     def __init__(self):
         if not GOOGLE_API_KEY:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
@@ -348,6 +328,8 @@ class EmacsAgent:
         self.plan_prompt = PLAN_PROMPT
         self.reflection_prompt = REFLECTION_PROMPT
         self.conversation_history = [SystemMessage(content=self.system_prompt)]
+        self.current_node = None  # Track current node for message formatting
+        self.execution_log = []  # Track execution steps
 
     def _build_graph(self) -> StateGraph:
         """Builds and compiles the LangGraph execution graph."""
@@ -371,6 +353,24 @@ class EmacsAgent:
         )
         return workflow.compile()
 
+    def _log_execution_step(self, node_name: str, action: str, details: str = ""):
+        """Log execution steps for better debugging."""
+        step = {
+            "node": node_name,
+            "action": action,
+            "details": details,
+            "timestamp": time.time()
+        }
+        self.execution_log.append(step)
+
+        # Print execution step with enhanced formatting
+        timestamp_str = time.strftime("%H:%M:%S", time.localtime(step["timestamp"]))
+        print(f"\n\033[1;35m[{timestamp_str}] {node_name.upper()} → {action}\033[0m")
+        if details:
+            # Truncate long details for readability
+            truncated_details = details[:100] + "..." if len(details) > 100 else details
+            print(f"\033[0;35m  Details: {truncated_details}\033[0m")
+
     def should_continue(self, state: AgentState) -> str:
         """Determines whether the agent should continue or end."""
         last_msg = state["messages"][-1]
@@ -381,39 +381,73 @@ class EmacsAgent:
     def should_reflect(self, state: AgentState) -> str:
         """Determines whether the agent should reflect or end."""
         if state["n_reflection"] > 3:
+            self._log_execution_step("DECISION", "Max reflections reached, ending execution")
             return "end"
         return "reflect"
 
     def plan(self, state: AgentState):
         """Generates a plan to address the user's request."""
+        self.current_node = "plan"
+        self._log_execution_step("PLAN", "Generating execution plan")
+
         plan_message = [
             SystemMessage(content=self.plan_prompt),
             *state["messages"],
         ]
         response = self.llm.invoke(plan_message)
+
+        # Log the generated plan
+        plan_summary = response.content[:100] + "..." if len(response.content) > 100 else response.content
+        self._log_execution_step("PLAN", "Plan generated", plan_summary)
+
         return {"messages": [AIMessage(content=response.content)]}
 
     def call_model(self, state: AgentState, config: RunnableConfig):
         """Invokes the LLM with the current state and tools."""
+        self.current_node = "llm"
+        self._log_execution_step("LLM", "Calling language model")
+
         model_with_tools = self.llm.bind_tools(self.tools)
         response = model_with_tools.invoke(state["messages"], config)
+
+        # Log what the model decided to do
+        if hasattr(response, "tool_calls") and response.tool_calls:
+            tool_name = response.tool_calls[0]["name"]
+            tool_args = response.tool_calls[0]["args"]
+            self._log_execution_step("LLM", f"Decided to call tool: {tool_name}", str(tool_args))
+        else:
+            content_preview = response.content[:50] + "..." if len(response.content) > 50 else response.content
+            self._log_execution_step("LLM", "Generated text response", content_preview)
+
         return {"messages": [response]}
 
     def call_tool(self, state: AgentState):
         """Calls the appropriate tool based on the LLM's request."""
+        self.current_node = "tools"
         outputs = []
         last_message = state["messages"][-1]
 
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             for tool_call in last_message.tool_calls:
-                tool_result = self.tools_by_name[tool_call["name"]].invoke(tool_call["args"])
+                tool_name = tool_call["name"]
+                tool_args = tool_call["args"]
+
+                self._log_execution_step("TOOLS", f"Executing {tool_name}", str(tool_args))
+
+                tool_result = self.tools_by_name[tool_name].invoke(tool_args)
+
                 # Ensure tool_result is not empty
                 if not tool_result:
                     tool_result = "Tool returned no output."
+
+                # Log tool result summary
+                result_summary = str(tool_result)[:100] + "..." if len(str(tool_result)) > 100 else str(tool_result)
+                self._log_execution_step("TOOLS", f"{tool_name} completed", result_summary)
+
                 outputs.append(
                     ToolMessage(
                         content=str(tool_result),
-                        name=tool_call["name"],
+                        name=tool_name,
                         tool_call_id=tool_call["id"],
                     )
                 )
@@ -453,6 +487,9 @@ class EmacsAgent:
 
     def reflect(self, state: AgentState):
         """Critiques the agent's last action and decides whether to continue."""
+        self.current_node = "reflection"
+        reflection_count = state["n_reflection"]
+        self._log_execution_step("REFLECTION", f"Reflecting on execution (attempt {reflection_count + 1})")
 
         # Get recent messages to avoid overwhelming the context
         recent_messages = state["messages"][-6:]  # Last 6 messages
@@ -469,14 +506,18 @@ class EmacsAgent:
             response = self.llm.invoke(reflection_message)
 
             if "SUCCESS" in response.content:
+                self._log_execution_step("REFLECTION", "Task completed successfully")
                 return {"messages": [AIMessage(content="SUCCESS")]}
             else:
+                feedback_preview = response.content[:100] + "..." if len(response.content) > 100 else response.content
+                self._log_execution_step("REFLECTION", "Needs improvement", feedback_preview)
                 return {
                     "messages": [AIMessage(content=response.content)],
                     "n_reflection": state["n_reflection"] + 1
                 }
 
         except Exception as e:
+            self._log_execution_step("REFLECTION", "Reflection failed", str(e))
             print(f"\n\033[1;31mReflection error: {e}\033[0m")
             traceback.print_exc()
             # Return a safe fallback to prevent the entire process from failing
@@ -486,22 +527,30 @@ class EmacsAgent:
             }
 
     def run(self, query: str):
-        """Runs the agent from an initial user query."""
+        """Runs the agent from an initial user query with enhanced logging."""
+        print(f"\n\033[1;34mStarting execution for query: {query}\033[0m")
+        self.execution_log.clear()  # Clear previous execution log
+
         self.conversation_history.append(HumanMessage(content=query))
         initial_state = {"messages": self.conversation_history.copy(), "n_reflection": 0}
         initial_history_length = len(self.conversation_history)
         final_messages = []
 
         try:
+            # Track execution flow with node names
             for event in self.graph.stream(initial_state, stream_mode="values"):
                 latest_message = event["messages"][-1]
                 final_messages = event["messages"]
+
+                # Only print non-human messages with node context
                 if not isinstance(latest_message, HumanMessage):
-                    _format_and_print_message(latest_message)
+                    _format_and_print_message(latest_message, self.current_node)
 
             if len(final_messages) > initial_history_length:
                 new_messages = final_messages[initial_history_length:]
                 self.conversation_history.extend(new_messages)
+
+            print(f"\n\033[1;34mExecution completed. Total steps: {len(self.execution_log)}\033[0m")
 
         except Exception as e:
             print(f"\n\033[1;31mAn unexpected error occurred during agent execution: {e}\033[0m")
@@ -511,14 +560,58 @@ class EmacsAgent:
     def clear_history(self):
         """Clear the conversation histories"""
         self.conversation_history = [SystemMessage(content=self.system_prompt)]
-        print("Cleared conversation histories")
+        self.execution_log.clear()
+        print("Cleared conversation histories and execution log")
 
     def show_history(self):
-        print("\n=== Conversation Histories ===")
+        """Display conversation history."""
+        print("\n=== Conversation History ===")
         for i, msg in enumerate(self.conversation_history):
             role = getattr(msg, "role", msg.__class__.__name__)
-            print(f"{i+1}. [{role}]: {msg.content[:100]}{'...' if len(msg.content) > 100 else ''}")
-        print("==============================\n")
+            content_preview = str(msg.content)[:100] + "..." if len(str(msg.content)) > 100 else str(msg.content)
+            print(f"{i+1:2d}. [{role:12}]: {content_preview}")
+        print("============================\n")
+
+    def show_execution_log(self):
+        """Display the execution log for debugging."""
+        if not self.execution_log:
+            print("\n=== Execution Log ===")
+            print("No execution steps recorded.")
+            print("====================\n")
+            return
+
+        print("\n=== Execution Log ===")
+        for i, step in enumerate(self.execution_log, 1):
+            timestamp_str = time.strftime("%H:%M:%S", time.localtime(step["timestamp"]))
+            print(f"{i:2d}. [{timestamp_str}] {step['node']:12} → {step['action']}")
+            if step["details"]:
+                # Truncate long details
+                details = step["details"][:150] + "..." if len(step["details"]) > 150 else step["details"]
+                print(f"     {details}")
+        print("====================\n")
+
+    def show_stats(self):
+        """Show execution statistics."""
+        if not self.execution_log:
+            print("No execution data available.")
+            return
+
+        node_counts = {}
+        for step in self.execution_log:
+            node = step["node"]
+            node_counts[node] = node_counts.get(node, 0) + 1
+
+        total_time = 0
+        if len(self.execution_log) > 1:
+            total_time = self.execution_log[-1]["timestamp"] - self.execution_log[0]["timestamp"]
+
+        print(f"\n=== Execution Statistics ===")
+        print(f"Total steps: {len(self.execution_log)}")
+        print(f"Total time: {total_time:.2f} seconds")
+        print(f"Node usage:")
+        for node, count in sorted(node_counts.items()):
+            print(f"  {node:12}: {count} steps")
+        print("===========================\n")
 
 
 def main():
@@ -527,8 +620,10 @@ def main():
     print("You can ask me to perform tasks in Emacs.")
     print("Special commands:")
     print("  - 'exit' or 'quit': end the session")
-    print("  - 'clear': clear conversation history")
+    print("  - 'clear': clear conversation history and execution log")
     print("  - 'history': show conversation history")
+    print("  - 'log': show execution log")
+    print("  - 'stats': show execution statistics")
 
     try:
         agent = EmacsAgent()
@@ -541,6 +636,12 @@ def main():
                 continue
             elif query.lower() == "history":
                 agent.show_history()
+                continue
+            elif query.lower() == "log":
+                agent.show_execution_log()
+                continue
+            elif query.lower() == "stats":
+                agent.show_stats()
                 continue
             agent.run(query)
     except ValueError as e:
