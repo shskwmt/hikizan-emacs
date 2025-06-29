@@ -5,6 +5,7 @@ import tempfile
 import time
 import re
 import fnmatch
+import traceback
 
 from typing import Annotated, Sequence, TypedDict
 from pydantic import BaseModel, Field
@@ -19,7 +20,7 @@ from langgraph.graph.message import add_messages
 # --- Constants ---
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-MODEL_NAME = "gemini-2.5-pro"
+MODEL_NAME = "gemini-2.5-flash"
 LLM_TEMPERATURE = 0
 TIMEOUT = 60
 SYSTEM_PROMPT = """
@@ -476,7 +477,8 @@ class EmacsAgent:
                 }
 
         except Exception as e:
-            print(f"Reflection error: {e}")
+            print(f"\n\033[1;31mReflection error: {e}\033[0m")
+            traceback.print_exc()
             # Return a safe fallback to prevent the entire process from failing
             return {
                 "messages": [AIMessage(content="CONTINUE: Reflection failed, proceeding with execution.")],
@@ -502,7 +504,8 @@ class EmacsAgent:
                 self.conversation_history.extend(new_messages)
 
         except Exception as e:
-            print(f"\n\033[1;31mAn unexpected error occurred: {e}\033[0m")
+            print(f"\n\033[1;31mAn unexpected error occurred during agent execution: {e}\033[0m")
+            traceback.print_exc()
             print("The agent will continue to be available for new requests.")
 
     def clear_history(self):
@@ -542,8 +545,10 @@ def main():
             agent.run(query)
     except ValueError as e:
         print(f"\n\033[1;31mInitialization Error: {e}\033[0m")
+        traceback.print_exc()
     except Exception as e:
-        print(f"\n\033[1;31mAn unexpected error occurred: {e}\033[0m")
+        print(f"\n\033[1;31mAn unexpected error occurred in the main loop: {e}\033[0m")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     # To run this script:
