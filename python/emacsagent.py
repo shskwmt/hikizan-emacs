@@ -105,17 +105,14 @@ If the user's request is too complex, break it down into smaller, manageable ste
 """
 
 REFLECTION_PROMPT = """
-You are a senior software engineer acting as a critic.
-Your role is to evaluate the plan and execution of a junior developer (the agent).
+You are a senior software engineer reviewing the agent's work.
 
-Critique the agent's last tool call and its result based on the user's request.
-The user's request is the first message in the conversation.
+Look at the agent's last action and determine if it successfully completed the user's request.
 
-If the agent's action was successful and has fulfilled the user's request, respond with "SUCCESS".
-If the agent's action was unsuccessful or has not yet fulfilled the user's request, provide constructive feedback to the agent.
-Your feedback should be specific and actionable.
-For example, if the agent used the wrong tool, suggest the correct tool to use.
-If the agent's code has a bug, identify the bug and suggest a fix.
+If the action was successful and fulfilled the user's request, respond with "SUCCESS".
+If the action was not successful or has not yet fulfilled the user's request, provide brief, specific feedback on what needs to be improved.
+
+Keep your feedback constructive and actionable.
 """
 
 
@@ -421,17 +418,70 @@ class EmacsAgent:
                 )
         return {"messages": outputs}
 
+    def validate_messages_for_gemini(self, messages):
+        """Ensure all messages are compatible with Gemini API"""
+        validated_messages = []
+
+        for msg in messages:
+            if isinstance(msg, SystemMessage):
+                # Clean system message content
+                content = msg.content.replace('\\"', '"').replace('\\n', '\n')
+                validated_messages.append(SystemMessage(content=content))
+            elif isinstance(msg, HumanMessage):
+                # Keep human messages as-is
+                validated_messages.append(HumanMessage(content=str(msg.content)))
+            elif isinstance(msg, AIMessage):
+                # Simplify AI messages - remove tool_calls metadata
+                if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                    # Create a simplified description of the tool call
+                    tool_name = msg.tool_calls[0]['name']
+                    tool_args = msg.tool_calls[0]['args']
+                    simplified_content = f"Called tool '{tool_name}' with arguments: {tool_args}"
+                    if msg.content:
+                        simplified_content = f"{msg.content}\n\n{simplified_content}"
+                    validated_messages.append(AIMessage(content=simplified_content))
+                else:
+                    # Keep regular AI messages
+                    validated_messages.append(AIMessage(content=str(msg.content or "")))
+            elif isinstance(msg, ToolMessage):
+                # Convert tool messages to human messages for clarity
+                tool_result_msg = HumanMessage(content=f"Tool '{msg.name}' returned: {msg.content}")
+                validated_messages.append(tool_result_msg)
+
+        return validated_messages
+
     def reflect(self, state: AgentState):
         """Critiques the agent's last action and decides whether to continue."""
+
+        # Get recent messages to avoid overwhelming the context
+        recent_messages = state["messages"][-6:]  # Last 6 messages
+
+        # Validate and simplify messages for Gemini
+        validated_messages = self.validate_messages_for_gemini(recent_messages)
+
         reflection_message = [
             SystemMessage(content=self.reflection_prompt),
-            *state["messages"],
+            *validated_messages,
         ]
-        response = self.llm.invoke(reflection_message)
-        if "SUCCESS" in response.content:
-            return {"messages": [AIMessage(content="SUCCESS")]}
-        else:
-            return {"messages": [AIMessage(content=response.content)], "n_reflection": state["n_reflection"] + 1}
+
+        try:
+            response = self.llm.invoke(reflection_message)
+
+            if "SUCCESS" in response.content:
+                return {"messages": [AIMessage(content="SUCCESS")]}
+            else:
+                return {
+                    "messages": [AIMessage(content=response.content)],
+                    "n_reflection": state["n_reflection"] + 1
+                }
+
+        except Exception as e:
+            print(f"Reflection error: {e}")
+            # Return a safe fallback to prevent the entire process from failing
+            return {
+                "messages": [AIMessage(content="CONTINUE: Reflection failed, proceeding with execution.")],
+                "n_reflection": state["n_reflection"] + 1
+            }
 
     def run(self, query: str):
         """Runs the agent from an initial user query."""
@@ -440,15 +490,20 @@ class EmacsAgent:
         initial_history_length = len(self.conversation_history)
         final_messages = []
 
-        for event in self.graph.stream(initial_state, stream_mode="values"):
-            latest_message = event["messages"][-1]
-            final_messages = event["messages"]
-            if not isinstance(latest_message, HumanMessage):
-                _format_and_print_message(latest_message)
+        try:
+            for event in self.graph.stream(initial_state, stream_mode="values"):
+                latest_message = event["messages"][-1]
+                final_messages = event["messages"]
+                if not isinstance(latest_message, HumanMessage):
+                    _format_and_print_message(latest_message)
 
-        if len(final_messages) > initial_history_length:
-            new_messages = final_messages[initial_history_length:]
-            self.conversation_history.extend(new_messages)
+            if len(final_messages) > initial_history_length:
+                new_messages = final_messages[initial_history_length:]
+                self.conversation_history.extend(new_messages)
+
+        except Exception as e:
+            print(f"\n\033[1;31mAn unexpected error occurred: {e}\033[0m")
+            print("The agent will continue to be available for new requests.")
 
     def clear_history(self):
         """Clear the conversation histories"""
