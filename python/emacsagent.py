@@ -9,7 +9,7 @@ import fnmatch
 from typing import Annotated, Sequence, TypedDict
 from pydantic import BaseModel, Field
 
-from langchain_core.messages import BaseMessage, ToolMessage, SystemMessage, HumanMessage
+from langchain_core.messages import BaseMessage, ToolMessage, SystemMessage, HumanMessage, AIMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -77,12 +77,54 @@ example
 #+end_src
 """
 
+PLAN_PROMPT = """
+You are a senior software engineer.
+Your role is to craft a detailed, step-by-step plan to address the user's request.
+The user's request is the last message in the conversation.
+
+The plan should be a sequence of commands to be executed by a junior developer.
+The junior developer has access to the following tools:
+- `list_files(path: str) -> str`
+- `read_file(file_path: str) -> str`
+- `write_to_file(file_path: str, content: str) -> str`
+- `find_files(name_pattern: str, path: str = ".", file_type: str = None) -> str`
+- `grep(pattern: str, path: str = ".", ignore_case: bool = False) -> str`
+- `execute_elisp_code(code: str) -> str`
+
+Your plan should be clear, concise, and easy to follow.
+For each step, specify the tool to be used and the arguments to be passed.
+If you need to use `execute_elisp_code`, provide the Emacs Lisp code to be executed.
+
+Example Plan:
+1. **List files in the current directory**: `list_files(path=".")`
+2. **Read the content of `init.el`**: `read_file(file_path="init.el")`
+3. **Add a new setting to `init.el`**: `write_to_file(file_path="init.el", content="(setq my-new-setting t)")`
+
+If the user's request is unclear, ask for clarification.
+If the user's request is too complex, break it down into smaller, manageable steps.
+"""
+
+REFLECTION_PROMPT = """
+You are a senior software engineer acting as a critic.
+Your role is to evaluate the plan and execution of a junior developer (the agent).
+
+Critique the agent's last tool call and its result based on the user's request.
+The user's request is the first message in the conversation.
+
+If the agent's action was successful and has fulfilled the user's request, respond with "SUCCESS".
+If the agent's action was unsuccessful or has not yet fulfilled the user's request, provide constructive feedback to the agent.
+Your feedback should be specific and actionable.
+For example, if the agent used the wrong tool, suggest the correct tool to use.
+If the agent's code has a bug, identify the bug and suggest a fix.
+"""
+
 
 # --- State Definition ---
 
 class AgentState(TypedDict):
     """The state of the agent."""
     messages: Annotated[Sequence[BaseMessage], add_messages]
+    n_reflection: int
 
 
 # --- Tools ---
@@ -305,20 +347,30 @@ class EmacsAgent:
         self.tools_by_name = {tool.name: tool for tool in self.tools}
         self.graph = self._build_graph()
         self.system_prompt = SYSTEM_PROMPT
+        self.plan_prompt = PLAN_PROMPT
+        self.reflection_prompt = REFLECTION_PROMPT
         self.conversation_history = [SystemMessage(content=self.system_prompt)]
 
     def _build_graph(self) -> StateGraph:
         """Builds and compiles the LangGraph execution graph."""
         workflow = StateGraph(AgentState)
+        workflow.add_node("plan", self.plan)
         workflow.add_node("llm", self.call_model)
         workflow.add_node("tools", self.call_tool)
-        workflow.set_entry_point("llm")
+        workflow.add_node("reflection", self.reflect)
+        workflow.set_entry_point("plan")
+        workflow.add_edge("plan", "llm")
         workflow.add_conditional_edges(
             "llm",
             self.should_continue,
             {"continue": "tools", "end": END},
         )
-        workflow.add_edge("tools", "llm")
+        workflow.add_edge("tools", "reflection")
+        workflow.add_conditional_edges(
+            "reflection",
+            self.should_reflect,
+            {"reflect": "llm", "end": END},
+        )
         return workflow.compile()
 
     def should_continue(self, state: AgentState) -> str:
@@ -327,6 +379,21 @@ class EmacsAgent:
         if hasattr(last_msg, "tool_calls") and last_msg.tool_calls:
             return "continue"
         return "end"
+
+    def should_reflect(self, state: AgentState) -> str:
+        """Determines whether the agent should reflect or end."""
+        if state["n_reflection"] > 3:
+            return "end"
+        return "reflect"
+
+    def plan(self, state: AgentState):
+        """Generates a plan to address the user's request."""
+        plan_message = [
+            SystemMessage(content=self.plan_prompt),
+            *state["messages"],
+        ]
+        response = self.llm.invoke(plan_message)
+        return {"messages": [AIMessage(content=response.content)]}
 
     def call_model(self, state: AgentState, config: RunnableConfig):
         """Invokes the LLM with the current state and tools."""
@@ -354,10 +421,22 @@ class EmacsAgent:
                 )
         return {"messages": outputs}
 
+    def reflect(self, state: AgentState):
+        """Critiques the agent's last action and decides whether to continue."""
+        reflection_message = [
+            SystemMessage(content=self.reflection_prompt),
+            *state["messages"],
+        ]
+        response = self.llm.invoke(reflection_message)
+        if "SUCCESS" in response.content:
+            return {"messages": [AIMessage(content="SUCCESS")]}
+        else:
+            return {"messages": [AIMessage(content=response.content)], "n_reflection": state["n_reflection"] + 1}
+
     def run(self, query: str):
         """Runs the agent from an initial user query."""
         self.conversation_history.append(HumanMessage(content=query))
-        initial_state = {"messages": self.conversation_history.copy()}
+        initial_state = {"messages": self.conversation_history.copy(), "n_reflection": 0}
         initial_history_length = len(self.conversation_history)
         final_messages = []
 
