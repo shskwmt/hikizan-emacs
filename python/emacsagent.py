@@ -21,7 +21,6 @@ from langgraph.graph.message import add_messages
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MODEL_NAME = "gemini-2.5-pro"
 LLM_TEMPERATURE = 0
-THINKING_BUDGET = 128
 TIMEOUT = 60
 SYSTEM_PROMPT = """
 ** Role
@@ -40,6 +39,11 @@ You are a large language model living in Emacs, a powerful coding assistant.
     *   To create a new file or modify an existing one, use `write_to_file`.
     *   For tasks specific to the Emacs environment (like managing buffers), use `execute_elisp_code`.
 6.  **Respond**: Inform the user about the actions you have taken.
+
+** Constraints
+- You must not ask for any personal information.
+- You must only use the provided tools to answer the user's request.
+- You must provide your response in markdown format.
 
 ** Tool Reference
 - `list_files(path: str) -> str`: Lists files and directories in a given path.
@@ -292,11 +296,9 @@ class EmacsAgent:
 
         self.llm = ChatGoogleGenerativeAI(
             model=MODEL_NAME,
-            thinking_budget=THINKING_BUDGET,
             temperature=LLM_TEMPERATURE,
             timeout=TIMEOUT,
             google_api_key=GOOGLE_API_KEY,
-            transport="grpc",
         )
 
         self.tools = [execute_elisp_code, read_file, write_to_file, list_files, grep, find_files]
