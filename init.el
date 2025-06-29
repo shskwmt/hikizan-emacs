@@ -23,4 +23,5 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
 
-(server-start)
+(unless (server-running-p)
+  (server-start))
