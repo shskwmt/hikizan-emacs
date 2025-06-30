@@ -587,12 +587,12 @@ class EmacsAgent:
         self.current_node = "plan"
         self._log_execution_step("PLAN", "Generating execution plan")
 
+        # Optimize memory before planning
+        state = self._optimize_state_memory(state)
+
         # Fix conversation flow before planning
         state_messages = fix_gemini_conversation_flow(state["messages"])
         state = {**state, "messages": state_messages}
-
-        # Optimize memory before planning
-        state = self._optimize_state_memory(state)
 
         plan_message = [
             SystemMessage(content=self.plan_prompt),
@@ -615,13 +615,6 @@ class EmacsAgent:
         """Invokes the LLM with the current state and tools."""
         self.current_node = "llm"
         self._log_execution_step("LLM", "Calling language model")
-
-        # Fix conversation flow before LLM call
-        state_messages = fix_gemini_conversation_flow(state["messages"])
-        state = {**state, "messages": state_messages}
-
-        # Optimize memory before LLM call
-        state = self._optimize_state_memory(state)
 
         model_with_tools = self.llm.bind_tools(self.tools)
         response = model_with_tools.invoke(state["messages"], config)
@@ -675,15 +668,8 @@ class EmacsAgent:
         reflection_count = state["n_reflection"]
         self._log_execution_step("REFLECTION", f"Reflecting on execution (attempt {reflection_count + 1})")
 
-        # Fix conversation flow before reflection
-        state_messages = fix_gemini_conversation_flow(state["messages"])
-        state = {**state, "messages": state_messages}
-
-        # Optimize memory before reflection
-        state = self._optimize_state_memory(state)
-
         # Get recent messages to avoid overwhelming the context
-        recent_messages = state["messages"][-6:]  # Last 6 messages
+        recent_messages = state["messages"]
 
         try:
             # Use the conversation flow fixed messages directly
