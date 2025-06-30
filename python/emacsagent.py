@@ -85,8 +85,13 @@ You are a senior software engineer.
 Your role is to craft a detailed, step-by-step plan to address the user's request.
 The user's request is the last message in the conversation.
 
-The plan should be a sequence of commands to be executed by a junior developer.
-The junior developer has access to the following tools:
+The plan must be presented as a Markdown bulleted list.
+Each bullet point should follow this format:
+- **Step N: [Description]**
+  Tool: `tool_name(arguments)`
+  If Emacs Lisp code is required, include it using `execute_elisp_code(code)`.
+
+Available tools for the junior developer:
 - `list_files(path: str) -> str`
 - `read_file(file_path: str) -> str`
 - `write_to_file(file_path: str, content: str) -> str`
@@ -94,28 +99,33 @@ The junior developer has access to the following tools:
 - `grep(pattern: str, path: str = ".", ignore_case: bool = False) -> str`
 - `execute_elisp_code(code: str) -> str`
 
-Your plan should be clear, concise, and easy to follow.
-For each step, specify the tool to be used and the arguments to be passed.
-If you need to use `execute_elisp_code`, provide the Emacs Lisp code to be executed.
+Requirements:
+1. Always use Markdown bullets (`- `) for the plan.
+2. Include “Step N: Description” in each bullet.
+3. Specify the tool and its arguments in code format.
+4. If the user’s request is unclear, output a clarification question.
+5. If the request is too large, break it down into smaller, manageable steps.
 
 Example Plan:
-1. **List files in the current directory**: `list_files(path=".")`
-2. **Read the content of `init.el`**: `read_file(file_path="init.el")`
-3. **Add a new setting to `init.el`**: `write_to_file(file_path="init.el", content="(setq my-new-setting t)")`
-
-If the user's request is unclear, ask for clarification.
-If the user's request is too complex, break it down into smaller, manageable steps.
+- **Step 1: List files in the current directory**
+  Tool: `list_files(path=".")`
+- **Step 2: Read the content of `init.el`**
+  Tool: `read_file(file_path="init.el")`
+- **Step 3: Add a new setting to `init.el`**
+  Tool: `write_to_file(file_path="init.el", content="(setq my-new-setting t)")`
+- **Step 4: Confirm with the user that the changes meet their requirements**
+  _(This step does not require any tool.)_
 """
 
 REFLECTION_PROMPT = """
 You are a senior software engineer reviewing the agent's work.
 
-Look at the agent's last action and determine if it successfully completed the user's request.
+Compare the agent’s last action against the original plan steps that were laid out.
 
-If the action was successful and fulfilled the user's request, respond with "SUCCESS".
-If the action was not successful or has not yet fulfilled the user's request, provide brief, specific feedback on what needs to be improved.
+- If the last action correctly implements the corresponding step from the plan and moves the user's request toward completion, respond with "SUCCESS".
+- If the action deviates from, omits, or partially fulfills the planned step, provide brief, specific feedback on what needs to be corrected or added to align with the original plan.
 
-Keep your feedback constructive and actionable.
+Keep your feedback constructive, actionable, and tied directly to the plan's requirements.
 """
 
 def fix_gemini_conversation_flow(messages: Sequence[BaseMessage]) -> Sequence[BaseMessage]:
@@ -250,6 +260,7 @@ class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     n_reflection: int
     total_tokens_used: int = 0
+    initial_plan: str = None # Added: Store the initial plan as a string
 
 
 # --- Tools ---
@@ -492,7 +503,7 @@ class EmacsAgent:
         workflow.add_conditional_edges(
             "reflection",
             self.should_reflect,
-            {"reflect": "llm", "end": END},
+            {"replan": "plan", "end": END},
         )
         return workflow
 
@@ -538,24 +549,6 @@ class EmacsAgent:
             truncated_details = details[:100] + "..." if len(details) > 100 else details
             print(f"\033[0;35m  Details: {truncated_details}\033[0m")
 
-    def _optimize_state_memory(self, state: AgentState) -> AgentState:
-        """Optimize state memory by trimming old messages."""
-        messages = state["messages"]
-
-        # Calculate current memory usage
-        current_memory = get_message_memory_size(messages)
-
-        if len(messages) > self.memory_window_size:
-            trimmed_messages = trim_messages_window(messages, self.memory_window_size)
-            optimized_memory = get_message_memory_size(trimmed_messages)
-
-            print(f"\033[0;33m  Memory optimization: {len(messages)} → {len(trimmed_messages)} messages "
-                  f"({current_memory} → {optimized_memory} chars)\033[0m")
-
-            return {**state, "messages": trimmed_messages}
-
-        return state
-
     def should_continue(self, state: AgentState) -> str:
         """Determines whether the agent should continue or end."""
         last_msg = state["messages"][-1]
@@ -570,25 +563,27 @@ class EmacsAgent:
         return "end"
 
     def should_reflect(self, state: AgentState) -> str:
-        """Determines whether the agent should reflect or end."""
+        """Determines whether the agent should reflect, replan, or end."""
+        last_message = state["messages"][-1]
+
+        # If the last message from reflection indicates success, end the process.
+        if isinstance(last_message, AIMessage) and "SUCCESS" in last_message.content:
+            self._log_execution_step("DECISION", "Reflection indicates success, ending execution")
+            return "end"
+
+        # If max reflections reached, end.
         if state["n_reflection"] > 3:
             self._log_execution_step("DECISION", "Max reflections reached, ending execution")
             return "end"
 
-        # Validate conversation flow before continuing
-        if not validate_gemini_conversation(state["messages"]):
-            print(f"\033[0;33m  Warning: Invalid conversation flow detected, fixing...\033[0m")
-            # This will be handled in the next node call
-
-        return "reflect"
+        # Otherwise, if reflection provided feedback, go back to planning.
+        self._log_execution_step("DECISION", "Reflection provided feedback, re-planning")
+        return "replan"
 
     def plan(self, state: AgentState):
         """Generates a plan to address the user's request."""
         self.current_node = "plan"
         self._log_execution_step("PLAN", "Generating execution plan")
-
-        # Optimize memory before planning
-        state = self._optimize_state_memory(state)
 
         # Fix conversation flow before planning
         state_messages = fix_gemini_conversation_flow(state["messages"])
@@ -609,7 +604,11 @@ class EmacsAgent:
         plan_summary = response.content[:100] + "..." if len(response.content) > 100 else response.content
         self._log_execution_step("PLAN", "Plan generated", plan_summary)
 
-        return {"messages": [AIMessage(content=response.content)]}
+        # Store the generated plan in the state
+        return {
+            "messages": [AIMessage(content=response.content)],
+            "initial_plan": response.content # Store the plan content
+        }
 
     def call_model(self, state: AgentState, config: RunnableConfig):
         """Invokes the LLM with the current state and tools."""
@@ -668,14 +667,16 @@ class EmacsAgent:
         reflection_count = state["n_reflection"]
         self._log_execution_step("REFLECTION", f"Reflecting on execution (attempt {reflection_count + 1})")
 
-        # Get recent messages to avoid overwhelming the context
         recent_messages = state["messages"]
+        initial_plan = state.get("initial_plan", "No plan was generated or found in state.") # Retrieve the stored plan
 
         try:
-            # Use the conversation flow fixed messages directly
+            # Construct the reflection message, explicitly including the plan
+            # This HumanMessage will guide the LLM to consider the plan
             reflection_message = [
                 SystemMessage(content=self.reflection_prompt),
                 *recent_messages,
+                HumanMessage(content=f"Original Plan:\n```\n{initial_plan}\n```\n\nReview the conversation history and the execution log. Has the original plan been completed, and has the user's request been successfully addressed?"),
             ]
 
             # Validate conversation flow before continuing
@@ -721,13 +722,20 @@ class EmacsAgent:
         if current_state and current_state.values:
             existing_messages = current_state.values.get("messages", [])
             n_reflection = current_state.values.get("n_reflection", 0)
+            initial_plan_from_state = current_state.values.get("initial_plan", None)
         else:
             existing_messages = [SystemMessage(content=self.system_prompt)]
             n_reflection = 0
+            initial_plan_from_state = None
 
         # Add new human message
         new_messages = existing_messages + [HumanMessage(content=query)]
-        initial_state = {"messages": new_messages, "n_reflection": 0, "total_tokens_used": 0}
+        initial_state = {
+            "messages": new_messages,
+            "n_reflection": 0,
+            "total_tokens_used": 0,
+            "initial_plan": initial_plan_from_state # Pass existing plan or None
+        }
         initial_history_length = len(existing_messages)
         final_messages = []
 
@@ -772,7 +780,8 @@ class EmacsAgent:
             initial_state = {
                 "messages": [SystemMessage(content=self.system_prompt)],
                 "n_reflection": 0,
-                "total_tokens_used": 0
+                "total_tokens_used": 0,
+                "initial_plan": None # Reset the plan
             }
             self.graph.update_state(self.config, initial_state, as_node="__start__")
             print("Cleared conversation histories, execution log, and memory state")
@@ -862,7 +871,7 @@ class EmacsAgent:
         print("\n=== Execution Log ===")
         for i, step in enumerate(self.execution_log, 1):
             timestamp_str = time.strftime("%H:%M:%S", time.localtime(step["timestamp"]))
-            print(f"{i:2d}. [{timestamp_str}] {step['node']:12} → {step['action']}")
+            print(f"{i:2d}. [{timestamp_str}] {step['node']:12} → {step['action']}\033[0m")
             if step["details"]:
                 # Truncate long details
                 details = step["details"][:150] + "..." if len(step["details"]) > 150 else step["details"]
