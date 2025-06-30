@@ -1,4 +1,3 @@
-# import packages
 import os
 import subprocess
 import tempfile
@@ -15,6 +14,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.message import add_messages
 
 # --- Constants ---
@@ -23,6 +23,8 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MODEL_NAME = "gemini-2.5-flash"
 LLM_TEMPERATURE = 0
 TIMEOUT = 60
+MEMORY_WINDOW_SIZE = 10  # Keep last 10 messages in active memory
+MAX_EXECUTION_LOG_SIZE = 50  # Keep last 50 execution steps
 SYSTEM_PROMPT = """
 ** Role
 You are a large language model living in Emacs, a powerful coding assistant.
@@ -116,6 +118,100 @@ If the action was not successful or has not yet fulfilled the user's request, pr
 Keep your feedback constructive and actionable.
 """
 
+def fix_gemini_conversation_flow(messages: Sequence[BaseMessage]) -> Sequence[BaseMessage]:
+    """
+    Fix conversation flow to meet Gemini's requirements:
+    - Function calls must come immediately after user messages or function responses
+    - No consecutive AI messages
+    - Proper alternating pattern
+    """
+    if not messages:
+        return messages
+
+    fixed_messages = []
+    i = 0
+
+    while i < len(messages):
+        current_msg = messages[i]
+
+        # Always keep system messages
+        if isinstance(current_msg, SystemMessage):
+            fixed_messages.append(current_msg)
+            i += 1
+            continue
+
+        # Handle AI messages
+        if isinstance(current_msg, AIMessage):
+            # Check if this AI message has tool calls
+            has_tool_calls = hasattr(current_msg, 'tool_calls') and current_msg.tool_calls
+
+            # If AI message has tool calls, it must follow a user message or tool message
+            if has_tool_calls:
+                # Check if previous message is appropriate
+                if fixed_messages:
+                    prev_msg = fixed_messages[-1]
+                    if not isinstance(prev_msg, (HumanMessage, ToolMessage, SystemMessage)):
+                        # Insert a dummy user acknowledgment
+                        fixed_messages.append(HumanMessage(content="Continue with the task."))
+
+                fixed_messages.append(current_msg)
+            else:
+                # Regular AI message without tool calls
+                # Check if we have consecutive AI messages
+                if fixed_messages and isinstance(fixed_messages[-1], AIMessage):
+                    # Merge consecutive AI messages
+                    prev_content = fixed_messages[-1].content or ""
+                    current_content = current_msg.content or ""
+                    merged_content = f"{prev_content}\n\n{current_content}".strip()
+                    fixed_messages[-1] = AIMessage(content=merged_content)
+                else:
+                    fixed_messages.append(current_msg)
+
+        # Handle other message types normally
+        elif isinstance(current_msg, (HumanMessage, ToolMessage)):
+            fixed_messages.append(current_msg)
+
+        i += 1
+
+    return fixed_messages
+
+def validate_gemini_conversation(messages: Sequence[BaseMessage]) -> bool:
+    """Validate that the conversation follows Gemini's expected pattern."""
+    for i in range(1, len(messages)):
+        current_msg = messages[i]
+        prev_msg = messages[i-1]
+
+        # Check if AI message with tool calls follows appropriate message
+        if isinstance(current_msg, AIMessage) and hasattr(current_msg, 'tool_calls') and current_msg.tool_calls:
+            if not isinstance(prev_msg, (HumanMessage, ToolMessage, SystemMessage)):
+                return False
+
+    return True
+
+def trim_messages_window(messages: Sequence[BaseMessage], window_size: int = MEMORY_WINDOW_SIZE) -> Sequence[BaseMessage]:
+    """
+    Trim messages to keep only the most recent ones within the window size.
+    Always preserve the system message if it exists.
+    """
+    if len(messages) <= window_size:
+        return messages
+
+    # Check if first message is system message
+    if messages and isinstance(messages[0], SystemMessage):
+        # Keep system message + last (window_size - 1) messages
+        return [messages[0]] + list(messages[-(window_size-1):])
+    else:
+        # Just keep last window_size messages
+        return list(messages[-window_size:])
+
+def get_message_memory_size(messages: Sequence[BaseMessage]) -> int:
+    """Calculate approximate memory usage of messages in characters."""
+    total_chars = 0
+    for msg in messages:
+        if hasattr(msg, 'content') and msg.content:
+            total_chars += len(str(msg.content))
+    return total_chars
+
 
 # --- State Definition ---
 
@@ -123,6 +219,7 @@ class AgentState(TypedDict):
     """The state of the agent."""
     messages: Annotated[Sequence[BaseMessage], add_messages]
     n_reflection: int
+    total_tokens_used: int = 0
 
 
 # --- Tools ---
@@ -321,15 +418,31 @@ class EmacsAgent:
             google_api_key=GOOGLE_API_KEY,
         )
 
+        self.memory = MemorySaver()
+
         self.tools = [execute_elisp_code, read_file, write_to_file, list_files, grep, find_files]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
-        self.graph = self._build_graph()
+
+        # Build graph with memory checkpointer
+        self.graph = self._build_graph().compile(checkpointer=self.memory)
+
+        # Thread/session management
+        self.thread_id = "emacs_agent_session"
+        self.config = RunnableConfig(configurable={"thread_id": self.thread_id})
+
         self.system_prompt = SYSTEM_PROMPT
         self.plan_prompt = PLAN_PROMPT
         self.reflection_prompt = REFLECTION_PROMPT
         self.conversation_history = [SystemMessage(content=self.system_prompt)]
         self.current_node = None  # Track current node for message formatting
         self.execution_log = []  # Track execution steps
+
+        # Memory optimization settings
+        self.memory_window_size = MEMORY_WINDOW_SIZE
+        self.max_execution_log_size = MAX_EXECUTION_LOG_SIZE
+
+        # Initialize with system message
+        self._initialize_memory()
 
     def _build_graph(self) -> StateGraph:
         """Builds and compiles the LangGraph execution graph."""
@@ -351,7 +464,25 @@ class EmacsAgent:
             self.should_reflect,
             {"reflect": "llm", "end": END},
         )
-        return workflow.compile()
+        return workflow
+
+    def _initialize_memory(self):
+        """Initialize memory with system message if not already present."""
+        try:
+            # Get the current state snapshot
+            state = self.graph.get_state(self.config)
+
+            # Check if we have any existing state and messages
+            if not state or not state.values.get("messages"):
+                # Initialize with system message
+                initial_state = {
+                    "messages": [SystemMessage(content=self.system_prompt)],
+                    "n_reflection": 0,
+                    "total_tokens_used": 0
+                }
+                self.graph.update_state(self.config, initial_state)
+        except Exception as e:
+            print(f"Warning: Could not initialize memory state: {e}")
 
     def _log_execution_step(self, node_name: str, action: str, details: str = ""):
         """Log execution steps for better debugging."""
@@ -363,6 +494,12 @@ class EmacsAgent:
         }
         self.execution_log.append(step)
 
+        # Trim execution log if it gets too large
+        if len(self.execution_log) > self.max_execution_log_size:
+            # Keep only the most recent entries
+            self.execution_log = self.execution_log[-self.max_execution_log_size:]
+            print(f"\033[0;33m  (Trimmed execution log to {self.max_execution_log_size} entries)\033[0m")
+
         # Print execution step with enhanced formatting
         timestamp_str = time.strftime("%H:%M:%S", time.localtime(step["timestamp"]))
         print(f"\n\033[1;35m[{timestamp_str}] {node_name.upper()} → {action}\033[0m")
@@ -371,9 +508,33 @@ class EmacsAgent:
             truncated_details = details[:100] + "..." if len(details) > 100 else details
             print(f"\033[0;35m  Details: {truncated_details}\033[0m")
 
+    def _optimize_state_memory(self, state: AgentState) -> AgentState:
+        """Optimize state memory by trimming old messages."""
+        messages = state["messages"]
+
+        # Calculate current memory usage
+        current_memory = get_message_memory_size(messages)
+
+        if len(messages) > self.memory_window_size:
+            trimmed_messages = trim_messages_window(messages, self.memory_window_size)
+            optimized_memory = get_message_memory_size(trimmed_messages)
+
+            print(f"\033[0;33m  Memory optimization: {len(messages)} → {len(trimmed_messages)} messages "
+                  f"({current_memory} → {optimized_memory} chars)\033[0m")
+
+            return {**state, "messages": trimmed_messages}
+
+        return state
+
     def should_continue(self, state: AgentState) -> str:
         """Determines whether the agent should continue or end."""
         last_msg = state["messages"][-1]
+
+        # Validate conversation flow before continuing
+        if not validate_gemini_conversation(state["messages"]):
+            print(f"\033[0;33m  Warning: Invalid conversation flow detected, fixing...\033[0m")
+            # This will be handled in the next node call
+
         if hasattr(last_msg, "tool_calls") and last_msg.tool_calls:
             return "continue"
         return "end"
@@ -383,6 +544,12 @@ class EmacsAgent:
         if state["n_reflection"] > 3:
             self._log_execution_step("DECISION", "Max reflections reached, ending execution")
             return "end"
+
+        # Validate conversation flow before continuing
+        if not validate_gemini_conversation(state["messages"]):
+            print(f"\033[0;33m  Warning: Invalid conversation flow detected, fixing...\033[0m")
+            # This will be handled in the next node call
+
         return "reflect"
 
     def plan(self, state: AgentState):
@@ -390,10 +557,22 @@ class EmacsAgent:
         self.current_node = "plan"
         self._log_execution_step("PLAN", "Generating execution plan")
 
+        # Fix conversation flow before planning
+        state_messages = fix_gemini_conversation_flow(state["messages"])
+        state = {**state, "messages": state_messages}
+
+        # Optimize memory before planning
+        state = self._optimize_state_memory(state)
+
         plan_message = [
             SystemMessage(content=self.plan_prompt),
             *state["messages"],
         ]
+
+        # Trim plan messages if needed to avoid context overflow
+        if len(plan_message) > self.memory_window_size + 1:  # +1 for plan prompt
+            plan_message = [plan_message[0]] + list(plan_message[-(self.memory_window_size):])
+
         response = self.llm.invoke(plan_message)
 
         # Log the generated plan
@@ -406,6 +585,13 @@ class EmacsAgent:
         """Invokes the LLM with the current state and tools."""
         self.current_node = "llm"
         self._log_execution_step("LLM", "Calling language model")
+
+        # Fix conversation flow before LLM call
+        state_messages = fix_gemini_conversation_flow(state["messages"])
+        state = {**state, "messages": state_messages}
+
+        # Optimize memory before LLM call
+        state = self._optimize_state_memory(state)
 
         model_with_tools = self.llm.bind_tools(self.tools)
         response = model_with_tools.invoke(state["messages"], config)
@@ -453,56 +639,34 @@ class EmacsAgent:
                 )
         return {"messages": outputs}
 
-    def validate_messages_for_gemini(self, messages):
-        """Ensure all messages are compatible with Gemini API"""
-        validated_messages = []
-
-        for msg in messages:
-            if isinstance(msg, SystemMessage):
-                # Clean system message content
-                content = msg.content.replace('\\"', '"').replace('\\n', '\n')
-                validated_messages.append(SystemMessage(content=content))
-            elif isinstance(msg, HumanMessage):
-                # Keep human messages as-is
-                validated_messages.append(HumanMessage(content=str(msg.content)))
-            elif isinstance(msg, AIMessage):
-                # Simplify AI messages - remove tool_calls metadata
-                if hasattr(msg, 'tool_calls') and msg.tool_calls:
-                    # Create a simplified description of the tool call
-                    tool_name = msg.tool_calls[0]['name']
-                    tool_args = msg.tool_calls[0]['args']
-                    simplified_content = f"Called tool '{tool_name}' with arguments: {tool_args}"
-                    if msg.content:
-                        simplified_content = f"{msg.content}\n\n{simplified_content}"
-                    validated_messages.append(AIMessage(content=simplified_content))
-                else:
-                    # Keep regular AI messages
-                    validated_messages.append(AIMessage(content=str(msg.content or "")))
-            elif isinstance(msg, ToolMessage):
-                # Convert tool messages to human messages for clarity
-                tool_result_msg = HumanMessage(content=f"Tool '{msg.name}' returned: {msg.content}")
-                validated_messages.append(tool_result_msg)
-
-        return validated_messages
-
     def reflect(self, state: AgentState):
         """Critiques the agent's last action and decides whether to continue."""
         self.current_node = "reflection"
         reflection_count = state["n_reflection"]
         self._log_execution_step("REFLECTION", f"Reflecting on execution (attempt {reflection_count + 1})")
 
+        # Fix conversation flow before reflection
+        state_messages = fix_gemini_conversation_flow(state["messages"])
+        state = {**state, "messages": state_messages}
+
+        # Optimize memory before reflection
+        state = self._optimize_state_memory(state)
+
         # Get recent messages to avoid overwhelming the context
         recent_messages = state["messages"][-6:]  # Last 6 messages
 
-        # Validate and simplify messages for Gemini
-        validated_messages = self.validate_messages_for_gemini(recent_messages)
-
-        reflection_message = [
-            SystemMessage(content=self.reflection_prompt),
-            *validated_messages,
-        ]
-
         try:
+            # Use the conversation flow fixed messages directly
+            reflection_message = [
+                SystemMessage(content=self.reflection_prompt),
+                *recent_messages,
+            ]
+
+            # Validate conversation flow before continuing
+            if not validate_gemini_conversation(reflection_message):
+                print(f"\033[0;33m  Warning: Invalid conversation flow detected, fixing...\033[0m")
+
+            # This will be handled in the next node call
             response = self.llm.invoke(reflection_message)
 
             if "SUCCESS" in response.content:
@@ -526,19 +690,39 @@ class EmacsAgent:
                 "n_reflection": state["n_reflection"] + 1
             }
 
-    def run(self, query: str):
+    def run(self, query: str, thread_id: str = None):
         """Runs the agent from an initial user query with enhanced logging."""
+        # Use provided thread_id or default
+        if thread_id:
+            self.thread_id = thread_id
+            self.config = RunnableConfig(configurable={"thread_id": thread_id})
+
         print(f"\n\033[1;34mStarting execution for query: {query}\033[0m")
         self.execution_log.clear()  # Clear previous execution log
 
-        self.conversation_history.append(HumanMessage(content=query))
-        initial_state = {"messages": self.conversation_history.copy(), "n_reflection": 0}
-        initial_history_length = len(self.conversation_history)
+        # Get current state from memory
+        current_state = self.graph.get_state(self.config)
+        if current_state and current_state.values:
+            existing_messages = current_state.values.get("messages", [])
+            n_reflection = current_state.values.get("n_reflection", 0)
+        else:
+            existing_messages = [SystemMessage(content=self.system_prompt)]
+            n_reflection = 0
+
+        # Add new human message
+        new_messages = existing_messages + [HumanMessage(content=query)]
+        initial_state = {"messages": new_messages, "n_reflection": 0, "total_tokens_used": 0}
+        initial_history_length = len(existing_messages)
         final_messages = []
+
+        # Validate and fix conversation flow before starting
+        initial_state["messages"] = fix_gemini_conversation_flow(initial_state["messages"])
+        if not validate_gemini_conversation(initial_state["messages"]):
+            print(f"\033[0;33m  Warning: Conversation flow still invalid after fixing\033[0m")
 
         try:
             # Track execution flow with node names
-            for event in self.graph.stream(initial_state, stream_mode="values"):
+            for event in self.graph.stream(initial_state, config=self.config, stream_mode="values"):
                 latest_message = event["messages"][-1]
                 final_messages = event["messages"]
 
@@ -546,9 +730,13 @@ class EmacsAgent:
                 if not isinstance(latest_message, HumanMessage):
                     _format_and_print_message(latest_message, self.current_node)
 
+            # Update conversation history for backward compatibility
             if len(final_messages) > initial_history_length:
                 new_messages = final_messages[initial_history_length:]
                 self.conversation_history.extend(new_messages)
+
+                # Trim conversation history to prevent unlimited growth
+                self.conversation_history = trim_messages_window(self.conversation_history, self.memory_window_size * 2)
 
             print(f"\n\033[1;34mExecution completed. Total steps: {len(self.execution_log)}\033[0m")
 
@@ -558,19 +746,94 @@ class EmacsAgent:
             print("The agent will continue to be available for new requests.")
 
     def clear_history(self):
-        """Clear the conversation histories"""
+        """Clear the conversation histories and memory"""
         self.conversation_history = [SystemMessage(content=self.system_prompt)]
         self.execution_log.clear()
-        print("Cleared conversation histories and execution log")
+
+        # Clear memory state
+        try:
+            # Reset memory state
+            initial_state = {
+                "messages": [SystemMessage(content=self.system_prompt)],
+                "n_reflection": 0,
+                "total_tokens_used": 0
+            }
+            self.graph.update_state(self.config, initial_state, as_node="__start__")
+            print("Cleared conversation histories, execution log, and memory state")
+        except Exception as e:
+            print(f"Cleared local history, but could not clear memory state: {e}")
+
+    def debug_conversation_flow(self):
+        """Debug conversation flow issues."""
+        try:
+            state = self.graph.get_state(self.config)
+            if state and state.values:
+                messages = state.values.get("messages", [])
+                print(f"\n=== Conversation Flow Debug ===")
+                for i, msg in enumerate(messages):
+                    msg_type = type(msg).__name__
+                    has_tools = hasattr(msg, 'tool_calls') and msg.tool_calls
+                    tool_info = f" [HAS_TOOLS: {len(msg.tool_calls)}]" if has_tools else ""
+                    content_preview = str(msg.content)[:50] + "..." if len(str(msg.content)) > 50 else str(msg.content)
+                    print(f"{i+1:2d}. {msg_type:12}{tool_info}: {content_preview}")
+
+                # Validate flow
+                is_valid = validate_gemini_conversation(messages)
+                print(f"\nConversation flow valid: {is_valid}")
+
+                if not is_valid:
+                    print("Suggested fix:")
+                    fixed_messages = fix_gemini_conversation_flow(messages)
+                    for i, msg in enumerate(fixed_messages):
+                        msg_type = type(msg).__name__
+                        has_tools = hasattr(msg, 'tool_calls') and msg.tool_calls
+                        tool_info = f" [HAS_TOOLS: {len(msg.tool_calls)}]" if has_tools else ""
+                        content_preview = str(msg.content)[:50] + "..." if len(str(msg.content)) > 50 else str(msg.content)
+                        print(f"  {i+1:2d}. {msg_type:12}{tool_info}: {content_preview}")
+
+                print("==============================\n")
+        except Exception as e:
+            print(f"Error debugging conversation flow: {e}")
+
+    def get_memory_stats(self):
+        """Get memory usage statistics."""
+        try:
+            state = self.graph.get_state(self.config)
+            if state and state.values:
+                messages = state.values.get("messages", [])
+                memory_size = get_message_memory_size(messages)
+                return {
+                    "message_count": len(messages),
+                    "memory_size_chars": memory_size,
+                    "execution_log_size": len(self.execution_log),
+                    "memory_window_size": self.memory_window_size
+                }
+        except Exception as e:
+            print(f"Could not get memory stats: {e}")
+        return {"error": "Could not retrieve memory statistics"}
 
     def show_history(self):
         """Display conversation history."""
-        print("\n=== Conversation History ===")
-        for i, msg in enumerate(self.conversation_history):
-            role = getattr(msg, "role", msg.__class__.__name__)
-            content_preview = str(msg.content)[:100] + "..." if len(str(msg.content)) > 100 else str(msg.content)
-            print(f"{i+1:2d}. [{role:12}]: {content_preview}")
-        print("============================\n")
+        try:
+            # Try to get from memory first
+            state = self.graph.get_state(self.config)
+            if state and state.values:
+                messages = state.values.get("messages", [])
+            else:
+                messages = self.conversation_history
+
+            print("\n=== Conversation History ===")
+            for i, msg in enumerate(messages):
+                role = getattr(msg, "role", msg.__class__.__name__)
+                content_preview = str(msg.content)[:100] + "..." if len(str(msg.content)) > 100 else str(msg.content)
+                print(f"{i+1:2d}. [{role:12}]: {content_preview}")
+
+            # Show memory stats
+            stats = self.get_memory_stats()
+            print(f"Memory: {stats.get('message_count', 0)} messages, {stats.get('memory_size_chars', 0)} chars")
+            print("============================\n")
+        except Exception as e:
+            print(f"Error showing history: {e}")
 
     def show_execution_log(self):
         """Display the execution log for debugging."""
@@ -624,6 +887,7 @@ def main():
     print("  - 'history': show conversation history")
     print("  - 'log': show execution log")
     print("  - 'stats': show execution statistics")
+    print("  - 'memory': show memory usage statistics")
 
     try:
         agent = EmacsAgent()
@@ -642,6 +906,16 @@ def main():
                 continue
             elif query.lower() == "stats":
                 agent.show_stats()
+                continue
+            elif query.lower() == "memory":
+                stats = agent.get_memory_stats()
+                print(f"\n=== Memory Statistics ===")
+                for key, value in stats.items():
+                    print(f"{key}: {value}")
+                print("========================\n")
+                continue
+            elif query.lower() == "debug":
+                agent.debug_conversation_flow()
                 continue
             agent.run(query)
     except ValueError as e:
