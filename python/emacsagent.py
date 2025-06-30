@@ -188,21 +188,51 @@ def validate_gemini_conversation(messages: Sequence[BaseMessage]) -> bool:
 
     return True
 
-def trim_messages_window(messages: Sequence[BaseMessage], window_size: int = MEMORY_WINDOW_SIZE) -> Sequence[BaseMessage]:
+def trim_messages_window(
+    messages: Sequence[BaseMessage],
+    window_size: int = MEMORY_WINDOW_SIZE
+) -> Sequence[BaseMessage]:
     """
     Trim messages to keep only the most recent ones within the window size.
-    Always preserve the system message if it exists.
+    Always preserve the system message if it exists, and never split
+    a user→function_call pair.
     """
+    # If we're already short enough, nothing to do
     if len(messages) <= window_size:
         return messages
 
-    # Check if first message is system message
-    if messages and isinstance(messages[0], SystemMessage):
-        # Keep system message + last (window_size - 1) messages
-        return [messages[0]] + list(messages[-(window_size-1):])
+    # Pull off the system message (if any) so we don't accidentally drop it
+    has_system = isinstance(messages[0], SystemMessage)
+    system_msg = messages[0] if has_system else None
+    convo = list(messages[1:]) if has_system else list(messages)
+
+    # We'll collect backwards, making absolutely sure we never cut away
+    # the user message that triggered a function call
+    keep: list[BaseMessage] = []
+    needed = window_size - (1 if has_system else 0)
+
+    # Walk backwards through convo
+    i = len(convo) - 1
+    while i >= 0 and len(keep) < needed:
+        msg = convo[i]
+        keep.append(msg)
+
+        # If this is a function‐call, also pull in the turn before it
+        if isinstance(msg, ToolMessage) and i - 1 >= 0:
+            keep.append(convo[i - 1])
+            # and skip that one since we've already grabbed it
+            i -= 1
+
+        i -= 1
+
+    # Now reverse back into chronological order
+    trimmed = list(reversed(keep))
+
+    # Finally prepend our system message, if we had one
+    if has_system:
+        return [system_msg] + trimmed  # type: ignore
     else:
-        # Just keep last window_size messages
-        return list(messages[-window_size:])
+        return trimmed
 
 def get_message_memory_size(messages: Sequence[BaseMessage]) -> int:
     """Calculate approximate memory usage of messages in characters."""
