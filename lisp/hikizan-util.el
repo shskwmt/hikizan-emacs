@@ -55,4 +55,45 @@
 	(eval-buffer)
       (error (message "error: %s" (error-message-string err))))))
 
+(defgroup hikizan/reading-pacemaker nil
+  "Automatically advance point to pace your reading."
+  :group 'convenience)
+
+(defcustom hikizan/reading-pacemaker-interval 0.4
+  "Default interval, in seconds, between each word step."
+  :type 'number
+  :group 'hikizan/reading-pacemaker)
+
+(defvar hikizan/reading-pacemaker-timer nil
+  "Timer object for the reading pacemaker.")
+
+(defun hikizan/reading-pacemaker--step ()
+  "Move forward one word and recenter the window."
+  (forward-word 1)
+  (recenter))
+
+(defun hikizan/reading-pacemaker-start (&optional interval)
+  "Start the reading pacemarker.
+
+Every INTERVAL seconds, move forward one word and recenter."
+  (interactive
+   (list (when current-prefix-arg
+	   (read-number
+	    (format "Interval between words (seconds) [%s]: " hikizan/reading-pacemaker-interval)
+	    hikizan/reading-pacemaker-interval))))
+  ;; if already running, cancel first
+  (when (timerp reading-pacemaker-timer)
+    (cancel-timer reading-pacemaker-timer))
+  (setq reading-pacemaker-timer
+	(run-with-timer 0 hikizan/reading-pacemaker-interval #'reading-pacemaker--step))
+  (message "Reading pacemaker started: %s sec/word" hikizan/reading-pacemaker-interval))
+
+(defun hikizan/reading-pacemaker-stop ()
+  "Stop the reading pacemaker."
+  (interactive)
+  (when (timerp reading-pacemaker-timer)
+    (cancel-timer reading-pacemaker-timer)
+    (setq reading-pacemaker-timer nil)
+    (message "Reading pacemaker stopped")))
+
 (provide 'hikizan-util)

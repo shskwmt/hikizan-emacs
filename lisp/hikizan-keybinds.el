@@ -40,6 +40,10 @@
 (global-set-key (kbd "M-s r") 'consult-ripgrep)
 (global-set-key (kbd "M-s l") 'consult-line)
 
+;; Reading pacemaker
+(global-set-key (kbd "C-c r s") #'hikizan/reading-pacemaker-start)
+(global-set-key (kbd "C-c r t") #'hikizan/reading-pacemaker-stop)
+
 ;;; which-key Configuration
 
 ;; https://github.com/justbur/emacs-which-key
