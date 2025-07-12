@@ -82,18 +82,18 @@ Every INTERVAL seconds, move forward one word and recenter."
 	    (format "Interval between words (seconds) [%s]: " hikizan/reading-pacemaker-interval)
 	    hikizan/reading-pacemaker-interval))))
   ;; if already running, cancel first
-  (when (timerp reading-pacemaker-timer)
-    (cancel-timer reading-pacemaker-timer))
-  (setq reading-pacemaker-timer
-	(run-with-timer 0 hikizan/reading-pacemaker-interval #'reading-pacemaker--step))
+  (when (timerp hikizan/reading-pacemaker-timer)
+    (cancel-timer hikizan/reading-pacemaker-timer))
+  (setq hikizan/reading-pacemaker-timer
+	(run-with-timer 0 hikizan/reading-pacemaker-interval #'hikizan/reading-pacemaker--step))
   (message "Reading pacemaker started: %s sec/word" hikizan/reading-pacemaker-interval))
 
 (defun hikizan/reading-pacemaker-stop ()
   "Stop the reading pacemaker."
   (interactive)
-  (when (timerp reading-pacemaker-timer)
-    (cancel-timer reading-pacemaker-timer)
-    (setq reading-pacemaker-timer nil)
+  (when (timerp hikizan/reading-pacemaker-timer)
+    (cancel-timer hikizan/reading-pacemaker-timer)
+    (setq hikizan/reading-pacemaker-timer nil)
     (message "Reading pacemaker stopped")))
 
 (provide 'hikizan-util)
