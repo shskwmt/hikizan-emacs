@@ -50,6 +50,8 @@ You are a large language model living in Emacs, a proactive and intelligent dire
 
 ** Tool Reference
 - `execute_elisp_code(code: str) -> str`: Executes Emacs Lisp code. Must print the result to be captured.
+- `search_tool(query: str) -> str`: Performs a DuckDuckGo search and returns a summary of the results with links.
+- `browse_web_page(url: str) -> str`: Browses the given URL and returns the clean text content of the page.
 
 ** Instructions of the `execute_elisp_code`
 
@@ -85,7 +87,7 @@ class AgentState(TypedDict):
 
 # --- Tools ---
 
-search_wrapper = DuckDuckGoSearchAPIWrapper(max_results=10)
+search_wrapper = DuckDuckGoSearchAPIWrapper(max_results=30)
 search_tool = DuckDuckGoSearchResults(api_wrapper=search_wrapper, source="text")
 
 # Tool for executing Emacs Lisp
@@ -102,12 +104,7 @@ def write_elisp_code_to_temp_file(code: str) -> str:
 class ElispCode(BaseModel):
     code: str = Field(description="The Emacs Lisp code to execute. It must print its result to be captured.")
 
-@tool(args_schema=ElispCode)
-def execute_elisp_code(code: str) -> str:
-    """
-    Executes the Emacs Lisp code.
-    Returns the result or an error message.
-    """
+def _execute_elisp_code(code: str) -> str:
     temp_file_path = write_elisp_code_to_temp_file(code)
     print(f"Emacs LISP code written to: {temp_file_path}")
 
@@ -128,6 +125,26 @@ def execute_elisp_code(code: str) -> str:
         return content
     except Exception as e:
         return f"Error: {str(e)}"
+
+@tool(args_schema=ElispCode)
+def execute_elisp_code(code: str) -> str:
+    """
+    Executes the Emacs Lisp code.
+    Returns the result or an error message.
+    """
+    return _execute_elisp_code(code)
+
+class WebPageURL(BaseModel):
+    url: str = Field(description="The URL to browse.")
+
+@tool(args_schema=WebPageURL)
+def browse_web_page(url: str) -> str:
+    """
+    Browse the web page.
+    Returns the contents of the web page.
+    """
+    return _execute_elisp_code(f"(message \"%s\" (browse-page-get-clean-text \"{url}\" 3))")
+
 
 # --- Agent Definition ---
 
@@ -166,7 +183,7 @@ class EmacsAgent:
 
         )
 
-        self.tools = [execute_elisp_code, search_tool]
+        self.tools = [execute_elisp_code, search_tool, browse_web_page]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
         self.graph = self._build_graph()
         self.system_prompt = SYSTEM_PROMPT
