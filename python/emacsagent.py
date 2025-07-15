@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage, ToolMessage, SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
+from langchain_community.tools import DuckDuckGoSearchResults
+from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
@@ -82,6 +84,9 @@ class AgentState(TypedDict):
 
 
 # --- Tools ---
+
+search_wrapper = DuckDuckGoSearchAPIWrapper(max_results=10)
+search_tool = DuckDuckGoSearchResults(api_wrapper=search_wrapper, source="text")
 
 # Tool for executing Emacs Lisp
 def write_elisp_code_to_temp_file(code: str) -> str:
@@ -161,7 +166,7 @@ class EmacsAgent:
 
         )
 
-        self.tools = [execute_elisp_code]
+        self.tools = [execute_elisp_code, search_tool]
         self.tools_by_name = {tool.name: tool for tool in self.tools}
         self.graph = self._build_graph()
         self.system_prompt = SYSTEM_PROMPT
