@@ -70,13 +70,21 @@ example
 #+begin_src emacs-lisp
 ;; Retrieve a list of buffers
 (with-current-buffer (list-buffers-noselect)
- (message \"%s\" (buffer-substring-no-properties (point-min) (point-max))))
+ (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
 #+end_src
 
 #+begin_src emacs-lisp
 ;; Read the contents of a specific buffer by name
-(with-current-buffer \\"{buffer-name}\\" ;; Replace {buffer-name} with the actual buffer name
-  (message \"%s\" (buffer-substring-no-properties (point-min) (point-max))))
+(with-current-buffer "{buffer-name}" ;; Replace {buffer-name} with the actual buffer name
+  (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
+#+end_src
+
+#+begin_src emacs-lisp
+;; Create a new commit
+(let ((commit-message "{commit-message}")) ;; Replace {commit-message} with the actual commit message
+  (with-current-buffer "{buffer-name}" ;; Replace {buffer-name} with the actual buffer name
+    (magit-run-git "commit" "-m" commit-message))
+  (message "Commit successful."))
 #+end_src
 """
 
@@ -92,7 +100,6 @@ You are a highly intelligent and experienced programming advisor. Your primary r
 1.  **Analyze**: Understand the main agent's query and the current situation.
 2.  **Advise**: Provide a detailed plan or a set of recommendations to the main agent.
 3.  **Reason**: Explain your thought process and the rationale behind your advice.
-4.  **Focus**: Concentrate on high-level strategy, problem-solving approaches, and complex reasoning.
 
 ** Paradigm
 - **Strategic**: Think several steps ahead and consider the broader implications.
@@ -124,6 +131,14 @@ example
 ;; Read the contents of a specific buffer by name
 (with-current-buffer \"{buffer-name}\" ;; Replace {buffer-name} with the actual buffer name
   (message \"%s\" (buffer-substring-no-properties (point-min) (point-max))))
+#+end_src
+
+#+begin_src emacs-lisp
+;; Create a new commit
+(let ((commit-message "{commit-message}")) ;; Replace {commit-message} with the actual commit message
+  (with-current-buffer "{buffer-name}" ;; Replace {buffer-name} with the actual buffer name
+    (magit-run-git "commit" "-m" commit-message))
+  (message "Commit successful."))
 #+end_src
 """
 
