@@ -242,7 +242,7 @@ def _execute_elisp_code(code: str) -> str:
         subprocess.run(log_command, shell=True, check=True, text=True, capture_output=True)
         # print(f"Log written to: {temp_log_file_path}")
         with open(temp_log_file_path, 'r', encoding='utf-8') as log_file:
-            return log_file.read()
+            return log_file.read().strip()
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -310,7 +310,7 @@ def _format_and_print_message(message: BaseMessage):
         function_args = message.tool_calls[0]["args"]
         print(f"\n\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
     elif isinstance(message, ToolMessage):
-        truncated_content = (message.content[:500] + "...") if len(message.content) > 500 else message.content
+        truncated_content = (message.content[:300] + "...") if len(message.content) > 300 else message.content
         print(f"\n\033[1;32mTool Result:\n{truncated_content}\033[0m")
     else:
         content = message.content
