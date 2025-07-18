@@ -349,7 +349,7 @@ class EmacsAgent(BaseAgent):
         # Assuming the first message in conversation_history is always the system prompt
         if memory_context_str:
             current_invocation_messages.insert(1, SystemMessage(content=memory_context_str))
-            print(f"\n\033[1;34mDEBUG: Injected memory context into prompt.\033[0m") # Optional: for debugging
+            print(f"\n\033[1;34mDEBUG: Injected memory context into prompt:\n{memory_context_str[:300]}...\033[0m") # Optional: for debugging
 
         initial_state = {"messages": current_invocation_messages}
         # initial_history_length is used to track new messages added by the graph

@@ -1,0 +1,7 @@
+chromadb==1.0.15
+langchain_community==0.3.27
+langchain_core==0.3.69
+langchain_google_genai==2.1.8
+langgraph==0.5.3
+pydantic==2.11.7
+sentence_transformers==5.0.0

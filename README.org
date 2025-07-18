@@ -11,3 +11,31 @@ Create a ~/.emacsenv file to set environment variables.
 
   (setenv "EMACS_ORG_DIR" "~/org/")
 #+end_src
+
+** Usage of Emacs Agent
+
+The `emacsagent` is a Python script that acts as a bridge between an external process and a running Emacs instance. It listens for commands, executes them as Emacs Lisp, and returns the results. It requires an Emacs server to be running and the `GOOGLE_API_KEY` environment variable to be set.
+
+*** Running the Agent
+
+To run the agent, execute the following command from your terminal in the project's root directory:
+
+#+begin_src shell
+python ./python/emacsagent.py
+#+end_src
+
+Once started, the agent will prompt you with `> ` where you can enter your queries or special commands.
+
+**** Special Commands
+
+- `exit` or `quit` :: Ends the agent session.
+- `clear` :: Clears the agent's conversation history.
+- `history` :: Displays the agent's conversation history.
+
+**** Prerequisites
+
+Before running the agent, ensure the following:
+
+- An Emacs server is running. You can start it in Emacs by typing `M-x server-start`.
+- The `GOOGLE_API_KEY` environment variable is set with your Google API key.
+- Python dependencies are installed. Navigate to the `./python` directory and run `pip install -r requirements.txt` to install them.
