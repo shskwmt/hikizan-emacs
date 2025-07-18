@@ -424,13 +424,14 @@ def main():
     try:
         agent = EmacsAgent()
         while True:
-            print("\nEnter your multi-line query. Press Enter on an empty line to finish.")
             lines = []
+            prompt = "\n>>> "
             while True:
-                line = input(">>> ")
+                line = input(prompt)
                 if not line: # Check if the line is empty
                     break
                 lines.append(line)
+                prompt = "    "
             query = "\n".join(lines)
 
             if query.strip().lower() in ["exit", "quit"]:
