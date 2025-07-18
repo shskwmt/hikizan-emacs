@@ -424,13 +424,21 @@ def main():
     try:
         agent = EmacsAgent()
         while True:
-            query = input("\n> ")
-            if query.lower() in ["exit", "quit"]:
+            print("\nEnter your multi-line query. Press Enter on an empty line to finish.")
+            lines = []
+            while True:
+                line = input(">>> ")
+                if not line: # Check if the line is empty
+                    break
+                lines.append(line)
+            query = "\n".join(lines)
+
+            if query.strip().lower() in ["exit", "quit"]:
                 break
-            elif query.lower() == "clear":
+            elif query.strip().lower() == "clear":
                 agent.clear_history()
                 continue
-            elif query.lower() == "history":
+            elif query.strip().lower() == "history":
                 agent.show_history()
                 continue
             agent.run(query)
