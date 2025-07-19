@@ -13,7 +13,7 @@
     (save-excursion
       (goto-char (point-min))
       (if (search-forward search-string nil t)
-	  (point)
+	  (1+ (point))
 	nil))))
 
 (defun hikizan/copy-buffer-file-name ()
