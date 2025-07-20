@@ -8,10 +8,8 @@
 ;;;; Keybindings
 
 ;; Toggle windows
-(global-set-key (kbd "C-c b") 'hikizan/toggle-buffer-list-window)
-(global-set-key (kbd "C-c s") 'hikizan/toggle-scratch-window)
-(global-set-key (kbd "C-c o") 'hikizan/toggle-org-note-window)
-(global-set-key (kbd "C-c m") 'hikizan/toggle-messages-window)
+(global-set-key (kbd "C-c s") 'scratch-buffer)
+(global-set-key (kbd "C-c m") 'hikizan/switch-to-messages-buffer)
 
 ;; Scrolling
 (global-set-key (kbd "M-n") (lambda () (interactive) (scroll-other-window 1)))
