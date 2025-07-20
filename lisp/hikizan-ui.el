@@ -1,6 +1,7 @@
 ;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
 
 ;;; Code:
+
 (use-package zenburn-theme
   :ensure t
   :config
@@ -30,6 +31,9 @@
 (use-package avy
   :ensure t)
 
+(use-package ace-window
+  :ensure t)
+
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 
@@ -37,9 +41,6 @@
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
-
-;; prevent to create a new window
-(setq display-buffer-base-action '((display-buffer-same-window)))
 
 ;;; util functions
 
