@@ -20,7 +20,7 @@
   :keymap hikizan-agent-mode-map)
 
 (defun hikizan/start-emacs-agent-process (buffer-name workspace)
-  "Starts the comint process for the Emacs agent."
+  "Start the comint process for the Emacs agent with a specific BUFFER-NAME and WORKSPACE."
   (let ((script-path (expand-file-name "~/.emacs.d/python/emacsagent.py")))
     (with-current-buffer (get-buffer-create buffer-name)
       (let ((default-directory workspace))
@@ -31,6 +31,7 @@
   "Run the Python Emacs agent in an interactive buffer for a specific WORKSPACE."
   (interactive "DWorkspace: ")
   (let* ((workspace (file-name-as-directory (expand-file-name workspace)))
+	 (default-directory workspace)
          (buffer-name (format "*EmacsAgent: %s*"
                               (file-name-nondirectory (directory-file-name workspace)))))
     (pop-to-buffer buffer-name)
