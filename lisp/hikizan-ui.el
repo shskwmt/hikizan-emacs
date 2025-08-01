@@ -2,10 +2,7 @@
 
 ;;; Code:
 
-(use-package zenburn-theme
-  :ensure t
-  :config
-  (load-theme 'zenburn t))
+(load-theme 'adwaita)
 
 (add-to-list 'default-frame-alist '(font . "NotoMono NF-12.0"))
 (setq use-default-font-for-symbols nil)
