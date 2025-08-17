@@ -20,3 +20,4 @@ eln-cache/
 custom.el
 __pycache__/
 ~/
+tree-sitter/

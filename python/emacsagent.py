@@ -238,12 +238,12 @@ class ElispCode(BaseModel):
 
 def _execute_elisp_code(code: str) -> str:
     temp_file_path = write_elisp_code_to_temp_file(code)
-    command = f"emacsclientw.exe -e \"(hikizan/eval-elisp-file \\\"{temp_file_path}\\\")\""
+    command = f"emacsclient -e \"(hikizan/eval-elisp-file \\\"{temp_file_path}\\\")\""
     try:
         subprocess.run(command, shell=True, check=True, text=True, capture_output=True)
         time.sleep(1)
         temp_log_file_path = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.log').name.replace("\\", "/")
-        log_command = f"emacsclientw.exe -e \"(hikizan/write-string-to-file \\\"{temp_log_file_path}\\\" (hikizan/get-string-from-point (get-buffer \\\"*Messages*\\\") (hikizan/find-string-position-in-buffer (get-buffer \\\"*Messages*\\\") \\\"{temp_file_path}\\\")))\""
+        log_command = f"emacsclient -e \"(hikizan/write-string-to-file \\\"{temp_log_file_path}\\\" (hikizan/get-string-from-point (get-buffer \\\"*Messages*\\\") (hikizan/find-string-position-in-buffer (get-buffer \\\"*Messages*\\\") \\\"{temp_file_path}\\\")))\""
         subprocess.run(log_command, shell=True, check=True, text=True, capture_output=True)
         with open(temp_log_file_path, 'r', encoding='utf-8') as log_file:
             return log_file.read().strip()
