@@ -2,28 +2,10 @@
 
 ;;; Code:
 
-(load-theme 'adwaita)
-
-(add-to-list 'default-frame-alist '(font . "NotoMono NF-12.0"))
-(setq use-default-font-for-symbols nil)
-
-(use-package nerd-icons
-  :ensure t)
-
-(use-package nerd-icons-dired
+(use-package zenburn-theme
   :ensure t
-  :hook
-  (dired-mode . nerd-icons-dired-mode))
-
-(use-package nerd-icons-corfu
-  :ensure t)
-
-(use-package nerd-icons-completion
-  :ensure t
-  :after marginalia
   :config
-  (nerd-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+  (load-theme 'zenburn t))
 
 (use-package avy
   :ensure t)
