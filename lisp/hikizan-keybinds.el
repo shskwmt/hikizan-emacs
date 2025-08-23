@@ -43,6 +43,10 @@
 (global-set-key (kbd "C-c r s") #'hikizan/reading-pacemaker-start)
 (global-set-key (kbd "C-c r t") #'hikizan/reading-pacemaker-stop)
 
+;; Google Translate
+(global-set-key (kbd "C-c t") 'google-translate-at-point)
+(global-set-key (kbd "C-c T") 'google-translate-query-translate)
+
 ;;; which-key Configuration
 
 ;; https://github.com/justbur/emacs-which-key

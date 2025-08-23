@@ -6,6 +6,10 @@
   :config
   (setq default-input-method "japanese-mozc"))
 
+;;; Google Translate
+(use-package google-translate
+  :ensure t)
+
 ;;; configurations
 
 ;; lockfiles
