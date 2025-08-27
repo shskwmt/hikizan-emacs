@@ -77,10 +77,6 @@
 ;;   :ensure t
 ;;  :commands (lsp-ui-mode))
 
-;; ein https://github.com/millejoh/emacs-ipython-notebook
-(use-package ein
-  :ensure t)
-
 ;;; functions
 
 (defun hikizan/extract-golang-functions ()
