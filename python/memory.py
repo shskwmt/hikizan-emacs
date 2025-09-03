@@ -6,7 +6,7 @@ class LongTermMemory:
     """
     A class to manage the agent's long-term memory using ChromaDB.
     """
-    def __init__(self, db_path=os.path.join(os.path.expanduser("~"), "emacs_agent_chroma_db"), collection_name="emacs_agent_memory"):
+    def __init__(self, db_path=os.path.join(os.path.expanduser("~"), "emacs_agent_chroma_db"), collection_name=".emacs_agent_memory"):
         """
         Initializes the long-term memory system.
 
