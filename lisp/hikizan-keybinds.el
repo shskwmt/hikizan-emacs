@@ -21,7 +21,7 @@
 
 ;; Navigation
 (global-set-key (kbd "C-x o") 'ace-window)
-(global-set-key (kbd "C-;") 'avy-goto-char)
+(global-set-key (kbd "C-c g") 'avy-goto-char)
 
 ;; Org-mode
 (global-set-key (kbd "C-c n") 'hikizan/open-org-notes)
