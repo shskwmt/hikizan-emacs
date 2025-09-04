@@ -74,7 +74,7 @@
   (add-function :after after-focus-change-function (lambda () (clm/save-command-log))))
 
 ;;; functions
-(defun kill-ring-save-for-windows ()
+(defun hikizan/kill-ring-save-for-windows ()
   "Copy region to the Windows clipboard with PowerShell synchronously without creating a buffer."
   (interactive)
   (if (use-region-p)
