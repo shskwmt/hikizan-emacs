@@ -12,7 +12,6 @@
 (require 'hikizan-project)
 (require 'hikizan-editor)
 (require 'hikizan-org)
-(require 'hikizan-snippet)
 (require 'hikizan-programming)
 (require 'hikizan-agent)
 (require 'hikizan-ui)
