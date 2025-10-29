@@ -20,7 +20,6 @@
 (global-set-key (kbd "C-<") 'text-scale-decrease)
 
 ;; Navigation
-(global-set-key (kbd "C-x o") 'ace-window)
 (global-set-key (kbd "C-c j") 'avy-goto-char)
 
 ;; Org-mode
