@@ -2,10 +2,10 @@
 
 ;;; Code:
 
-(use-package zenburn-theme
-  :ensure t
-  :config
-  (load-theme 'zenburn t))
+;; (use-package zenburn-theme
+;;   :ensure t
+;;   :config
+;;   (load-theme 'zenburn t))
 
 (use-package avy
   :ensure t)

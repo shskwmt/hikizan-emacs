@@ -55,20 +55,6 @@
 (add-to-list 'process-coding-system-alist
              '("grep" . (utf-8-unix . utf-8-unix)))
 
-;;; command logs
-(setq clm/command-log-buffer (get-buffer-create " *command-log*"))
-(defun hikizan/save-command-log ()
-  (if (bufferp clm/command-log-buffer)
-      (clm/save-command-log)))
-
-(use-package command-log-mode
-  :ensure t
-  :config
-  (setopt clm/log-command-exceptions* '(nil self-insert-command newline))
-  (global-command-log-mode t)
-  (add-hook 'kill-emacs-hook 'clm/save-command-log)
-  (add-function :after after-focus-change-function (lambda () (clm/save-command-log))))
-
 ;;; functions
 (defun hikizan/kill-ring-save-for-windows ()
   "Copy region to the Windows clipboard with PowerShell synchronously without creating a buffer."
