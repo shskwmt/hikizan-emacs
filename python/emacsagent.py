@@ -13,8 +13,6 @@ from pydantic import BaseModel, Field
 from langchain_core.messages import BaseMessage, ToolMessage, SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
-from langchain_community.tools import DuckDuckGoSearchResults
-from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
@@ -106,9 +104,6 @@ class BaseAgent:
 
 # --- Tools ---
 
-search_wrapper = DuckDuckGoSearchAPIWrapper(max_results=30)
-search_tool = DuckDuckGoSearchResults(api_wrapper=search_wrapper, source="text")
-
 def write_elisp_code_to_temp_file(code: str) -> str:
     """Create a temp file and write the provided code into it."""
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.el') as temp_file:
@@ -140,18 +135,12 @@ def execute_elisp_code(code: str) -> str:
 class WebPageURL(BaseModel):
     url: str = Field(description="The URL to browse.")
 
-@tool(args_schema=WebPageURL)
-def browse_web_page(url: str) -> str:
-    """Browses a web page and returns its clean text content."""
-    return _execute_elisp_code(f"(message \"%s\" (browse-page-get-clean-text \"{url}\" 3))")
-
-
 # --- Pro Agent for Consultation ---
 
 class ProAgent(BaseAgent):
     """A specialized agent using the 'pro' model for complex tasks."""
     def __init__(self):
-        pro_tools = [search_tool, browse_web_page]
+        pro_tools = []
         super().__init__(model_name=PRO_MODEL_NAME, tools=pro_tools)
         self.system_prompt = PRO_AGENT_SYSTEM_PROMPT
 
@@ -208,7 +197,7 @@ def _format_and_print_message(message: BaseMessage):
 class EmacsAgent(BaseAgent):
     """The main, interactive agent using the 'flash' model."""
     def __init__(self):
-        main_tools = [execute_elisp_code, search_tool, browse_web_page, consult_pro_agent]
+        main_tools = [execute_elisp_code, consult_pro_agent]
         super().__init__(model_name=MAIN_MODEL_NAME, tools=main_tools)
         self.conversation_history = [SystemMessage(content=self.system_prompt)]
         self.long_term_memory = LongTermMemory()
