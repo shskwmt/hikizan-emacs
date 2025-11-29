@@ -29,6 +29,28 @@ LLM_TEMPERATURE = 0
 
 TIMEOUT = 60
 
+# --- Helper Function for Content Parsing ---
+
+def _extract_text_from_content(content) -> str:
+    """
+    Extracts clean text from the message content, handling cases where
+    Gemini returns a list of dictionaries (including extras/signatures).
+    """
+    if isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part)
+            elif isinstance(part, dict):
+                # 辞書の場合は 'text' キーの中身を取り出す
+                text_parts.append(part.get("text", ""))
+        return "".join(text_parts)
+
+    if not isinstance(content, str):
+        return str(content)
+
+    return content
+
 # --- State Definition ---
 
 class AgentState(TypedDict):
@@ -151,11 +173,8 @@ class ProAgent(BaseAgent):
         final_state = self.graph.invoke(initial_state)
         final_message = final_state["messages"][-1]
 
-        content = final_message.content
-        if isinstance(content, list):
-            content = "".join(str(part) for part in content if part)
-        if not isinstance(content, str):
-            content = str(content)
+        # Use helper to extract clean text
+        content = _extract_text_from_content(final_message.content)
 
         print(f"\n\033[1;35mPro Agent finished with response: {content}\033[0m")
         return content
@@ -187,11 +206,8 @@ def _format_and_print_message(message: BaseMessage):
         truncated_content = (message.content[:300] + "...") if len(message.content) > 300 else message.content
         print(f"\n\033[1;32mTool Result:\n{truncated_content}\033[0m")
     else:
-        content = message.content
-        if isinstance(content, list):
-            content = "".join(str(part) for part in content if part)
-        if not isinstance(content, str):
-            content = str(content)
+        # Use helper to extract clean text
+        content = _extract_text_from_content(message.content)
         print(f"\n\033[1;36mAssistant:\n{content}\033[0m")
 
 class EmacsAgent(BaseAgent):
@@ -245,7 +261,8 @@ class EmacsAgent(BaseAgent):
             ai_response_content = ""
             for msg in reversed(new_messages):
                 if isinstance(msg, BaseMessage) and msg.type == "ai": # Assuming 'ai' is the type for AI messages
-                    ai_response_content = msg.content
+                    # Use helper to extract clean text for memory storage
+                    ai_response_content = _extract_text_from_content(msg.content)
                     break
 
             if ai_response_content:
@@ -272,7 +289,9 @@ class EmacsAgent(BaseAgent):
         print("\n=== Conversation Histories ===")
         for i, msg in enumerate(self.conversation_history):
             role = getattr(msg, "role", msg.__class__.__name__)
-            print(f"{i+1}. [{role}]: {msg.content[:100]}{'...' if len(msg.content) > 100 else ''}")
+            # Clean content before showing history
+            clean_content = _extract_text_from_content(msg.content)
+            print(f"{i+1}. [{role}]: {clean_content[:100]}{'...' if len(clean_content) > 100 else ''}")
         print("==============================\n")
 
     def _format_memories_for_context(self, memories: list[str]) -> str:
