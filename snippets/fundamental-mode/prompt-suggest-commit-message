@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: [PROMPT] Suggest Commit Message
+# key: prompt-suggest-commit-message
+# binding: direct-keybinding
+# --
+Please read the \`magit: ${1:buffer}\` buffer content and suggest a commit message for the staged changes.$0

@@ -47,6 +47,13 @@
 ;; org
 (setq org-startup-truncated nil)
 
+;; snippet
+(use-package yasnippet
+  :ensure t
+  :config
+  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
+  (yas-global-mode 1))
+
 ;; others
 (delete-selection-mode t)
 (electric-pair-mode t)
