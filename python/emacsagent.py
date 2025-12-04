@@ -194,7 +194,7 @@ class ProAgent(BaseAgent):
 
     def run(self, query: str) -> str:
         """Runs the agent for a single query and returns the final string response."""
-        print(f"\n\033[1;35mConsulting Pro Agent for query: {query}\033[0m")
+        print(f"\n\033[1;36mConsulting Pro Agent for query: {query}\033[0m")
         initial_state = {"messages": [SystemMessage(content=self.system_prompt), HumanMessage(content=query)]}
         final_state = self.graph.invoke(initial_state)
         final_message = final_state["messages"][-1]
@@ -202,7 +202,7 @@ class ProAgent(BaseAgent):
         # Use helper to extract clean text
         content = _extract_text_from_content(final_message.content)
 
-        print(f"\n\033[1;35mPro Agent finished with response: {content}\033[0m")
+        print(f"\n\033[1;36mPro Agent finished with response: {content}\033[0m")
         return content
 
 class ProAgentQuery(BaseModel):
@@ -227,14 +227,14 @@ def _format_and_print_message(message: BaseMessage):
     if hasattr(message, "tool_calls") and message.tool_calls:
         function_name = message.tool_calls[0]["name"]
         function_args = message.tool_calls[0]["args"]
-        print(f"\n\033[1;33mCalling tool: {function_name} with args: {function_args}\033[0m")
+        print(f"\n\033[1;90mCalling tool: {function_name} with args: {function_args}\033[0m")
     elif isinstance(message, ToolMessage):
         truncated_content = (message.content[:300] + "...") if len(message.content) > 300 else message.content
         print(f"\n\033[1;32mTool Result:\n{truncated_content}\033[0m")
     else:
         # Use helper to extract clean text
         content = _extract_text_from_content(message.content)
-        print(f"\n\033[1;36mAssistant:\n{content}\033[0m")
+        print(f"\n\033[1;34mAssistant:\n{content}\033[0m")
 
 class EmacsAgent(BaseAgent):
     """The main, interactive agent using the 'flash' model."""
@@ -261,7 +261,7 @@ class EmacsAgent(BaseAgent):
         # Assuming the first message in conversation_history is always the system prompt
         if memory_context_str:
             current_invocation_messages.insert(1, SystemMessage(content=memory_context_str))
-            print(f"\n\033[1;34mDEBUG: Injected memory context into prompt:\n{memory_context_str[:300]}...\033[0m") # Optional: for debugging
+            print(f"\n\033[1;35mDEBUG: Injected memory context into prompt:\n{memory_context_str[:300]}...\033[0m") # Optional: for debugging
 
         initial_state = {"messages": current_invocation_messages}
         # initial_history_length is used to track new messages added by the graph
@@ -299,11 +299,11 @@ class EmacsAgent(BaseAgent):
                     "user_query_hash": hashlib.sha256(query.encode('utf-8')).hexdigest(),
                     "response_length": len(ai_response_content)
                 }
-                print(f"\n\033[1;34mDEBUG: {metadata}\033[0m")
+                print(f"\n\033[1;30mDEBUG: {metadata}\033[0m")
                 self.long_term_memory.add_memory(memory_to_add, metadata=metadata)
-                print(f"\n\033[1;34mDEBUG: Added interaction to long-term memory.\033[0m")
+                print(f"\n\033[1;30mDEBUG: Added interaction to long-term memory.\033[0m")
             else:
-                print(f"\n\033[1;34mDEBUG: No AI response found to add to long-term memory.\033[0m")
+                print(f"\n\033[1;30mDEBUG: No AI response found to add to long-term memory.\033[0m")
 
     def clear_history(self):
         """Clears the conversation history."""
