@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: [PROMPT] Read Buffer Content
+# key: prompt-read-buffer-content
+# binding: direct-keybinding
+# --
+Please read the \`${1:buffer}\` buffer content.$0
