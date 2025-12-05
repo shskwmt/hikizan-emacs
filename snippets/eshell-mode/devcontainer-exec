@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [devcontainer] Exec
+# key: devcontainer-exec
+# --
+devcontainer exec --workspace-folder . ${1:command}

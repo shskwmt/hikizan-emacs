@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [devcontainer] Build
+# key: devcontainer-build
+# --
+devcontainer build . --workspace-folder .

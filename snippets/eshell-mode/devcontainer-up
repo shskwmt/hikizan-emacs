@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [devcontainer] Up
+# key: devcontainer-up
+# --
+devcontainer up --workspace-folder .
