@@ -19,10 +19,8 @@
   :ensure t)
 
 ;; yaml
-(use-package yaml-ts-mode
-  :mode
-  (("\\.yaml$" . yaml-ts-mode)
-   ("\\.yml$" . yaml-ts-mode)))
+(use-package yaml-mode
+  :ensure t)
 
 ;; Dockerfile
 (use-package dockerfile-mode
