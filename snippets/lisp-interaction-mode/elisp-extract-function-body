@@ -1,0 +1,30 @@
+# -*- mode: snippet -*-
+# name: [ELISP] Extract Function Body
+# key: elisp-extract-function-body
+# --
+;; Extract Function Body
+(let ((target-buffer "${1:target-buffer}")
+      (output-buffer "*Extraction Result*")
+      (target-string "${2:target-string}")
+      (extracted-text nil))
+  ;; 1. Extract Text
+  (with-current-buffer target-buffer
+    (save-excursion
+      (goto-char (point-min))
+      (if (re-search-forward target-string nil t)
+	  (let ((start nil)
+		(end nil))
+	    (setq start (point))
+	    (backward-char 1)
+	    (forward-list)
+	    (setq end (1- (point)))
+	    (setq extracted-text (buffer-substring-no-properties start end)))
+	(message "Target not found."))))
+
+  ;; 2. Write to the result buffer
+  (if extracted-text
+      (with-current-buffer (get-buffer-create output-buffer)
+	(erase-buffer)
+	(insert extracted-text)
+	(pop-to-buffer (current-buffer)))
+    (message "Cannot extract string.")))
