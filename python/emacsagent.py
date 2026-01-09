@@ -6,6 +6,7 @@ import re
 import fnmatch
 import datetime
 import hashlib
+import sys
 
 from typing import Annotated, Optional, Sequence, TypedDict
 from pydantic import BaseModel, Field
@@ -329,6 +330,11 @@ class EmacsAgent(BaseAgent):
 
 def main():
     """Main function to run the Emacs Agent."""
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout.reconfigure(encoding='utf-8')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr.reconfigure(encoding='utf-8')
+
     print("Welcome to the Emacs Agent!")
     print("You can ask me to perform tasks in Emacs.")
     print("Special commands:")
