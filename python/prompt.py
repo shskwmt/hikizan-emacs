@@ -53,14 +53,6 @@ example
 (with-current-buffer "{buffer-name}" ;; Replace {buffer-name} with the actual buffer name
   (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
 ```
-
-```
-;; Create a new commit
-(let ((commit-message "{commit-message}")) ;; Replace {commit-message} with the actual commit message
-  (with-current-buffer "{buffer-name}" ;; Replace {buffer-name} with the actual buffer name
-    (magit-run-git "commit" "-m" commit-message))
-  (message "Commit successful."))
-```
 </ELISPCodeExamples>
 """
 

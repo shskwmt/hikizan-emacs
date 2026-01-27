@@ -2,4 +2,4 @@
 # name: [PROMPT] Suggest Commit Message
 # key: prompt-suggest-commit-message
 # --
-Please read the \`magit: ${1:buffer}\` buffer content and suggest a commit message for the staged changes.
+Please read the \`*vc-diff*\` and \`*vc-dir*\` buffer contents and suggest a commit message for the changes.
