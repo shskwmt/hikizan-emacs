@@ -14,6 +14,7 @@
 (require 'hikizan-programming)
 (require 'hikizan-agent)
 (require 'hikizan-ui)
+(require 'hikizan-eshell)
 (require 'hikizan-keybinds)
 
 (setq system-time-local "C") ;; to avoid Japanese in the time stamp
