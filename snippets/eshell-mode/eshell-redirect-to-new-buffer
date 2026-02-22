@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: [ESHELL] Redirect To New Buffer
+# key: eshell-redirect-to-new-buffer
+# --
+${1:command} > #<buffer *${2:buffer-name}*>
