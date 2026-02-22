@@ -32,12 +32,17 @@
 (global-set-key (kbd "C-x p g") 'vc-git-grep)
 
 ;; Reading pacemaker
-(global-set-key (kbd "C-c r s") #'hikizan/reading-pacemaker-start)
-(global-set-key (kbd "C-c r t") #'hikizan/reading-pacemaker-stop)
+(global-set-key (kbd "C-c r s") 'hikizan/reading-pacemaker-start)
+(global-set-key (kbd "C-c r t") 'hikizan/reading-pacemaker-stop)
 
 ;; Google Translate
 (global-set-key (kbd "C-c t") 'google-translate-at-point)
 (global-set-key (kbd "C-c T") 'google-translate-query-translate)
+
+;; Hikizan utils
+(global-set-key (kbd "C-c h b") 'hikizan/copy-buffer-file-name)
+(global-set-key (kbd "C-c h r") 'hikizan/copy-buffer-file-relative-path)
+(global-set-key (kbd "C-c h g") 'hikizan/git-diff-staged)
 
 ;;; which-key Configuration
 

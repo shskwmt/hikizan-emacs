@@ -7,15 +7,6 @@
 
 (require 'project)
 
-(defun hikizan/find-string-position-in-buffer (buffer search-string)
-  "Find the position of SEARCH-STRING in the specified BUFFER."
-  (with-current-buffer buffer
-    (save-excursion
-      (goto-char (point-min))
-      (if (search-forward search-string nil t)
-	  (1+ (point))
-	nil))))
-
 (defun hikizan/copy-buffer-file-name ()
   "Copy buffer file name."
   (interactive)
@@ -31,7 +22,51 @@
 	 (buffer-file (buffer-file-name))
 	 (relative-path (if (and project-root buffer-file)
                             (file-relative-name buffer-file project-root))))
-    (kill-new relative-path)))
+    (when relative-path
+      (kill-new relative-path)
+      (message "Copied: %s" relative-path))))
+
+(defun hikizan/git-diff-staged ()
+  "Show git diff --staged in a read-only, dedicated buffer."
+  (interactive)
+
+  ;; Check if git is available to avoid cryptic errors
+  (unless (executable-find "git")
+    (error "Git executable not found"))
+
+  (let ((buffer (get-buffer-create "*hikizan-git-diff*")))
+    (with-current-buffer buffer
+      ;; Temporarily disable read-only to insert content
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(call-process "git" nil t nil "diff" "--staged")
+	(diff-mode)
+	(goto-char (point-min))))
+
+    ;; Make the buffer read-only and easy to quit with 'q'
+    (with-current-buffer buffer
+      (setq buffer-read-only t)
+      (use-local-map (copy-keymap diff-mode-map))
+      (local-set-key "q" 'quit-window))
+
+    (pop-to-buffer buffer)))
+
+(defun hikizan/switch-to-messages-buffer ()
+  "Display the *Messages* buffer in the selected window"
+  (interactive)
+  (let ((message-buffer (get-buffer "*Messages*")))
+    (switch-to-buffer message-buffer)))
+
+;; For EmacsAgent
+
+(defun hikizan/find-string-position-in-buffer (buffer search-string)
+  "Find the position of SEARCH-STRING in the specified BUFFER."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (if (search-forward search-string nil t)
+	  (1+ (point))
+	nil))))
 
 (defun hikizan/get-string-from-point (buffer point)
   "Get the string from BUFFER starting at POINT."
@@ -55,67 +90,7 @@
 	(eval-buffer)
       (error (message "error: %s" (error-message-string err))))))
 
-(defun hikizan/browse-page-get-text (url &optional timeout)
-  "Browse URL with eww and return the text content of the page.
-Optional TIMEOUT specifies how long to wait for the page to load (default 10 seconds)."
-  (interactive "sURL: ")
-  (let ((timeout (or timeout 1))
-        (buffer-name "*eww-temp*")
-        (result nil))
-    (with-temp-buffer
-      (let ((temp-buffer (current-buffer)))
-        ;; Create a temporary eww buffer
-        (with-current-buffer (get-buffer-create buffer-name)
-          (eww-mode)
-          ;; Browse the URL
-          (eww url)
-          ;; Wait for the page to load
-          (let ((start-time (current-time)))
-            (while (and (or (eww-current-url)
-                           (string-match-p "Loading" (buffer-string)))
-                       (< (float-time (time-subtract (current-time) start-time)) timeout))
-              (sit-for 0.1)))
-          ;; Extract text content
-          (goto-char (point-min))
-          (setq result (buffer-substring-no-properties (point-min) (point-max))))
-        ;; Clean up the temporary buffer
-        (kill-buffer buffer-name)))
-    ;; Return the result or display it if called interactively
-    (if (called-interactively-p 'interactive)
-        (message "%s" result)
-      result)))
-
-(defun hikizan/browse-page-get-clean-text (url &optional timeout)
-  "Browse URL with eww and return cleaned text content (removes extra whitespace).
-Optional TIMEOUT specifies how long to wait for the page to load (default 10 seconds)."
-  (interactive "sURL: ")
-  (let ((raw-text (browse-page-get-text url timeout)))
-    (when raw-text
-      (with-temp-buffer
-        (insert raw-text)
-        ;; Remove multiple consecutive newlines
-        (goto-char (point-min))
-        (while (re-search-forward "\n\n+" nil t)
-          (replace-match "\n\n"))
-        ;; Remove leading/trailing whitespace from each line
-        (goto-char (point-min))
-        (while (not (eobp))
-          (beginning-of-line)
-          (skip-chars-forward " \t")
-          (delete-region (line-beginning-position) (point))
-          (end-of-line)
-          (skip-chars-backward " \t")
-          (delete-region (point) (line-end-position))
-          (forward-line 1))
-        ;; Remove empty lines at the beginning and end
-        (goto-char (point-min))
-        (while (looking-at "^$")
-          (delete-line))
-        (goto-char (point-max))
-        (while (and (> (point) (point-min))
-                   (progn (forward-line -1) (looking-at "^$")))
-          (delete-line))
-        (buffer-string)))))
+;; reading-pacemaker
 
 (defgroup hikizan/reading-pacemaker nil
   "Automatically advance point to pace your reading."

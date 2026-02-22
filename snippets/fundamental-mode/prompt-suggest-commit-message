@@ -2,4 +2,4 @@
 # name: [PROMPT] Suggest Commit Message
 # key: prompt-suggest-commit-message
 # --
-Please read the \`${1:diff-buffer-name}\` buffer contents and suggest a commit message for the changes.
+Please read the \`*hikizan-git-diff*\` buffer contents and suggest a commit message for the changes.

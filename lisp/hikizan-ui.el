@@ -18,13 +18,5 @@
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
 
-;;; util functions
-
-(defun hikizan/switch-to-messages-buffer ()
-  "Display the *Messages* buffer in the selected window"
-  (interactive)
-  (let ((message-buffer (get-buffer "*Messages*")))
-    (switch-to-buffer message-buffer)))
-
 (provide 'hikizan-ui)
 ;;; hikizan-ui.el ends here
