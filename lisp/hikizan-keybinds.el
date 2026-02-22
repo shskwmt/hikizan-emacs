@@ -28,6 +28,9 @@
 ;; LLM tools
 (global-set-key (kbd "C-c a") 'hikizan/run-emacs-agent)
 
+;; Project
+(global-set-key (kbd "C-x p g") 'vc-git-grep)
+
 ;; Reading pacemaker
 (global-set-key (kbd "C-c r s") #'hikizan/reading-pacemaker-start)
 (global-set-key (kbd "C-c r t") #'hikizan/reading-pacemaker-stop)
