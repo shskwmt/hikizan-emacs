@@ -25,7 +25,7 @@ from prompt import SYSTEM_PROMPT, PRO_AGENT_SYSTEM_PROMPT
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MAIN_MODEL_NAME = "gemini-3-flash-preview"
-PRO_MODEL_NAME = "gemini-3-pro-preview"
+PRO_MODEL_NAME = "gemini-3.1-pro-preview"
 LLM_TEMPERATURE = 0
 
 TIMEOUT = 60
