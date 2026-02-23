@@ -2,6 +2,6 @@
 # name: [PROMPT] Review Code Changes
 # key: prompt-review-code-changes
 # --
-Please read the content of the `${1:diff-buffer}` buffer and review my changes.
+Please read the content of the \`${1:*hikizan-git-diff*}\` buffer and review my changes.
 To perform an accurate review, you must consider the full context of the entire files, not only the diff.
 Use the diff as a guide to locate the modified sections, but evaluate correctness, consistency, and potential side effects across the whole codebase.
