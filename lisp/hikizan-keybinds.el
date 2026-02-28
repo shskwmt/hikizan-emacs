@@ -21,6 +21,10 @@
 
 ;; Navigation
 (global-set-key (kbd "C-c j") 'avy-goto-char)
+(global-set-key (kbd "C-c <up>") 'windmove-up)
+(global-set-key (kbd "C-c <down>") 'windmove-down)
+(global-set-key (kbd "C-c <right>") 'windmove-right)
+(global-set-key (kbd "C-c <left>") 'windmove-left)
 
 ;; Org-mode
 (global-set-key (kbd "C-c n") 'hikizan/open-org-notes)
