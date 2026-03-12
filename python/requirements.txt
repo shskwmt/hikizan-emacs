@@ -1,6 +1,2 @@
-chromadb
-langchain_core
-langchain_google_genai
-langgraph
 pydantic
-sentence_transformers
+google-adk

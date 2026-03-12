@@ -21,3 +21,6 @@ custom.el
 __pycache__/
 ~/
 tree-sitter/
+
+.adk/
+.env

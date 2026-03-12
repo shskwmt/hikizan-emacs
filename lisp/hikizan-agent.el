@@ -19,25 +19,20 @@
   :lighter " Agent"
   :keymap hikizan-agent-mode-map)
 
-(defun hikizan/find-python-executable ()
-  "Return 'python3' if available, otherwise 'python'."
-  (if (executable-find "python3")
-      "python3"
-    "python"))
-
 (defun hikizan/start-emacs-agent-process (buffer-name workspace)
   "Start the comint process for the Emacs agent with a specific BUFFER-NAME and WORKSPACE."
-  (let ((script-path (expand-file-name "~/.emacs.d/python/emacsagent.py")))
+  (let ((script-path (expand-file-name "~/.emacs.d/python/emacsagent")))
     (with-current-buffer (get-buffer-create buffer-name)
       (let ((default-directory workspace))
-        (make-comint-in-buffer "EmacsAgent" buffer-name (hikizan/find-python-executable) nil "-u" script-path workspace)
+        ;; Use 'adk run' as the entry point for the agent package
+        (make-comint-in-buffer "EmacsAgent" buffer-name "adk" nil "run" script-path)
         (hikizan-agent-mode 1)))))
 
 (defun hikizan/run-emacs-agent (workspace)
   "Run the Python Emacs agent in an interactive buffer for a specific WORKSPACE."
   (interactive "DWorkspace: ")
   (let* ((workspace (file-name-as-directory (expand-file-name workspace)))
-	 (default-directory workspace)
+         (default-directory workspace)
          (buffer-name (format "*EmacsAgent: %s*"
                               (file-name-nondirectory (directory-file-name workspace)))))
     (pop-to-buffer buffer-name)
@@ -54,7 +49,7 @@
         (message "No EmacsAgent buffer found for workspace: %s" workspace)
       (when (get-buffer-process agent-buffer)
         (kill-process (get-buffer-process agent-buffer))
-        (sleep-for 3))
+        (sleep-for 1))
       (with-current-buffer agent-buffer
         (erase-buffer))
       (hikizan/start-emacs-agent-process buffer-name workspace)
