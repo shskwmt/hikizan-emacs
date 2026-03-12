@@ -13,11 +13,23 @@
     map)
   "Keymap for hikizan-agent-mode.")
 
+(defvar hikizan-agent-font-lock-keywords
+  '(;; Markdown-like highlighting
+    ("^#+ .*" . font-lock-type-face)                     ; Headers
+    ("\\*\\*\\(.*?\\)\\*\\*" 1 'bold)                    ; Bold
+    ("`\\(.*?\\)`" 1 font-lock-string-face)              ; Inline code
+    ("^\\s-*[-+*]\\s-+" . font-lock-variable-name-face)) ; List bullets
+  "Font lock keywords for hikizan-agent-mode.")
+
 (define-minor-mode hikizan-agent-mode
   "A minor mode for Emacs Agent buffers."
   :init-value nil
   :lighter " Agent"
-  :keymap hikizan-agent-mode-map)
+  :keymap hikizan-agent-mode-map
+  (if hikizan-agent-mode
+      (font-lock-add-keywords nil hikizan-agent-font-lock-keywords)
+    (font-lock-remove-keywords nil hikizan-agent-font-lock-keywords))
+  (font-lock-flush))
 
 (defun hikizan/start-emacs-agent-process (buffer-name workspace)
   "Start the comint process for the Emacs agent with a specific BUFFER-NAME and WORKSPACE."
