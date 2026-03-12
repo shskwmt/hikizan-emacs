@@ -44,9 +44,10 @@
 (global-set-key (kbd "C-c T") 'google-translate-query-translate)
 
 ;; Hikizan utils
-(global-set-key (kbd "C-c h b") 'hikizan/copy-buffer-file-name)
-(global-set-key (kbd "C-c h r") 'hikizan/copy-buffer-file-relative-path)
-(global-set-key (kbd "C-c h g") 'hikizan/git-diff-staged)
+(global-set-key (kbd "C-c c b") 'hikizan/copy-buffer-name)
+(global-set-key (kbd "C-c c f") 'hikizan/copy-buffer-file-name)
+(global-set-key (kbd "C-c c r") 'hikizan/copy-buffer-file-relative-path)
+(global-set-key (kbd "C-c g d") 'hikizan/git-diff-staged)
 
 ;;; which-key Configuration
 

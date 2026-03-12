@@ -7,6 +7,11 @@
 
 (require 'project)
 
+(defun hikizan/copy-buffer-name ()
+  "Copy buffer name."
+  (interactive)
+  (kill-new (buffer-name)))
+
 (defun hikizan/copy-buffer-file-name ()
   "Copy buffer file name."
   (interactive)
