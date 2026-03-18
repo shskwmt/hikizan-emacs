@@ -39,8 +39,10 @@
   (unless (executable-find "git")
     (error "Git executable not found"))
 
-  (let ((buffer (get-buffer-create "*hikizan-git-diff*")))
+  (let ((cwd default-directory) ;; Capture the current directory
+	(buffer (get-buffer-create "*hikizan-git-diff*")))
     (with-current-buffer buffer
+      (setq default-directory cwd) ;; Ensure the buffer uses the correct directory
       ;; Temporarily disable read-only to insert content
       (let ((inhibit-read-only t))
 	(erase-buffer)
