@@ -1,0 +1,29 @@
+# -*- mode: snippet -*-
+# name: [ELISP] Extract Lines
+# key: elisp-extract-lines
+# --
+;; Extract lines that contains the target-string
+(let ((target-buffer "${1:target-buffer}")
+      (output-buffer "*Extraction Result*")
+      (target-string "${2:target-string}")
+      (extracted-lines '()))
+
+  ;; 1. Extract Text
+  (if (get-buffer target-buffer)
+      (with-current-buffer target-buffer
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+	      (when (string-match-p (regexp-quote target-string) line)
+		(push line extracted-lines)))
+	    (forward-line 1))))
+    (message "Buffer %s not found" target-buffer))
+
+  ;; 2. Write to the result buffer
+  (when extracted-lines
+    (with-current-buffer (get-buffer-create output-buffer)
+      (erase-buffer)
+      (insert (mapconcat #'identity (nreverse extracted-lines) "\n"))
+      (display-buffer (current-buffer)))
+    (message "Extracted %d lines to %s" (length extracted-lines) output-buffer)))
