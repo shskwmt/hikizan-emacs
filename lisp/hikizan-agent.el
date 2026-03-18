@@ -32,12 +32,19 @@
   (font-lock-flush))
 
 (defun hikizan/start-emacs-agent-process (buffer-name workspace)
-  "Start the comint process for the Emacs agent with a specific BUFFER-NAME and WORKSPACE."
-  (let ((script-path (expand-file-name "~/.emacs.d/python/emacsagent")))
+  "Start the comint process for the Emacs agent.
+Use BUFFER-NAME and WORKSPACE."
+  (let ((script-path (expand-file-name "~/.emacs.d/python/emacsagent"))
+        ;; Force Python to use UTF-8 for stdout/stderr
+        (process-environment (cons "PYTHONIOENCODING=utf-8" process-environment)))
     (with-current-buffer (get-buffer-create buffer-name)
       (let ((default-directory workspace))
         ;; Use 'adk run' as the entry point for the agent package
         (make-comint-in-buffer "EmacsAgent" buffer-name "adk" nil "run" script-path)
+        ;; Set the coding system for the process in this buffer
+        (let ((proc (get-buffer-process (current-buffer))))
+          (when proc
+            (set-process-coding-system proc 'utf-8 'utf-8)))
         (hikizan-agent-mode 1)))))
 
 (defun hikizan/run-emacs-agent (workspace)
@@ -68,3 +75,5 @@
       (message "EmacsAgent for %s restarted." workspace))))
 
 (provide 'hikizan-agent)
+
+;;; hikizan-agent.el ends here
