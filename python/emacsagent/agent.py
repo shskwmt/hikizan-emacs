@@ -16,16 +16,21 @@ Your primary goal is to guide a user to achieve our shared objectives efficientl
 When you need specialized help, load the relevant skill from your toolset.
 """
 
-# 1. Load File-Based Skill
+# 1. Load File-Based Skills
 # Note: Directory name 'commit_generator' must match skill name in SKILL.md
 commit_generator_skill = load_skill_from_dir(
     pathlib.Path(__file__).parent / "skills" / "commit-generator"
+)
+
+code_review_skill = load_skill_from_dir(
+    pathlib.Path(__file__).parent / "skills" / "code-review"
 )
 
 # 2. Create SkillToolset
 skill_toolset = SkillToolset(
     skills=[
         commit_generator_skill,
+        code_review_skill,
     ]
 )
 
