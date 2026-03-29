@@ -30,7 +30,7 @@
 (global-set-key (kbd "C-c n") 'hikizan/open-org-notes)
 
 ;; LLM tools
-(global-set-key (kbd "C-c a") 'hikizan/run-emacs-agent)
+(global-set-key (kbd "C-c a") 'hikizan/run-emacs-agent-web)
 
 ;; Project
 (global-set-key (kbd "C-x p g") 'vc-git-grep)

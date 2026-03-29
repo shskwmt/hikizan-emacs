@@ -5,11 +5,33 @@
 
 ;;; Code:
 
+(require 'custom)
+(require 'comint)
+
+(defgroup hikizan nil
+  "Customization group for hikizan."
+  :group 'emacs)
+
+(defcustom hikizan-agent-web-port "3333"
+  "Port for the Emacs Agent web interface."
+  :type 'string
+  :group 'hikizan)
+
+(defcustom hikizan-agent-python-dir (expand-file-name "~/.emacs.d/python/")
+  "Directory containing agent scripts."
+  :type 'directory
+  :group 'hikizan)
+
+(defcustom hikizan-agent-db-name "emacs_agent_sessions.db"
+  "Filename for the Emacs Agent session database."
+  :type 'string
+  :group 'hikizan)
+
 (setq message-log-max 1000000)
 
 (defvar hikizan-agent-mode-map
   (let ((map (make-keymap)))
-    (define-key map (kbd "C-c r") #'hikizan/restart-emacs-agent)
+    (define-key map (kbd "C-c r") #'hikizan/restart-emacs-agent-web)
     map)
   "Keymap for hikizan-agent-mode.")
 
@@ -31,48 +53,71 @@
     (font-lock-remove-keywords nil hikizan-agent-font-lock-keywords))
   (font-lock-flush))
 
-(defun hikizan/start-emacs-agent-process (buffer-name workspace)
-  "Start the comint process for the Emacs agent.
-Use BUFFER-NAME and WORKSPACE."
-  (let ((script-path (expand-file-name "~/.emacs.d/python/emacsagent"))
-        ;; Force Python to use UTF-8 for stdout/stderr
-        (process-environment (cons "PYTHONIOENCODING=utf-8" process-environment)))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (let ((default-directory workspace))
-        ;; Use 'adk run' as the entry point for the agent package
-        (make-comint-in-buffer "EmacsAgent" buffer-name "adk" nil "run" script-path)
-        ;; Set the coding system for the process in this buffer
-        (let ((proc (get-buffer-process (current-buffer))))
-          (when proc
-            (set-process-coding-system proc 'utf-8 'utf-8)))
-        (hikizan-agent-mode 1)))))
+(defun hikizan--wait-for-web-server (url port attempts)
+  "Wait for the web server at PORT to be ready, then open URL.
+ATTEMPTS is the maximum number of seconds to wait."
+  (let ((port-num (if (stringp port) (string-to-number port) port)))
+    (if (condition-case nil
+            (let ((proc (make-network-process :name "hikizan-port-check"
+                                              :host "localhost"
+                                              :service port-num
+                                              :noquery t)))
+              (when proc
+                (delete-process proc)
+                t))
+          (error nil))
+        (progn
+          (browse-url url)
+          (message "Emacs Agent Web is ready."))
+      (if (> attempts 0)
+          (run-with-timer 1 nil #'hikizan--wait-for-web-server url port (1- attempts))
+        (message "Emacs Agent Web server didn't respond at port %s. Check the log buffer." port)))))
 
-(defun hikizan/run-emacs-agent (workspace)
-  "Run the Python Emacs agent in an interactive buffer for a specific WORKSPACE."
-  (interactive "DWorkspace: ")
-  (let* ((workspace (file-name-as-directory (expand-file-name workspace)))
-         (default-directory workspace)
-         (buffer-name (format "*EmacsAgent: %s*"
-                              (file-name-nondirectory (directory-file-name workspace)))))
-    (pop-to-buffer buffer-name)
-    (hikizan/start-emacs-agent-process buffer-name workspace)))
-
-(defun hikizan/restart-emacs-agent ()
-  "Restart the Emacs agent in the buffer corresponding to the current workspace."
+(defun hikizan/run-emacs-agent-web ()
+  "Run the Emacs agent with a web interface using AGENTS_DIR and session persistence.
+Dynamically waits for the server to be ready before opening the browser."
   (interactive)
-  (let* ((workspace (file-name-as-directory (expand-file-name default-directory)))
-         (buffer-name (format "*EmacsAgent: %s*"
-                              (file-name-nondirectory (directory-file-name workspace))))
-         (agent-buffer (get-buffer buffer-name)))
-    (if (not agent-buffer)
-        (message "No EmacsAgent buffer found for workspace: %s" workspace)
-      (when (get-buffer-process agent-buffer)
-        (kill-process (get-buffer-process agent-buffer))
-        (sleep-for 1))
-      (with-current-buffer agent-buffer
-        (erase-buffer))
-      (hikizan/start-emacs-agent-process buffer-name workspace)
-      (message "EmacsAgent for %s restarted." workspace))))
+  (unless (executable-find "adk")
+    (error "Command 'adk' not found in PATH"))
+  (let* ((workspace (expand-file-name "~"))
+         (agents-dir hikizan-agent-python-dir)
+         (port hikizan-agent-web-port)
+         (db-path (expand-file-name hikizan-agent-db-name workspace))
+         (uri (format "sqlite:///%s" db-path))
+         (url (format "http://localhost:%s" port))
+         (buffer-name "*EmacsAgent-Web: Home*")
+         (buf (get-buffer-create buffer-name))
+         (proc (get-buffer-process buf)))
+    (if (not (process-live-p proc))
+        (progn
+          (pop-to-buffer buf)
+          (with-current-buffer buf
+            (let ((default-directory workspace))
+              (when proc (delete-process proc)) ;; Clean up dead process
+              (erase-buffer)
+              (let ((new-proc (start-process "EmacsAgent-Web" (current-buffer)
+                                             "adk" "web" agents-dir "--port" port "--session_service_uri" uri)))
+                (set-process-sentinel new-proc
+                                      (lambda (p event)
+                                        (message "EmacsAgent-Web process %s: %s" p (string-trim event))))
+                (message "Starting Emacs Agent Web... Waiting for initialization.")
+                (hikizan--wait-for-web-server url port 20)))))
+      ;; If already running, just open the browser and notify
+      (browse-url url)
+      (message "Emacs Agent Web is already running; opening browser."))))
+
+(defun hikizan/restart-emacs-agent-web ()
+  "Restart the Emacs agent web interface."
+  (interactive)
+  (let* ((buffer-name "*EmacsAgent-Web: Home*")
+         (buf (get-buffer buffer-name))
+         (proc (and buf (get-buffer-process buf))))
+    (when (process-live-p proc)
+      (kill-process proc)
+      (while (process-live-p proc)
+        (accept-process-output proc 0.1)))
+    (hikizan/run-emacs-agent-web)
+    (message "Emacs Agent Web restarted.")))
 
 (provide 'hikizan-agent)
 
