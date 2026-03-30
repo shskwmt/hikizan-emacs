@@ -12,6 +12,7 @@ from google.adk.tools.skill_toolset import SkillToolset
 
 from .sub_agents.elisp_executor.agent import elisp_executor_agent
 from .sub_agents.browser_executor.agent import browser_executor_agent
+from .sub_agents.commit_generator.agent import commit_generator_agent
 
 SYSTEM_PROMPT = """
 You are Emacs agent, a helpful AI assistant that acts as an orchestrator to solve tasks within the Emacs environment.
@@ -28,11 +29,11 @@ Your primary role is to orchestrate solutions for the user. You should:
 You MUST delegate tasks to these sub-agents when appropriate:
 - elisp_executor: Use for executing Emacs Lisp code, buffer manipulation, or direct Emacs interaction.
 - browser_executor: Use for web-based tasks, searching the internet, or web interaction.
+- commit_generator: Generates, confirms, and executes a git commit message in conventional format for the current project. This agent has its own tool to execute Elisp code for git-related tasks.
 </SUB-AGENTS>
 
 <SKILLS>
 Use these skills to perform specialized high-level tasks:
-- commit-generator: Generates commit messages based on diffs/changes.
 - code-review: Performs code analysis and provides constructive feedback.
 </SKILLS>
 
@@ -40,11 +41,6 @@ Always stay in control of the workflow and guide the user through the process un
 """
 
 # 1. Load File-Based Skills
-# Note: Directory name 'commit_generator' must match skill name in SKILL.md
-commit_generator_skill = load_skill_from_dir(
-    pathlib.Path(__file__).parent / "skills" / "commit-generator"
-)
-
 code_review_skill = load_skill_from_dir(
     pathlib.Path(__file__).parent / "skills" / "code-review"
 )
@@ -52,7 +48,6 @@ code_review_skill = load_skill_from_dir(
 # 2. Create SkillToolset
 skill_toolset = SkillToolset(
     skills=[
-        commit_generator_skill,
         code_review_skill,
     ]
 )
@@ -66,6 +61,7 @@ root_agent = Agent(
     sub_agents=[
         elisp_executor_agent,
         browser_executor_agent,
+        commit_generator_agent,
     ],
     tools=[skill_toolset],
 )

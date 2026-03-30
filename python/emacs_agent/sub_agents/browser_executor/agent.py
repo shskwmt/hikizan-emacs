@@ -1,5 +1,5 @@
 from google.adk.agents.llm_agent import Agent
-from . import tools
+from ...tools import browser as browser_tools
 
 MODEL = "gemini-3-flash-preview"
 
@@ -18,10 +18,10 @@ browser_executor_agent = Agent(
     name="browser_executor",
     instruction=SYSTEM_PROMPT,
     tools=[
-        tools.goto,
-        tools.get_page_content,
-        tools.click,
-        tools.type_text,
-        tools.run_javascript,
+        browser_tools.goto,
+        browser_tools.get_page_content,
+        browser_tools.click,
+        browser_tools.type_text,
+        browser_tools.run_javascript,
     ],
 )

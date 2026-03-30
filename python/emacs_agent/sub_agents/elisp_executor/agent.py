@@ -1,6 +1,6 @@
 from google.adk.agents.llm_agent import Agent
 
-from . import tools
+from ...tools import elisp as elisp_tools
 
 MODEL = "gemini-3-flash-preview"
 
@@ -39,5 +39,5 @@ elisp_executor_agent = Agent(
     model=MODEL,
     name="elisp_executor",
     instruction=SYSTEM_PROMPT,
-    tools=[tools.execute_elisp_code],
+    tools=[elisp_tools.execute_elisp_code],
 )
