@@ -13,6 +13,7 @@ from google.adk.tools.skill_toolset import SkillToolset
 from .sub_agents.elisp_executor.agent import elisp_executor_agent
 from .sub_agents.browser_executor.agent import browser_executor_agent
 from .sub_agents.commit_generator.agent import commit_generator_agent
+from .sub_agents.project_manager.agent import project_manager_agent
 
 SYSTEM_PROMPT = """
 You are Emacs agent, a helpful AI assistant that acts as an orchestrator to solve tasks within the Emacs environment.
@@ -30,6 +31,7 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - elisp_executor: Use for executing Emacs Lisp code, buffer manipulation, or direct Emacs interaction.
 - browser_executor: Use for web-based tasks, searching the internet, or web interaction.
 - commit_generator: Generates, confirms, and executes a git commit message in conventional format for the current project. This agent has its own tool to execute Elisp code for git-related tasks.
+- project_manager: Helps the user manage and switch between Emacs projects and directories. Use this when the user wants to list projects or change the current working directory.
 </SUB-AGENTS>
 
 <SKILLS>
@@ -62,6 +64,7 @@ root_agent = Agent(
         elisp_executor_agent,
         browser_executor_agent,
         commit_generator_agent,
+        project_manager_agent,
     ],
     tools=[skill_toolset],
 )
