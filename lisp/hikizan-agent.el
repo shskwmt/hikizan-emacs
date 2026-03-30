@@ -53,7 +53,7 @@
     (font-lock-remove-keywords nil hikizan-agent-font-lock-keywords))
   (font-lock-flush))
 
-(defun hikizan--wait-for-web-server (url port attempts)
+(defun hikizan--wait-for-web-server (url port attempts &optional skip-browser)
   "Wait for the web server at PORT to be ready, then open URL.
 ATTEMPTS is the maximum number of seconds to wait."
   (let ((port-num (if (stringp port) (string-to-number port) port)))
@@ -67,13 +67,13 @@ ATTEMPTS is the maximum number of seconds to wait."
                 t))
           (error nil))
         (progn
-          (browse-url url)
+          (unless skip-browser (browse-url url))
           (message "Emacs Agent Web is ready."))
       (if (> attempts 0)
-          (run-with-timer 1 nil #'hikizan--wait-for-web-server url port (1- attempts))
+          (run-with-timer 1 nil #'hikizan--wait-for-web-server url port (1- attempts) skip-browser)
         (message "Emacs Agent Web server didn't respond at port %s. Check the log buffer." port)))))
 
-(defun hikizan/run-emacs-agent-web ()
+(defun hikizan/run-emacs-agent-web (&optional skip-browser)
   "Run the Emacs agent with a web interface using AGENTS_DIR and session persistence.
 Dynamically waits for the server to be ready before opening the browser."
   (interactive)
@@ -101,9 +101,9 @@ Dynamically waits for the server to be ready before opening the browser."
                                       (lambda (p event)
                                         (message "EmacsAgent-Web process %s: %s" p (string-trim event))))
                 (message "Starting Emacs Agent Web... Waiting for initialization.")
-                (hikizan--wait-for-web-server url port 20)))))
+                (hikizan--wait-for-web-server url port 20 skip-browser)))))
       ;; If already running, just open the browser and notify
-      (browse-url url)
+      (unless skip-browser (browse-url url))
       (message "Emacs Agent Web is already running; opening browser."))))
 
 (defun hikizan/restart-emacs-agent-web ()
@@ -116,7 +116,7 @@ Dynamically waits for the server to be ready before opening the browser."
       (kill-process proc)
       (while (process-live-p proc)
         (accept-process-output proc 0.1)))
-    (hikizan/run-emacs-agent-web)
+    (hikizan/run-emacs-agent-web t)
     (message "Emacs Agent Web restarted.")))
 
 (provide 'hikizan-agent)
