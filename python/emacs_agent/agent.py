@@ -7,10 +7,12 @@ if sys.platform == 'win32':
 
 from google.adk import Agent
 
-from .sub_agents.elisp_executor.agent import elisp_executor_agent
-from .sub_agents.browser_executor.agent import browser_executor_agent
-from .sub_agents.git_operator.agent import git_operator_agent
-from .sub_agents.project_manager.agent import project_manager_agent
+from .sub_agents.elisp_executor import elisp_executor_agent
+from .sub_agents.browser_executor import browser_executor_agent
+from .sub_agents.git_operator import git_operator_agent
+from .sub_agents.project_manager import project_manager_agent
+from .sub_agents.task_planner import task_planner_agent
+from .sub_agents.coder import coder_agent
 from .sub_agents.code_review import code_review_agent
 
 SYSTEM_PROMPT = """
@@ -31,6 +33,8 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - git_operator: Handles all Git operations such as checking status, generating commits, branching, pushing, pulling, and stashing for the current project. This agent has its own tool to execute Elisp code for git-related tasks.
 - project_manager: Helps the user manage and switch between Emacs projects and directories. Use this when the user wants to list projects or change the current working directory.
 - code_review: Performs code analysis and provides constructive feedback. This agent has its own tool to execute Elisp code for git-related tasks.
+- task_planner: Analyzes complex coding tasks and creates step-by-step implementation plans. Use this when the user's request involves building new features or significant changes.
+- coder: Executes specific coding tasks, writes code, and modifies files based on a plan or a specific instruction.
 </SUB-AGENTS>
 
 Always stay in control of the workflow and guide the user through the process until the goal is achieved.
@@ -47,6 +51,8 @@ root_agent = Agent(
         browser_executor_agent,
         git_operator_agent,
         project_manager_agent,
+        task_planner_agent,
+        coder_agent,
         code_review_agent,
     ],
 )
