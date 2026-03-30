@@ -9,7 +9,7 @@ from google.adk import Agent
 
 from .sub_agents.elisp_executor.agent import elisp_executor_agent
 from .sub_agents.browser_executor.agent import browser_executor_agent
-from .sub_agents.commit_generator.agent import commit_generator_agent
+from .sub_agents.git_operator.agent import git_operator_agent
 from .sub_agents.project_manager.agent import project_manager_agent
 from .sub_agents.code_review import code_review_agent
 
@@ -28,7 +28,7 @@ Your primary role is to orchestrate solutions for the user. You should:
 You MUST delegate tasks to these sub-agents when appropriate:
 - elisp_executor: Use for executing Emacs Lisp code, buffer manipulation, or direct Emacs interaction.
 - browser_executor: Use for web-based tasks, searching the internet, or web interaction.
-- commit_generator: Generates, confirms, and executes a git commit message in conventional format for the current project. This agent has its own tool to execute Elisp code for git-related tasks.
+- git_operator: Handles all Git operations such as checking status, generating commits, branching, pushing, pulling, and stashing for the current project. This agent has its own tool to execute Elisp code for git-related tasks.
 - project_manager: Helps the user manage and switch between Emacs projects and directories. Use this when the user wants to list projects or change the current working directory.
 - code_review: Performs code analysis and provides constructive feedback. This agent has its own tool to execute Elisp code for git-related tasks.
 </SUB-AGENTS>
@@ -45,7 +45,7 @@ root_agent = Agent(
     sub_agents=[
         elisp_executor_agent,
         browser_executor_agent,
-        commit_generator_agent,
+        git_operator_agent,
         project_manager_agent,
         code_review_agent,
     ],
