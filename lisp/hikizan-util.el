@@ -31,32 +31,45 @@
       (kill-new relative-path)
       (message "Copied: %s" relative-path))))
 
-(defun hikizan/git-diff-staged ()
-  "Show git diff --staged in a read-only, dedicated buffer."
-  (interactive)
-
-  ;; Check if git is available to avoid cryptic errors
+(defun hikizan/--git-diff-buffer (args)
+  "Helper to show git diff with ARGS (a list of strings) in a read-only buffer."
   (unless (executable-find "git")
     (error "Git executable not found"))
+  
+  ;; Prevent generating messy error buffers outside of Git repos
+  (unless (vc-git-root default-directory)
+    (error "Not inside a Git repository"))
 
-  (let ((cwd default-directory) ;; Capture the current directory
-	(buffer (get-buffer-create "*hikizan-git-diff*")))
+  (let ((cwd default-directory)
+        (buffer (get-buffer-create "*hikizan-git-diff*")))
     (with-current-buffer buffer
-      (setq default-directory cwd) ;; Ensure the buffer uses the correct directory
-      ;; Temporarily disable read-only to insert content
+      (setq default-directory cwd)
       (let ((inhibit-read-only t))
-	(erase-buffer)
-	(call-process "git" nil t nil "diff" "--staged")
-	(diff-mode)
-	(goto-char (point-min))))
-
+        (erase-buffer)
+        (apply #'call-process "git" nil t nil "diff" args)
+        (diff-mode)
+        (goto-char (point-min))))
+        
     ;; Make the buffer read-only and easy to quit with 'q'
     (with-current-buffer buffer
       (setq buffer-read-only t)
-      (use-local-map (copy-keymap diff-mode-map))
-      (local-set-key "q" 'quit-window))
-
+      ;; Inherit dynamically instead of deep-copying the keymap
+      (let ((map (make-sparse-keymap)))
+        (set-keymap-parent map diff-mode-map)
+        (define-key map (kbd "q") 'quit-window)
+        (use-local-map map)))
+        
     (pop-to-buffer buffer)))
+
+(defun hikizan/git-diff-staged ()
+  "Show git diff --staged in a read-only, dedicated buffer."
+  (interactive)
+  (hikizan/--git-diff-buffer '("--staged")))
+
+(defun hikizan/git-diff ()
+  "Show git diff in a read-only, dedicated buffer."
+  (interactive)
+  (hikizan/--git-diff-buffer nil))
 
 (defun hikizan/switch-to-messages-buffer ()
   "Display the *Messages* buffer in the selected window"
