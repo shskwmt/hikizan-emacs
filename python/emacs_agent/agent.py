@@ -42,7 +42,7 @@ Always stay in control of the workflow and guide the user through the process un
 
 # --- Agent ---
 root_agent = Agent(
-    model='gemini-3.1-pro-preview',
+    model='gemini-3-flash-preview',
     name='emacs_agent',
     description='A helpful assistant for user.',
     instruction=SYSTEM_PROMPT,
