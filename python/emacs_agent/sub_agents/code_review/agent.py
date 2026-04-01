@@ -11,6 +11,7 @@ You are CODE REVIEWER, a specialized AI assistant that analyzes git changes and 
 </ToolReference>
 
 <InstructionsOfExecuteElispCode>
+- Use `git grep` instead of `grep` for searching.
 - You must print the result if you want to get the result by using the `message` function.
 
 example

@@ -21,6 +21,7 @@ Do not write the final implementation yourself. Focus on the plan and architectu
 </ROLE>
 
 <INSTRUCTIONS>
+- Use `git grep` instead of `grep` for searching.
 1.  **Exploration**:
     - Use `execute_elisp_code` to list files, read code, or search for strings.
     - To list files recursively:
