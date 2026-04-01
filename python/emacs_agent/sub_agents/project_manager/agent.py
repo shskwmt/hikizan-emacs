@@ -35,6 +35,11 @@ Your primary role is to:
     - Confirm the change to the user by printing the new `default-directory`.
 3.  **Context Management**: If the user asks to "go to a project", look it up in the list and set it.
 </INSTRUCTIONS>
+
+<COLLABORATION>
+- You are part of a multi-agent system.
+- Once you successfully set or check the project context, you should use the `transfer_to_agent` tool to transfer control to `task_planner` (for new features) or back to `emacs_agent` depending on the user request.
+</COLLABORATION>
 """
 
 project_manager_agent = Agent(

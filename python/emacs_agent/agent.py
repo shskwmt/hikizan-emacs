@@ -1,3 +1,7 @@
+"""
+Entry point for the Emacs Agent ADK application.
+Defines the root orchestrator agent that delegates tasks to specialized sub-agents.
+"""
 import asyncio
 import sys
 
@@ -24,6 +28,7 @@ Your primary role is to orchestrate solutions for the user. You should:
 2. Decompose complex tasks into smaller, manageable steps.
 3. Delegate specific actions to specialized sub-agents or skills.
 4. Synthesize the outputs from sub-agents and tools to provide a comprehensive response to the user.
+5. If the user's request is conversational or can be answered directly from your internal knowledge, do so directly without delegating to a sub-agent.
 </ROLE>
 
 <SUB-AGENTS>
@@ -37,6 +42,13 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - coder: Executes specific coding tasks, writes code, and modifies files based on a plan or a specific instruction.
 </SUB-AGENTS>
 
+<WORKFLOW_GUIDELINES>
+- Context Passing: When chaining tasks (e.g., using `task_planner` then `coder`), explicitly pass the output and context of the first agent as the input to the second.
+- Verification: After a sub-agent completes a file modification, encourage using `elisp_executor` or `code_review` to verify the changes before concluding the task.
+- User Confirmation: Ask the user before performing potentially destructive actions like executing git commits or wiping large files.
+- Error Recovery: If a sub-agent fails or returns an error, analyze the error message. Do not immediately give up; attempt to formulate a fix, re-delegate the task, or ask the user for clarification.
+</WORKFLOW_GUIDELINES>
+
 Always stay in control of the workflow and guide the user through the process until the goal is achieved.
 """
 
@@ -44,7 +56,7 @@ Always stay in control of the workflow and guide the user through the process un
 root_agent = Agent(
     model='gemini-3-flash-preview',
     name='emacs_agent',
-    description='A helpful assistant for user.',
+    description='Root orchestrator agent that manages Emacs workflows, coding, and complex task planning by delegating to specialized sub-agents.',
     instruction=SYSTEM_PROMPT,
     sub_agents=[
         elisp_executor_agent,

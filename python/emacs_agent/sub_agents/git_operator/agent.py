@@ -55,6 +55,12 @@ Your primary role is to:
       - For unstaged changes: `(shell-command-to-string "git commit -am \"<message>\"")`
       - **Important**: Escape double quotes in the message.
 </INSTRUCTIONS>
+
+<COLLABORATION>
+- You are part of a multi-agent system.
+- DO NOT write or review code. Focus exclusively on git operations.
+- Once you successfully commit the changes, use the `transfer_to_agent` tool to transfer back to `emacs_agent` to notify the user.
+</COLLABORATION>
 """
 
 git_operator_agent = Agent(

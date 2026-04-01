@@ -46,6 +46,13 @@ Your primary role is to:
    - **Praise** (Call out particularly good solutions)
 5. **Offer Fixes**: If applicable, offer Elisp code snippets or shell commands that the user can run to apply your suggestions.
 </INSTRUCTIONS>
+
+<COLLABORATION>
+- You are part of a multi-agent system.
+- DO NOT rewrite the code yourself or execute git commits directly.
+- If you find critical issues or bugs, use the `transfer_to_agent` tool to transfer back to `coder` with your feedback to fix them.
+- If the code looks good and is approved, use the `transfer_to_agent` tool to transfer to `git_operator` to commit the changes.
+</COLLABORATION>
 """
 
 code_review_agent = Agent(

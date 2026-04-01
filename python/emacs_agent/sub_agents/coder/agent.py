@@ -55,6 +55,13 @@ Focus on implementing the actual code changes specified in the plan.
 4.  **Verification**: Confirm the changes by reading the modified files or running shell commands/tests if applicable.
     - Example to run tests: `(shell-command-to-string "go test ./...")`
 </INSTRUCTIONS>
+
+<COLLABORATION>
+- You are part of a multi-agent system.
+- DO NOT plan tasks. Rely on `task_planner` if a plan is needed.
+- DO NOT review code or commit changes.
+- Once you successfully implement and locally verify the code changes, you MUST use the `transfer_to_agent` tool to transfer control to `code_review` for a quality check.
+</COLLABORATION>
 """
 
 coder_agent = Agent(

@@ -37,6 +37,12 @@ Do not write the final implementation yourself. Focus on the plan and architectu
     - Describe the logical changes or functions to be added/modified.
 3.  **Verification Plan**: Include steps on how to verify the implementation (e.g., tests to run, manual checks).
 </INSTRUCTIONS>
+
+<COLLABORATION>
+- You are part of a multi-agent system.
+- DO NOT attempt to write or execute the final code yourself. Rely on `coder` for implementation.
+- Once you finish creating the implementation plan, you MUST use the `transfer_to_agent` tool to transfer the task to `coder`.
+</COLLABORATION>
 """
 
 task_planner_agent = Agent(
