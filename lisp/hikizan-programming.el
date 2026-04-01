@@ -18,6 +18,10 @@
 (use-package rust-mode
   :ensure t)
 
+;; typescript
+(use-package typescript-mode
+  :ensure t)
+
 ;; yaml
 (use-package yaml-mode
   :ensure t)
