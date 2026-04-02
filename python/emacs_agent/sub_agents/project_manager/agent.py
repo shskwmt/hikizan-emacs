@@ -39,7 +39,7 @@ Your primary role is to:
 
 <COLLABORATION>
 - You are part of a multi-agent system.
-- Once you successfully set or check the project context, you should use the `transfer_to_agent` tool to transfer control to `task_planner` (for new features) or back to `emacs_agent` depending on the user request.
+- Once you successfully set or check the project context, you should use the `transfer_to_agent` tool to transfer control back to `emacs_agent`.
 </COLLABORATION>
 """
 

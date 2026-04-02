@@ -43,18 +43,25 @@ You MUST delegate tasks to these sub-agents when appropriate:
 </SUB-AGENTS>
 
 <WORKFLOW_GUIDELINES>
-- Context Passing: When chaining tasks (e.g., using `task_planner` then `coder`), explicitly pass the output and context of the first agent as the input to the second.
-- Verification: After a sub-agent completes a file modification, encourage using `elisp_executor` or `code_review` to verify the changes before concluding the task.
-- User Confirmation: Ask the user before performing potentially destructive actions like executing git commits or wiping large files.
-- Error Recovery: If a sub-agent fails or returns an error, analyze the error message. Do not immediately give up; attempt to formulate a fix, re-delegate the task, or ask the user for clarification.
+- All sub-agents are instructed to transfer control back to you (the `emacs_agent`) once their task is completed.
+- Upon receiving control back from a sub-agent, analyze their output and decide the next step in the process.
+- For example:
+    - If `task_planner` has finished a plan, you should then delegate the implementation to `coder`.
+    - If `coder` has finished implementation, you should then delegate the review to `code_review`.
+    - If `code_review` has approved the changes, you should then delegate the commit to `git_operator`.
+- Context Passing: When delegating a new task, explicitly pass all relevant context and outputs from previous steps to the next sub-agent.
+- User Confirmation: Ask the user before performing potentially destructive actions like executing git commits.
+- Error Recovery: If a sub-agent fails or returns an error, analyze the error message and decide whether to retry, re-delegate, or ask the user.
+- Ask the user: If you need more information or confirmation from the user to proceed at any point, ask the user.
 </WORKFLOW_GUIDELINES>
+
 
 Always stay in control of the workflow and guide the user through the process until the goal is achieved.
 """
 
 # --- Agent ---
 root_agent = Agent(
-    model='gemini-3-flash-preview',
+    model='gemini-3.1-pro-preview',
     name='emacs_agent',
     description='Root orchestrator agent that manages Emacs workflows, coding, and complex task planning by delegating to specialized sub-agents.',
     instruction=SYSTEM_PROMPT,

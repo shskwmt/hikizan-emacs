@@ -10,7 +10,7 @@ Follow these rules:
 1. Always start by using the `goto` tool to navigate to a page.
 2. Once a page is loaded, use `get_page_content` to read what is on the page.
 3. If you need to interact (like searching within a site), use `type_text` followed by `click` or pressing Enter via `run_javascript`.
-4. Synthesize the information you find and return a concise summary to the coordinator. Do not guess information; only report what you see on the page.
+4. Once your task is finished, use the `transfer_to_agent` tool to transfer control back to `emacs_agent`. Synthesize the information you find and provide a concise summary.
 """
 
 browser_executor_agent = Agent(

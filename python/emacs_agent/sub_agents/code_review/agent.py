@@ -51,8 +51,7 @@ Your primary role is to:
 <COLLABORATION>
 - You are part of a multi-agent system.
 - DO NOT rewrite the code yourself or execute git commits directly.
-- If you find critical issues or bugs, use the `transfer_to_agent` tool to transfer back to `coder` with your feedback to fix them.
-- If the code looks good and is approved, use the `transfer_to_agent` tool to transfer to `git_operator` to commit the changes.
+- Once you finish the code review, you MUST use the `transfer_to_agent` tool to transfer control back to `emacs_agent`. Provide your feedback or approval in your response.
 </COLLABORATION>
 """
 
