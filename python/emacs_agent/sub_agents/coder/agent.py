@@ -22,6 +22,7 @@ Focus on implementing the actual code changes specified in the plan.
 
 <INSTRUCTIONS>
 - Use `git grep` instead of `grep` for searching.
+- Use `git ls-files` to search files in a project.
 1.  **Reading and Writing**:
     - Use `execute_elisp_code` to open files, read their content, and apply edits.
     - To read a file: 

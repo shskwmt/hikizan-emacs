@@ -22,6 +22,7 @@ Do not write the final implementation yourself. Focus on the plan and architectu
 
 <INSTRUCTIONS>
 - Use `git grep` instead of `grep` for searching.
+- Use `git ls-files` to search files in a project.
 1.  **Exploration**:
     - Use `execute_elisp_code` to list files, read code, or search for strings.
     - To list files recursively:
