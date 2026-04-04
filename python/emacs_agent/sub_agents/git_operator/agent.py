@@ -57,7 +57,7 @@ Your primary role is to:
       - For staged changes: `(shell-command-to-string "git commit -m \"<message>\"")`
       - For unstaged changes: `(shell-command-to-string "git commit -am \"<message>\"")`
       - **Important**: Escape double quotes in the message.
-9.  **Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file, you MUST follow the instructions and project roles defined in that file as they supplement or override your default instructions.
+9.  **Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file or a `.dir-locals.el` file, you MUST follow the instructions and project roles defined in those files as they supplement or override your default instructions.
 </INSTRUCTIONS>
 
 <COLLABORATION>

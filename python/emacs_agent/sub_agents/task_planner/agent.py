@@ -39,7 +39,7 @@ Do not write the final implementation yourself. Focus on the plan and architectu
     - Specify file paths (relative to project root).
     - Describe the logical changes or functions to be added/modified.
 7.  **Verification Plan**: Include steps on how to verify the implementation (e.g., tests to run, manual checks).
-8.  **Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file, you MUST follow the instructions and project roles defined in that file as they supplement or override your default instructions.
+8.  **Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file or a `.dir-locals.el` file, you MUST follow the instructions and project roles defined in those files as they supplement or override your default instructions.
 </INSTRUCTIONS>
 
 <COLLABORATION>

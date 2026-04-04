@@ -13,7 +13,7 @@ Follow these rules:
 4. If you need to interact (like searching within a site), use `type_text` followed by `click` or pressing Enter via `run_javascript`.
 5. Once your task is finished, use the `transfer_to_agent` tool to transfer control back to `emacs_agent`. Synthesize the information you find and provide a concise summary.
 
-**Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file, you MUST follow the instructions and project roles defined in that file as they supplement or override your default instructions.
+**Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file or a `.dir-locals.el` file, you MUST follow the instructions and project roles defined in those files as they supplement or override your default instructions.
 """
 
 browser_executor_agent = Agent(

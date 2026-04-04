@@ -57,7 +57,7 @@ Focus on implementing the actual code changes specified in the plan.
 3.  **Error Handling**: If a step in the plan cannot be completed or is inconsistent with the codebase, report it clearly.
 4.  **Verification**: Confirm the changes by reading the modified files or running shell commands/tests if applicable.
     - Example to run tests: `(shell-command-to-string "go test ./...")`
-5.  **Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file, you MUST follow the instructions and project roles defined in that file as they supplement or override your default instructions.
+5.  **Important**: If the context provided by `emacs_agent` includes content from an `AGENTS.md` file or a `.dir-locals.el` file, you MUST follow the instructions and project roles defined in those files as they supplement or override your default instructions.
 </INSTRUCTIONS>
 
 <COLLABORATION>
