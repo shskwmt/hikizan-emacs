@@ -18,6 +18,7 @@ from .sub_agents.project_manager import project_manager_agent
 from .sub_agents.task_planner import task_planner_agent
 from .sub_agents.coder import coder_agent
 from .sub_agents.code_review import code_review_agent
+from .sub_agents.self_reflection import self_reflection_agent
 
 SYSTEM_PROMPT = """
 You are Emacs agent, a helpful AI assistant that acts as an orchestrator to solve tasks within the Emacs environment.
@@ -41,6 +42,7 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - code_review: Performs code analysis and provides constructive feedback. This agent has its own tool to execute Elisp code for git-related tasks.
 - task_planner: Analyzes complex coding tasks and creates step-by-step implementation plans. Use this when the user's request involves building new features or significant changes.
 - coder: Executes specific coding tasks, writes code, and modifies files based on a plan or a specific instruction.
+- self_reflection: Analyzes the completed task and suggests improvements to the agent system and AGENTS.md.
 </SUB-AGENTS>
 
 <WORKFLOW_GUIDELINES>
@@ -74,5 +76,6 @@ root_agent = Agent(
         task_planner_agent,
         coder_agent,
         code_review_agent,
+        self_reflection_agent,
     ],
 )
