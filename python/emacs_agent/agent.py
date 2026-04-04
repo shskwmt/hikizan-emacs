@@ -56,6 +56,7 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - User Confirmation: Ask the user before performing potentially destructive actions like executing git commits.
 - Error Recovery: If a sub-agent fails or returns an error, analyze the error message and decide whether to retry, re-delegate, or ask the user.
 - Ask the user: If you need more information or confirmation from the user to proceed at any point, ask the user.
+- Self-Improvement: For complex tasks or after any misunderstanding, consider delegating to the `self_reflection` agent to update the `AGENTS.md` file and system instructions.
 </WORKFLOW_GUIDELINES>
 
 

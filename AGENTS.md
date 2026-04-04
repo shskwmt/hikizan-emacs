@@ -24,3 +24,13 @@ When operating in this project, adhere to the following principles and structure
 ## 4. Python Coding Conventions
 - When making changes in the `python/` directory, ensure compatibility with the existing agent architecture.
 - Maintain clear separation between the orchestrator (`emacs_agent`) and sub-agents.
+
+## 5. AI Sub-Agents & Roles
+When collaborating, use the following agents for their specialized tasks:
+- **elisp_executor**: Direct Emacs Lisp execution and buffer manipulation.
+- **browser_executor**: Web searching and internet interaction.
+- **git_operator**: Project-wide Git operations.
+- **project_manager**: Directory switching and project discovery.
+- **coder / code_review**: Implementation and feedback for code changes.
+- **task_planner**: Architectural planning for complex features.
+- **self_reflection**: Post-task analysis to improve these very definitions and workflow guidelines.
