@@ -114,7 +114,11 @@ If NEW-SESSION is non-nil, rename the existing buffer if it has a live process."
         (rename-buffer (format "*hikizan-adk:%s:%s*" agent-name (or hikizan-adk--session-id "old")) t)))
     (let* ((adk-dir (hikizan/adk--ensure-adk-dir agent-path))
            (db-path (expand-file-name "session.db" adk-dir))
-           (session-id (hikizan/adk--generate-session-id))
+           (session-file (or (cadr (member "--resume" extra-args))
+                             (cadr (member "--replay" extra-args))))
+           (session-id (if session-file
+                           (file-name-base (file-name-sans-extension session-file))
+                         (hikizan/adk--generate-session-id)))
            (sqlite-uri (format "sqlite:///%s" db-path))
            (args (append (list "run"
                                "--save_session"
