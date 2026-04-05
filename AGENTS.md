@@ -40,3 +40,8 @@ When collaborating, use the following agents for their specialized tasks:
 - **Targeted Edits**: When modifying existing code via `execute_elisp_code`, use surgical edits (`search-forward`, `replace-match`, `delete-region`) rather than overwriting the entire buffer. This minimizes character escaping errors and prevents accidental overwrites of unrelated code.
 - **Error Recovery**: If an Elisp command fails due to quoting or escaping issues, simplify the command or use `buffer-string` to inspect the state before retrying.
 - **Conventional Commits**: All project changes should be committed using Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) to maintain a clear history.
+
+## 7. Tool-Specific Guidelines & Gotchas
+- **Double Escaping**: When using `execute_elisp_code`, string literals in the Lisp code are being parsed by the tool interface. Regex backslashes or literal backslashes often require double (e.g., `\\`) or quadruple escaping (e.g., `\\\\`) to reach the Emacs buffer correctly.
+- **Path Comparisons**: Always use `file-equal-p` or wrap paths in `directory-file-name` before comparing with `string=`. This prevents bugs caused by trailing slashes and OS-specific path case-sensitivity.
+- **Buffer State**: After making multiple surgical edits, verify the final buffer state using `buffer-string` or a targeted search to ensure no unintended duplication occurred (especially in files like `init.el`).

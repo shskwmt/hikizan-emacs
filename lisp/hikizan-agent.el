@@ -7,6 +7,7 @@
 
 (require 'custom)
 (require 'comint)
+(require 'hikizan-adk-core)
 
 (defgroup hikizan nil
   "Customization group for hikizan."
@@ -130,6 +131,33 @@ Dynamically waits for the server to be ready before opening the browser."
          (unless skip-browser (browse-url url))
          (message "Emacs Agent Web is already running."))))))
 
+
+(defvar hikizan-emacs-agent-dir (expand-file-name "emacs_agent" hikizan-agent-python-dir)
+  "Path to the Emacs agent.")
+
+(defun hikizan/emacs-agent-run ()
+  "Run the Emacs agent."
+  (interactive)
+  (hikizan/adk-run hikizan-emacs-agent-dir))
+
+(defun hikizan/emacs-agent-resume (session-file)
+  "Resume an Emacs agent session from SESSION-FILE."
+  (interactive
+   (list (read-file-name "Session file: " hikizan-emacs-agent-dir nil t nil
+                        (lambda (f) (or (file-directory-p f) (string-match-p "\\.session\\.json$" f))))))
+  (hikizan/adk-resume hikizan-emacs-agent-dir session-file))
+
+(defun hikizan/emacs-agent-replay (session-file)
+  "Replay an Emacs agent session from SESSION-FILE."
+  (interactive
+   (list (read-file-name "Session file: " hikizan-emacs-agent-dir nil t nil
+                        (lambda (f) (or (file-directory-p f) (string-match-p "\\.session\\.json$" f))))))
+  (hikizan/adk-replay hikizan-emacs-agent-dir session-file))
+
+(defun hikizan/emacs-agent-sessions ()
+  "Show the dashboard for the Emacs agent."
+  (interactive)
+  (hikizan/adk-sessions hikizan-emacs-agent-dir))
 (provide 'hikizan-agent)
 
 ;;; hikizan-agent.el ends here

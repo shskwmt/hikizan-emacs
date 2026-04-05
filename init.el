@@ -6,6 +6,7 @@
 
 (add-to-list 'load-path hikizan-lisp-dir)
 
+(add-to-list 'load-path (expand-file-name "hikizan-adk" hikizan-lisp-dir))
 (require 'hikizan-package-manager)
 (require 'hikizan-util)
 (require 'hikizan-project)
@@ -17,7 +18,6 @@
 (require 'hikizan-eshell)
 (require 'hikizan-keybinds)
 
-(add-to-list 'load-path (expand-file-name "hikizan-adk" hikizan-lisp-dir))
 (require 'hikizan-adk-core)
 
 (setq system-time-local "C") ;; to avoid Japanese in the time stamp
