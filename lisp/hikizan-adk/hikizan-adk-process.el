@@ -13,7 +13,7 @@
   :group 'hikizan-adk)
 
 (defvar-local hikizan-adk--agent-path nil)
-(defvar-local hikizan-adk--backend-profile 'memory)
+(defvar-local hikizan-adk--backend-profile 'json)
 (defvar-local hikizan-adk--session-service-uri nil)
 (defvar-local hikizan-adk--session-id nil)
 
