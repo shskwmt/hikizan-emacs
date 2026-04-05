@@ -33,8 +33,6 @@
 (global-set-key (kbd "C-c a w") 'hikizan/run-emacs-agent-web)
 (global-set-key (kbd "C-c a r") 'hikizan/emacs-agent-run)
 (global-set-key (kbd "C-c a s") 'hikizan/emacs-agent-sessions)
-(global-set-key (kbd "C-c a u") 'hikizan/emacs-agent-resume)
-(global-set-key (kbd "C-c a p") 'hikizan/emacs-agent-replay)
 
 ;; Project
 (global-set-key (kbd "C-x p g") 'vc-git-grep)

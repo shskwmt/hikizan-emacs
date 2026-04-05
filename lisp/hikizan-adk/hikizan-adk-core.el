@@ -11,28 +11,6 @@ This will always start a new session."
   (hikizan/adk--run-process agent-path nil t))
 
 ;;;###autoload
-(defun hikizan/adk-resume (agent-path session-file)
-  "Start adk run --resume SESSION-FILE in AGENT-PATH."
-  (interactive
-   (let* ((dir (read-directory-name "Agent directory: "))
-          (file (read-file-name "Session file: " dir nil t nil (lambda (f) (or (file-directory-p f) (string-match-p "\\.session\\.json$" f))))))
-     (list dir file)))
-  (hikizan/adk--run-process agent-path (list "--resume" session-file)))
-
-;;;###autoload
-(defun hikizan/adk-replay (agent-path session-file)
-  "Start adk run --replay SESSION-FILE in AGENT-PATH (non-interactive)."
-  (interactive
-   (let* ((dir (read-directory-name "Agent directory: "))
-          (file (read-file-name "Session file: " dir nil t nil (lambda (f) (or (file-directory-p f) (string-match-p "\\.session\\.json$" f))))))
-     (list dir file)))
-  (hikizan/adk--run-process agent-path (list "--replay" session-file))
-  (let ((buf (get-buffer (format "*hikizan-adk:%s*" (file-name-nondirectory (directory-file-name agent-path))))))
-    (when buf
-      (with-current-buffer buf
-        (setq-local buffer-read-only t)))))
-
-;;;###autoload
 (defun hikizan/adk-sessions (agent-path)
   "Open ADK sessions dashboard for AGENT-PATH."
   (interactive (list (read-directory-name "Agent directory: ")))
