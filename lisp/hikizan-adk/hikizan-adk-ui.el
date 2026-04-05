@@ -20,6 +20,7 @@
 (define-key hikizan-adk-ui-mode-map (kbd "g") #'hikizan/adk-ui-refresh)
 (define-key hikizan-adk-ui-mode-map (kbd "k") #'hikizan/adk-ui-kill-session)
 (define-key hikizan-adk-ui-mode-map (kbd "D") #'hikizan/adk-ui-delete-session)
+(define-key hikizan-adk-ui-mode-map (kbd "o") #'hikizan/adk-ui-open-file)
 
 (defun hikizan/adk-ui--refresh-entries ()
   "Refresh the list of sessions for the current dashboard agent."
@@ -104,5 +105,13 @@
   "Resume an ADK session from FILE-PATH."
   (let ((agent-path hikizan-adk--dashboard-agent-path))
     (hikizan/adk--run-process agent-path (list "--resume" file-path))))
+
+(defun hikizan/adk-ui-open-file ()
+  "Open the session file at point."
+  (interactive)
+  (let ((id (tabulated-list-get-id)))
+    (if (stringp id)
+        (find-file id)
+      (message "Not a saved session file."))))
 
 (provide 'hikizan-adk-ui)
