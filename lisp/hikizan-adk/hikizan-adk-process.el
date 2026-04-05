@@ -51,15 +51,23 @@
                   session-id "-e" "(kill-emacs)")))
 
 (defun hikizan/adk--process-sentinel (proc event)
-  "Sentinel for ADK process to cleanup the daemon."
+  "Sentinel for ADK process to cleanup the daemon and manage session files."
   (let ((buf (process-buffer proc)))
     (when (and (buffer-live-p buf)
                (memq (process-status proc) '(exit signal)))
-      (let ((session-id (with-current-buffer buf
-                          hikizan-adk--session-id)))
+      (let ((session-id (with-current-buffer buf hikizan-adk--session-id))
+            (agent-path (with-current-buffer buf hikizan-adk--agent-path)))
         (when session-id
           (message "Cleaning up Emacs daemon for session: %s" session-id)
-          (hikizan/adk--kill-daemon session-id)))))
+          (hikizan/adk--kill-daemon session-id)
+          ;; Move session file from AGENT/ to AGENT/sessions/ if it was saved
+          (when agent-path
+            (let ((old-path (expand-file-name (format "%s.session.json" session-id) agent-path))
+                  (new-path (expand-file-name (format "sessions/%s.session.json" session-id) agent-path)))
+              (when (and (not (file-equal-p old-path new-path))
+                         (file-exists-p old-path))
+                (rename-file old-path new-path t)
+                (message "Moved session file to %s" new-path))))))))
   )
 
 (defun hikizan/adk-exit ()
