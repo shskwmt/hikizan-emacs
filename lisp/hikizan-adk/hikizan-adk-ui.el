@@ -41,8 +41,8 @@
 
       ;; 2. Saved session files
       (when (file-directory-p agent-path)
-        (let* ((sessions-dir (expand-file-name "sessions" agent-path))
-               (files (if (file-directory-p sessions-dir) (directory-files sessions-dir t "\\.session\\.json$") nil)))
+        (let* ((files (directory-files agent-path t "\\.session\\.json$")))
+	  (message "%s" files)
           (dolist (file files)
             (let* ((name (file-name-nondirectory file))
                    (attrs (file-attributes file))

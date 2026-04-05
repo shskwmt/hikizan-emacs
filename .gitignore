@@ -22,6 +22,6 @@ __pycache__/
 ~/
 tree-sitter/
 
-python/emacs_agent/sessions/
 .env
 .adk/
+python/emacs_agent/hikizan-*.session.json
