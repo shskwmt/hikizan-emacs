@@ -5,9 +5,10 @@
 
 ;;;###autoload
 (defun hikizan/adk-run (agent-path)
-  "Start interactive adk run in AGENT-PATH."
+  "Start interactive adk run in AGENT-PATH.
+This will always start a new session."
   (interactive (list (read-directory-name "Agent directory: ")))
-  (hikizan/adk--run-process agent-path))
+  (hikizan/adk--run-process agent-path nil t))
 
 ;;;###autoload
 (defun hikizan/adk-resume (agent-path session-file)

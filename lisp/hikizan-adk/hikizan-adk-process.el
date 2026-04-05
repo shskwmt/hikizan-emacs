@@ -56,31 +56,36 @@
   (setq comint-prompt-regexp "^> ")
   (setq-local comint-use-prompt-regexp t))
 
-(defun hikizan/adk--run-process (agent-path &optional extra-args)
-  "Run ADK in AGENT-PATH with EXTRA-ARGS."
+(defun hikizan/adk--run-process (agent-path &optional extra-args new-session)
+  "Run ADK in AGENT-PATH with EXTRA-ARGS.
+If NEW-SESSION is non-nil, rename the existing buffer if it has a live process."
   (let* ((agent-path (expand-file-name agent-path))
          (agent-name (file-name-nondirectory (directory-file-name agent-path)))
          (buffer-name (format "*hikizan-adk:%s*" agent-name))
-         (adk-dir (hikizan/adk--ensure-adk-dir agent-path))
-         (db-path (expand-file-name "session.db" adk-dir))
-         (session-id (hikizan/adk--generate-session-id))
-         (sqlite-uri (format "sqlite:///%s" db-path))
-         (args (append (list "run"
-                             "--save_session"
-                             "--session_id" session-id
-                             "--session_service_uri" sqlite-uri)
-                       extra-args
-                       (list agent-path))))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (unless (derived-mode-p 'hikizan-adk-run-mode)
-        (hikizan-adk-run-mode))
-      (let ((proc (get-buffer-process (current-buffer))))
-        (if (and proc (process-live-p proc))
-            (pop-to-buffer (current-buffer))
-          (setq hikizan-adk--agent-path agent-path)
-          (setq hikizan-adk--session-id session-id)
-          (setq hikizan-adk--session-service-uri sqlite-uri)
-          (apply #'make-comint-in-buffer "adk" (current-buffer) hikizan-adk-command nil args)
-          (pop-to-buffer (current-buffer)))))))
+         (existing-buf (get-buffer buffer-name)))
+    (when (and new-session existing-buf (process-live-p (get-buffer-process existing-buf)))
+      (with-current-buffer existing-buf
+        (rename-buffer (format "*hikizan-adk:%s:%s*" agent-name (or hikizan-adk--session-id "old")) t)))
+    (let* ((adk-dir (hikizan/adk--ensure-adk-dir agent-path))
+           (db-path (expand-file-name "session.db" adk-dir))
+           (session-id (hikizan/adk--generate-session-id))
+           (sqlite-uri (format "sqlite:///%s" db-path))
+           (args (append (list "run"
+                               "--save_session"
+                               "--session_id" session-id
+                               "--session_service_uri" sqlite-uri)
+                         extra-args
+                         (list agent-path))))
+      (with-current-buffer (get-buffer-create buffer-name)
+        (unless (derived-mode-p 'hikizan-adk-run-mode)
+          (hikizan-adk-run-mode))
+        (let ((proc (get-buffer-process (current-buffer))))
+          (if (and proc (process-live-p proc))
+              (pop-to-buffer (current-buffer))
+            (setq hikizan-adk--agent-path agent-path)
+            (setq hikizan-adk--session-id session-id)
+            (setq hikizan-adk--session-service-uri sqlite-uri)
+            (apply #'make-comint-in-buffer "adk" (current-buffer) hikizan-adk-command nil args)
+            (pop-to-buffer (current-buffer))))))))
 
 (provide 'hikizan-adk-process)

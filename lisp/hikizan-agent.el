@@ -136,7 +136,7 @@ Dynamically waits for the server to be ready before opening the browser."
   "Path to the Emacs agent.")
 
 (defun hikizan/emacs-agent-run ()
-  "Run the Emacs agent."
+  "Run the Emacs agent. Always starts a new session."
   (interactive)
   (hikizan/adk-run hikizan-emacs-agent-dir))
 
