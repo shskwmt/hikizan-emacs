@@ -139,49 +139,55 @@
 
 (defun hikizan/adk--run-process (agent-path &optional extra-args new-session)
   "Run ADK in AGENT-PATH with EXTRA-ARGS.
-If NEW-SESSION is non-nil, rename the existing buffer if it has a live process."
+If NEW-SESSION is non-nil, force starting a new session even if an active one exists."
   (let* ((agent-path (expand-file-name agent-path))
          (agent-name (file-name-nondirectory (directory-file-name agent-path)))
-         (buffer-name (format "*hikizan-adk:%s*" agent-name))
-         (existing-buf (get-buffer buffer-name)))
-    (when (and new-session existing-buf (process-live-p (get-buffer-process existing-buf)))
-      (with-current-buffer existing-buf
-        (rename-buffer (format "*hikizan-adk:%s:%s*" agent-name (or hikizan-adk--session-id "old")) t)))
-    (let* ((session-file (or (cadr (member "--resume" extra-args))
-                             (cadr (member "--replay" extra-args))))
-           (session-id (if session-file
-                           (file-name-base (file-name-sans-extension session-file))
-                         (hikizan/adk--generate-session-id)))
-           (session-uri "memory://")
-           (args (append (list "run"
-                               "--save_session"
-                               "--session_id" session-id
-                               "--session_service_uri" session-uri)
-                         extra-args
-                         (list agent-path))))
-      (with-current-buffer (get-buffer-create buffer-name)
-        (unless (derived-mode-p 'hikizan-adk-run-mode)
-          (hikizan-adk-run-mode))
-        (let ((proc (get-buffer-process (current-buffer))))
-          (if (and proc (process-live-p proc))
-              (pop-to-buffer (current-buffer))
-            (setq hikizan-adk--agent-path agent-path)
-            (setq hikizan-adk--session-id session-id)
-            (setq hikizan-adk--session-service-uri session-uri)
-            
-            ;; 1. Start the dedicated daemon
-            (hikizan/adk--start-daemon session-id)
-            
-            ;; 2. Set the environment variable for the child process
-            (let ((process-environment (cons (format "EMACS_SERVER_FILE=%s" session-id)
-                                             process-environment)))
-              (apply #'make-comint-in-buffer "adk" (current-buffer) hikizan-adk-command nil args))
-            
-            ;; 3. Set the sentinel for cleanup
-            (let ((new-proc (get-buffer-process (current-buffer))))
-              (when new-proc
-                (set-process-sentinel new-proc #'hikizan/adk--process-sentinel)))
-            
-            (pop-to-buffer (current-buffer))))))))
+         (active-buf (unless new-session
+                       (cl-find-if (lambda (buf)
+                                     (with-current-buffer buf
+                                       (and (derived-mode-p 'hikizan-adk-run-mode)
+                                            hikizan-adk--agent-path
+                                            (file-equal-p hikizan-adk--agent-path agent-path)
+                                            (let ((proc (get-buffer-process buf)))
+                                              (and proc (process-live-p proc))))))
+                                   (buffer-list)))))
+    (if active-buf
+        (pop-to-buffer active-buf)
+      (let* ((session-file (cadr (member "--replay" extra-args)))
+             (session-id (if session-file
+                             (file-name-base (file-name-sans-extension session-file))
+                           (hikizan/adk--generate-session-id)))
+             (buffer-name (format "*hikizan-adk:%s:%s*" agent-name session-id))
+             (session-uri "memory://")
+             (args (append (list "run"
+                                 "--save_session"
+                                 "--session_id" session-id
+                                 "--session_service_uri" session-uri)
+                           extra-args
+                           (list agent-path))))
+        (with-current-buffer (get-buffer-create buffer-name)
+          (unless (derived-mode-p 'hikizan-adk-run-mode)
+            (hikizan-adk-run-mode))
+          (let ((proc (get-buffer-process (current-buffer))))
+            (if (and proc (process-live-p proc))
+                (pop-to-buffer (current-buffer))
+              (setq hikizan-adk--agent-path agent-path)
+              (setq hikizan-adk--session-id session-id)
+              (setq hikizan-adk--session-service-uri session-uri)
+              
+              ;; 1. Start the dedicated daemon
+              (hikizan/adk--start-daemon session-id)
+              
+              ;; 2. Set the environment variable for the child process
+              (let ((process-environment (cons (format "EMACS_SERVER_FILE=%s" session-id)
+                                               process-environment)))
+                (apply #'make-comint-in-buffer "adk" (current-buffer) hikizan-adk-command nil args))
+              
+              ;; 3. Set the sentinel for cleanup
+              (let ((new-proc (get-buffer-process (current-buffer))))
+                (when new-proc
+                  (set-process-sentinel new-proc #'hikizan/adk--process-sentinel)))
+              
+              (pop-to-buffer (current-buffer)))))))))
 
 (provide 'hikizan-adk-process)
