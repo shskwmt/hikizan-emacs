@@ -19,6 +19,7 @@
 (define-key hikizan-adk-ui-mode-map (kbd "RET") #'hikizan/adk-ui-action)
 (define-key hikizan-adk-ui-mode-map (kbd "g") #'hikizan/adk-ui-refresh)
 (define-key hikizan-adk-ui-mode-map (kbd "k") #'hikizan/adk-ui-kill-session)
+(define-key hikizan-adk-ui-mode-map (kbd "D") #'hikizan/adk-ui-delete-session)
 
 (defun hikizan/adk-ui--refresh-entries ()
   "Refresh the list of sessions for the current dashboard agent."
@@ -74,6 +75,21 @@
           (hikizan/adk-kill)
           (hikizan/adk-ui-refresh))
       (message "Not a running session buffer."))))
+
+(defun hikizan/adk-ui-delete-session ()
+  "Delete the selected saved session file."
+  (interactive)
+  (let ((id (tabulated-list-get-id)))
+    (cond
+     ((stringp id)
+      (when (yes-or-no-p (format "Delete session file %s? " (file-name-nondirectory id)))
+        (delete-file id)
+        (message "Deleted %s" (file-name-nondirectory id))
+        (hikizan/adk-ui-refresh)))
+     ((bufferp id)
+      (message "Selected item is a buffer. Use 'k' to kill its process."))
+     (t
+      (message "No session selected.")))))
 
 (defun hikizan/adk-ui-open-dashboard (agent-path)
   "Open ADK sessions dashboard for AGENT-PATH."
