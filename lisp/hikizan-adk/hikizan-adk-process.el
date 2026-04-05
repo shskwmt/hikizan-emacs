@@ -44,6 +44,14 @@
         (delete-process proc)
       (message "No active process to kill."))))
 
+(defvar hikizan-adk-font-lock-keywords
+  '(;; Markdown-like highlighting
+    ("^#+ .*" . font-lock-type-face)                     ; Headers
+    ("\\*\\*\\(.*?\\)\\*\\*" 1 'bold)                    ; Bold
+    ("`\\(.*?\\)`" 1 font-lock-string-face)              ; Inline code
+    ("^\\s-*[-+*]\\s-+" . font-lock-variable-name-face)) ; List bullets
+  "Font lock keywords for `hikizan-adk-run-mode'.")
+
 (defvar hikizan-adk-run-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-q") #'hikizan/adk-exit)
@@ -54,7 +62,8 @@
 (define-derived-mode hikizan-adk-run-mode comint-mode "Hikizan-ADK"
   "Major mode for running ADK sessions."
   (setq comint-prompt-regexp "^> ")
-  (setq-local comint-use-prompt-regexp t))
+  (setq-local comint-use-prompt-regexp t)
+  (setq-local font-lock-defaults '(hikizan-adk-font-lock-keywords)))
 
 (defun hikizan/adk--run-process (agent-path &optional extra-args new-session)
   "Run ADK in AGENT-PATH with EXTRA-ARGS.

@@ -30,30 +30,6 @@
 
 (setq message-log-max 1000000)
 
-(defvar hikizan-agent-mode-map
-  (let ((map (make-keymap)))
-    
-    map)
-  "Keymap for hikizan-agent-mode.")
-
-(defvar hikizan-agent-font-lock-keywords
-  '(;; Markdown-like highlighting
-    ("^#+ .*" . font-lock-type-face)                     ; Headers
-    ("\\*\\*\\(.*?\\)\\*\\*" 1 'bold)                    ; Bold
-    ("`\\(.*?\\)`" 1 font-lock-string-face)              ; Inline code
-    ("^\\s-*[-+*]\\s-+" . font-lock-variable-name-face)) ; List bullets
-  "Font lock keywords for hikizan-agent-mode.")
-
-(define-minor-mode hikizan-agent-mode
-  "A minor mode for Emacs Agent buffers."
-  :init-value nil
-  :lighter " Agent"
-  :keymap hikizan-agent-mode-map
-  (if hikizan-agent-mode
-      (font-lock-add-keywords nil hikizan-agent-font-lock-keywords)
-    (font-lock-remove-keywords nil hikizan-agent-font-lock-keywords))
-  (font-lock-flush))
-
 (defun hikizan--wait-for-web-server (url port attempts &optional skip-browser)
   "Wait for the web server at PORT to be ready, then open URL.
 ATTEMPTS is the maximum number of seconds to wait."
@@ -130,7 +106,6 @@ Dynamically waits for the server to be ready before opening the browser."
                    (hikizan--wait-for-web-server url port 20 skip-browser)))))
          (unless skip-browser (browse-url url))
          (message "Emacs Agent Web is already running."))))))
-
 
 (defvar hikizan-emacs-agent-dir (expand-file-name "emacs_agent" hikizan-agent-python-dir)
   "Path to the Emacs agent.")
