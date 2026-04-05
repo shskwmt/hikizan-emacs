@@ -143,14 +143,14 @@ Dynamically waits for the server to be ready before opening the browser."
 (defun hikizan/emacs-agent-resume (session-file)
   "Resume an Emacs agent session from SESSION-FILE."
   (interactive
-   (list (read-file-name "Session file: " hikizan-emacs-agent-dir nil t nil
+   (list (read-file-name "Session file: " (expand-file-name "sessions" hikizan-emacs-agent-dir) nil t nil
                         (lambda (f) (or (file-directory-p f) (string-match-p "\\.session\\.json$" f))))))
   (hikizan/adk-resume hikizan-emacs-agent-dir session-file))
 
 (defun hikizan/emacs-agent-replay (session-file)
   "Replay an Emacs agent session from SESSION-FILE."
   (interactive
-   (list (read-file-name "Session file: " hikizan-emacs-agent-dir nil t nil
+   (list (read-file-name "Session file: " (expand-file-name "sessions" hikizan-emacs-agent-dir) nil t nil
                         (lambda (f) (or (file-directory-p f) (string-match-p "\\.session\\.json$" f))))))
   (hikizan/adk-replay hikizan-emacs-agent-dir session-file))
 

@@ -22,8 +22,8 @@
   (format-time-string "hikizan-%Y%m%d-%H%M%S"))
 
 (defun hikizan/adk--ensure-adk-dir (agent-path)
-  "Ensure the .adk directory exists in AGENT-PATH."
-  (let ((adk-dir (expand-file-name ".adk" agent-path)))
+  "Ensure the sessions directory exists in AGENT-PATH."
+  (let ((adk-dir (expand-file-name "sessions" agent-path)))
     (unless (file-directory-p adk-dir)
       (make-directory adk-dir t))
     adk-dir))
@@ -77,6 +77,7 @@ If NEW-SESSION is non-nil, rename the existing buffer if it has a live process."
                          extra-args
                          (list agent-path))))
       (with-current-buffer (get-buffer-create buffer-name)
+        (setq default-directory adk-dir)
         (unless (derived-mode-p 'hikizan-adk-run-mode)
           (hikizan-adk-run-mode))
         (let ((proc (get-buffer-process (current-buffer))))

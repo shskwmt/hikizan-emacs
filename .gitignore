@@ -22,5 +22,6 @@ __pycache__/
 ~/
 tree-sitter/
 
-.adk/
+python/emacs_agent/sessions/
 .env
+.adk/
