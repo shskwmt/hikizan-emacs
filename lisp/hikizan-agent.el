@@ -31,7 +31,7 @@
 
 (defvar hikizan-agent-mode-map
   (let ((map (make-keymap)))
-    (define-key map (kbd "C-c r") #'hikizan/restart-emacs-agent-web)
+    
     map)
   "Keymap for hikizan-agent-mode.")
 
@@ -73,7 +73,7 @@ ATTEMPTS is the maximum number of seconds to wait."
           (run-with-timer 1 nil #'hikizan--wait-for-web-server url port (1- attempts) skip-browser)
         (message "Emacs Agent Web server didn't respond at port %s. Check the log buffer." port)))))
 
-(defun hikizan/run-emacs-agent-web (&optional skip-browser)
+(defun hikizan/run-emacs-agent-web (&optional skip-browser action)
   "Run the Emacs agent with a web interface using AGENTS_DIR and session persistence.
 Dynamically waits for the server to be ready before opening the browser."
   (interactive)
@@ -88,36 +88,47 @@ Dynamically waits for the server to be ready before opening the browser."
          (buffer-name "*EmacsAgent-Web: Home*")
          (buf (get-buffer-create buffer-name))
          (proc (get-buffer-process buf)))
-    (if (not (process-live-p proc))
-        (progn
-          (pop-to-buffer buf)
-          (with-current-buffer buf
-            (let ((default-directory workspace))
-              (when proc (delete-process proc)) ;; Clean up dead process
-              (erase-buffer)
-              (let ((new-proc (start-process "EmacsAgent-Web" (current-buffer)
-                                             "adk" "web" agents-dir "--port" port "--session_service_uri" uri)))
-                (set-process-sentinel new-proc
-                                      (lambda (p event)
-                                        (message "EmacsAgent-Web process %s: %s" p (string-trim event))))
-                (message "Starting Emacs Agent Web... Waiting for initialization.")
-                (hikizan--wait-for-web-server url port 20 skip-browser)))))
-      ;; If already running, just open the browser and notify
-      (unless skip-browser (browse-url url))
-      (message "Emacs Agent Web is already running; opening browser."))))
 
-(defun hikizan/restart-emacs-agent-web ()
-  "Restart the Emacs agent web interface."
-  (interactive)
-  (let* ((buffer-name "*EmacsAgent-Web: Home*")
-         (buf (get-buffer buffer-name))
-         (proc (and buf (get-buffer-process buf))))
-    (when (process-live-p proc)
-      (kill-process proc)
-      (while (process-live-p proc)
-        (accept-process-output proc 0.1)))
-    (hikizan/run-emacs-agent-web t)
-    (message "Emacs Agent Web restarted.")))
+    (when (and (process-live-p proc)
+               (called-interactively-p 'interactive)
+               (not action))
+      (setq action (pcase (car (read-multiple-choice
+                                 "Emacs Agent Web is already running"
+                                 '((?o "open")
+                                   (?r "restart")
+                                   (?q "quit"))))
+                     (?o 'open)
+                     (?r 'restart)
+                     (?q 'quit))))
+
+    (pcase action
+      ('quit (message "Aborted."))
+      ('restart
+       (when (process-live-p proc)
+         (kill-process proc)
+         (while (process-live-p proc)
+           (accept-process-output proc 0.1)))
+       (hikizan/run-emacs-agent-web skip-browser 'start))
+      ('open
+       (unless skip-browser (browse-url url))
+       (message "Opened Emacs Agent Web in browser."))
+      (_
+       (if (not (process-live-p proc))
+           (progn
+             (pop-to-buffer buf)
+             (with-current-buffer buf
+               (let ((default-directory workspace))
+                 (when proc (delete-process proc)) ;; Clean up dead process
+                 (erase-buffer)
+                 (let ((new-proc (start-process "EmacsAgent-Web" (current-buffer)
+                                                "adk" "web" agents-dir "--port" port "--session_service_uri" uri)))
+                   (set-process-sentinel new-proc
+                                         (lambda (p event)
+                                           (message "EmacsAgent-Web process %s: %s" p (string-trim event))))
+                   (message "Starting Emacs Agent Web... Waiting for initialization.")
+                   (hikizan--wait-for-web-server url port 20 skip-browser)))))
+         (unless skip-browser (browse-url url))
+         (message "Emacs Agent Web is already running."))))))
 
 (provide 'hikizan-agent)
 
