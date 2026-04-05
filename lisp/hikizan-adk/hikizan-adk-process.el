@@ -13,7 +13,7 @@
   :group 'hikizan-adk)
 
 (defvar-local hikizan-adk--agent-path nil)
-(defvar-local hikizan-adk--backend-profile 'sqlite)
+(defvar-local hikizan-adk--backend-profile 'memory)
 (defvar-local hikizan-adk--session-service-uri nil)
 (defvar-local hikizan-adk--session-id nil)
 
@@ -113,17 +113,16 @@ If NEW-SESSION is non-nil, rename the existing buffer if it has a live process."
       (with-current-buffer existing-buf
         (rename-buffer (format "*hikizan-adk:%s:%s*" agent-name (or hikizan-adk--session-id "old")) t)))
     (let* ((adk-dir (hikizan/adk--ensure-adk-dir agent-path))
-           (db-path (expand-file-name "session.db" adk-dir))
            (session-file (or (cadr (member "--resume" extra-args))
                              (cadr (member "--replay" extra-args))))
            (session-id (if session-file
                            (file-name-base (file-name-sans-extension session-file))
                          (hikizan/adk--generate-session-id)))
-           (sqlite-uri (format "sqlite:///%s" db-path))
+           (session-uri "memory://")
            (args (append (list "run"
                                "--save_session"
                                "--session_id" session-id
-                               "--session_service_uri" sqlite-uri)
+                               "--session_service_uri" session-uri)
                          extra-args
                          (list agent-path))))
       (with-current-buffer (get-buffer-create buffer-name)
@@ -135,7 +134,7 @@ If NEW-SESSION is non-nil, rename the existing buffer if it has a live process."
               (pop-to-buffer (current-buffer))
             (setq hikizan-adk--agent-path agent-path)
             (setq hikizan-adk--session-id session-id)
-            (setq hikizan-adk--session-service-uri sqlite-uri)
+            (setq hikizan-adk--session-service-uri session-uri)
             
             ;; 1. Start the dedicated daemon
             (hikizan/adk--start-daemon session-id)
