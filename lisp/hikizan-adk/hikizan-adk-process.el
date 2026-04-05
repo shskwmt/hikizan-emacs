@@ -2,6 +2,7 @@
 
 (require 'comint)
 (require 'cl-lib)
+(require 'server)
 
 (defgroup hikizan-adk nil
   "ADK integration for Hikizan Emacs."
@@ -15,7 +16,7 @@
 (defvar-local hikizan-adk--agent-path nil)
 (defvar-local hikizan-adk--session-service-uri nil)
 (defvar-local hikizan-adk--session-id nil)
-(defvar-local hikizan-adk--client-process nil
+(defvar-local hikizan-adk--client-buffer nil
   "Process object for emacsclient started via async-shell-command.")
 
 (defun hikizan/adk--generate-session-id ()
@@ -52,8 +53,8 @@
 	   (shell-command-buffer-name-async
             (format "*hikizan-emacsclient:%s*" session-id)))
       (message "Launching emacsclient via async-shell-command: %s" command)
-      (setq hikizan-adk--client-process
-            (async-shell-command command)))))
+      (async-shell-command command)
+      (setq hikizan-adk--client-buffer shell-command-buffer-name-async))))
 
 (defun hikizan/adk--kill-daemon (session-id)
   "Kill the Emacs daemon with SESSION-ID."
@@ -68,11 +69,11 @@
     (when (and (buffer-live-p buf)
                (memq (process-status proc) '(exit signal)))
       (with-current-buffer buf
-        (hikizan/adk--kill-client-if-needed)
         (when hikizan-adk--session-id
           (message "Cleaning up Emacs daemon for session: %s"
                    hikizan-adk--session-id)
-          (hikizan/adk--kill-daemon hikizan-adk--session-id))))))
+          (hikizan/adk--kill-daemon hikizan-adk--session-id))
+	(hikizan/adk--kill-client-if-needed)))))
 
 (defun hikizan/adk-exit ()
   "Send exit command to the ADK process."
@@ -102,14 +103,11 @@
 
 (defun hikizan/adk--kill-client-if-needed ()
   "Kill emacsclient process and its buffer if present."
-  (when (and hikizan-adk--client-process
-             (process-live-p hikizan-adk--client-process))
-    (let ((buf (process-buffer hikizan-adk--client-process)))
-      (ignore-errors
-        (delete-process hikizan-adk--client-process))
-      (when (buffer-live-p buf)
-        (kill-buffer buf)))
-    (setq hikizan-adk--client-process nil)))
+  (sleep-for 0.5)
+  (when hikizan-adk--client-buffer
+    (when (buffer-live-p hikizan-adk--client-buffer)
+      (kill-buffer hikizan-adk--client-buffer))
+    (setq hikizan-adk--client-buffer nil)))
 
 (defvar hikizan-adk-font-lock-keywords
   '(;; Markdown-like highlighting
@@ -133,8 +131,8 @@
   (setq-local font-lock-defaults '(hikizan-adk-font-lock-keywords))
   (add-hook 'kill-buffer-hook
           (lambda ()
-            (hikizan/adk--kill-client-if-needed)
-            (hikizan/adk--kill-daemon-if-needed))
+            (hikizan/adk--kill-daemon-if-needed)
+            (hikizan/adk--kill-client-if-needed))
           nil t))
 
 (defun hikizan/adk--run-process (agent-path &optional extra-args new-session)
