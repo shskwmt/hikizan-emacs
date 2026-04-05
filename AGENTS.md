@@ -13,6 +13,7 @@ When operating in this project, adhere to the following principles and structure
 - `lisp/`: Contains custom Emacs Lisp configuration modules.
 - `python/`: Contains the Python codebase for the AI agents (`emacs_agent`, etc.) operating in this system.
 - `~/.emacsenv`: Used by the user to set specific environment variables (loaded in `early-init.el`).
+- `python/emacs_agent/sessions/`: (Internal) Stores agent session data and JSON logs. Ignored by Git.
 
 ## 3. Emacs Lisp Coding Conventions
 - **Lexical Binding**: Always use `;;; -*- lexical-binding: t; -*-` at the top of any new `.el` file.
@@ -34,10 +35,4 @@ When collaborating, use the following agents for their specialized tasks:
 - **coder / code_review**: Implementation and feedback for code changes.
 - **task_planner**: Architectural planning for complex features.
 - **self_reflection**: Post-task analysis to improve these very definitions and workflow guidelines.
-
-## 6. AI Agent Operational Best Practices
-- **Path Consistency**: Always verify and set the `default-directory` explicitly when performing file, shell, or Git operations. Do not assume the current environment is already at the project root.
-- **Targeted Edits**: When modifying existing code via `execute_elisp_code`, use surgical edits (`search-forward`, `replace-match`, `delete-region`) rather than overwriting the entire buffer. This minimizes character escaping errors and prevents accidental overwrites of unrelated code.
-- **Error Recovery**: If an Elisp command fails due to quoting or escaping issues, simplify the command or use `buffer-string` to inspect the state before retrying.
-- **Conventional Commits**: All project changes should be committed using Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) to maintain a clear history.
 

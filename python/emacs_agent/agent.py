@@ -59,6 +59,13 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - Self-Improvement: For complex tasks or after any misunderstanding, consider delegating to the `self_reflection` agent to update the `AGENTS.md` file and system instructions.
 </WORKFLOW_GUIDELINES>
 
+<OPERATIONAL_BEST_PRACTICES>
+- **Path Consistency**: Always verify and set the `default-directory` explicitly when performing file, shell, or Git operations. Do not assume the current environment is already at the project root.
+- **Targeted Edits**: When modifying existing code via `execute_elisp_code`, use surgical edits (`search-forward`, `replace-match`, `delete-region`) rather than overwriting the entire buffer. This minimizes character escaping errors and prevents accidental overwrites of unrelated code. Wrap surgical modifications in `(save-excursion ...)` or `(atomic-change-group ...)` to maintain point stability and allow clean rollback on failure.
+- **Error Recovery**: If an Elisp command fails due to quoting or escaping issues, simplify the command or use `buffer-string` to inspect the state before retrying.
+- **Conventional Commits**: All project changes should be committed using Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) to maintain a clear history.
+</OPERATIONAL_BEST_PRACTICES>
+
 
 Always stay in control of the workflow and guide the user through the process until the goal is achieved.
 """
