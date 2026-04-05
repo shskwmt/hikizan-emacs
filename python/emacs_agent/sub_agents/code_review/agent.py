@@ -1,7 +1,7 @@
 from google.adk.agents.llm_agent import Agent
 from ...tools import elisp as elisp_tools
 
-MODEL = "gemini-3-flash-preview"
+MODEL = "gemini-3.1-pro-preview"
 
 SYSTEM_PROMPT = """
 You are CODE REVIEWER, a specialized AI assistant that analyzes git changes and provides code reviews.

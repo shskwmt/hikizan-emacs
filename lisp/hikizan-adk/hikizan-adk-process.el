@@ -13,7 +13,6 @@
   :group 'hikizan-adk)
 
 (defvar-local hikizan-adk--agent-path nil)
-(defvar-local hikizan-adk--backend-profile 'json)
 (defvar-local hikizan-adk--session-service-uri nil)
 (defvar-local hikizan-adk--session-id nil)
 (defvar-local hikizan-adk--client-process nil
@@ -44,17 +43,17 @@
 
     ;; 3. start emacsclient
     (let* ((command
-          (format "%s %s %s -t"
-                  (if (eq system-type 'windows-nt)
-                      "emacsclientw"
-                    "emacsclient")
-                  (if (eq system-type 'windows-nt) "-f" "-s")
-                  session-id))
-         (async-shell-command-buffer
-          (format "*hikizan-emacsclient:%s*" session-id)))
-    (message "Launching emacsclient via async-shell-command: %s" command)
-    (setq hikizan-adk--client-process
-          (async-shell-command command)))))
+            (format "%s %s %s -t"
+                (if (eq system-type 'windows-nt)
+                    "emacsclientw"
+                  "emacsclient")
+                (if (eq system-type 'windows-nt) "-f" "-s")
+                session-id))
+	   (shell-command-buffer-name-async
+            (format "*hikizan-emacsclient:%s*" session-id)))
+      (message "Launching emacsclient via async-shell-command: %s" command)
+      (setq hikizan-adk--client-process
+            (async-shell-command command)))))
 
 (defun hikizan/adk--kill-daemon (session-id)
   "Kill the Emacs daemon with SESSION-ID."

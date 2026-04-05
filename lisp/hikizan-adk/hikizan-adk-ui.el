@@ -10,7 +10,6 @@
   (setq tabulated-list-format [("State" 10 t)
                                ("Name" 30 t)
                                ("PID" 10 t)
-                               ("Backend" 10 t)
                                ("Updated" 20 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key '("Name" . nil))
@@ -35,9 +34,8 @@
             (let* ((proc (get-buffer-process buf))
                    (live (and proc (process-live-p proc)))
                    (state (if live "running" "stopped"))
-                   (pid (if live (format "%d" (process-id proc)) "-"))
-                   (backend (symbol-name hikizan-adk--backend-profile)))
-              (push (list buf (vector state (buffer-name buf) pid backend "")) entries)))))
+                   (pid (if live (format "%d" (process-id proc)) "-")))
+              (push (list buf (vector state (buffer-name buf) pid "")) entries)))))
 
       ;; 2. Saved session files
       (when (file-directory-p agent-path)
@@ -48,7 +46,7 @@
                    (attrs (file-attributes file))
                    (mtime (nth 5 attrs))
                    (updated (format-time-string "%Y-%m-%d %H:%M" mtime)))
-              (push (list file (vector "saved" name "-" "" updated)) entries))))))
+              (push (list file (vector "saved" name "-" updated)) entries))))))
     (setq tabulated-list-entries entries)))
 
 (defun hikizan/adk-ui-refresh ()
