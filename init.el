@@ -17,12 +17,12 @@
 (require 'hikizan-eshell)
 (require 'hikizan-keybinds)
 
+(add-to-list 'load-path (expand-file-name "hikizan-adk" hikizan-lisp-dir))
+(require 'hikizan-adk-core)
+
 (setq system-time-local "C") ;; to avoid Japanese in the time stamp
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
-
-(add-to-list 'load-path (expand-file-name "hikizan-adk" hikizan-lisp-dir))
-(require 'hikizan-adk-core)
 
 (server-start)
