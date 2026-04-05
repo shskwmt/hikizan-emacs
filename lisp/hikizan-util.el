@@ -153,4 +153,15 @@ Every INTERVAL seconds, move forward one word and recenter."
     (setq hikizan/reading-pacemaker-timer nil)
     (message "Reading pacemaker stopped")))
 
+
+(defun hikizan/shell-command-to-string-async (command)
+  "Execute shell COMMAND asynchronously and return its output as a string.
+This avoids blocking the Emacs UI while the command runs."
+  (let* ((output "")
+         (proc (start-process-shell-command "hikizan-async-shell" nil command)))
+    (set-process-filter proc (lambda (p str) (setq output (concat output str))))
+    (while (process-live-p proc)
+      (accept-process-output proc 0.1))
+    output))
+
 (provide 'hikizan-util)
