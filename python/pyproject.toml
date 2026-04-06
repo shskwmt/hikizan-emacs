@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "emacs-agent"
+version = "0.1.0"
+description = "A Python-based AI assistant for Emacs"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic",
+    "google-adk",
+    "playwright",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["emacs_agent"]
