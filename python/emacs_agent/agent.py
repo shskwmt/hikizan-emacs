@@ -3,6 +3,7 @@ Entry point for the Emacs Agent ADK application.
 Defines the root orchestrator agent that delegates tasks to specialized sub-agents.
 """
 import asyncio
+import os
 import sys
 
 # Ensure WindowsProactorEventLoopPolicy for Playwright/subprocess on Windows
@@ -72,7 +73,7 @@ Always stay in control of the workflow and guide the user through the process un
 
 # --- Agent ---
 root_agent = Agent(
-    model='gemini-3.1-pro-preview',
+    model=os.getenv('EMACS_AGENT_ROOT_MODEL', 'gemini-3.1-pro-preview'),
     name='emacs_agent',
     description='Root orchestrator agent that manages Emacs workflows, coding, and complex task planning by delegating to specialized sub-agents.',
     instruction=SYSTEM_PROMPT,

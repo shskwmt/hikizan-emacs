@@ -1,7 +1,7 @@
+import os
+
 from google.adk.agents.llm_agent import Agent
 from ...tools import elisp as elisp_tools
-
-MODEL = "gemini-3-flash-preview"
 
 SYSTEM_PROMPT = """
 You are GIT OPERATOR, a specialized AI assistant that handles various Git operations including checking status, committing, branching, pushing, pulling, and stashing.
@@ -78,7 +78,7 @@ Your primary role is to:
 """
 
 git_operator_agent = Agent(
-    model=MODEL,
+    model=os.getenv('EMACS_AGENT_GIT_OPERATOR_MODEL', 'gemini-3-flash-preview'),
     name="git_operator",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

@@ -1,8 +1,8 @@
+import os
+
 from google.adk.agents.llm_agent import Agent
 
 from ...tools import elisp as elisp_tools
-
-MODEL = "gemini-3-flash-preview"
 
 SYSTEM_PROMPT = """
 You are ELISP EXECUTOR, a specialized agent whose sole responsibility is to execute Emacs Lisp code and report the results.
@@ -58,7 +58,7 @@ example:
 """
 
 elisp_executor_agent = Agent(
-    model=MODEL,
+    model=os.getenv('EMACS_AGENT_ELISP_EXECUTOR_MODEL', 'gemini-3-flash-preview'),
     name="elisp_executor",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

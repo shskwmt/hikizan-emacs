@@ -1,7 +1,7 @@
+import os
+
 from google.adk.agents.llm_agent import Agent
 from ...tools import elisp as elisp_tools
-
-MODEL = "gemini-3-flash-preview"
 
 SYSTEM_PROMPT = """
 You are SELF REFLECTION AGENT. Your role is to analyze the conversation history and the actions taken by the Emacs Agent and its sub-agents after a task is completed.
@@ -45,7 +45,7 @@ example:
 """
 
 self_reflection_agent = Agent(
-    model=MODEL,
+    model=os.getenv('EMACS_AGENT_SELF_REFLECTION_MODEL', 'gemini-3-flash-preview'),
     name="self_reflection",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

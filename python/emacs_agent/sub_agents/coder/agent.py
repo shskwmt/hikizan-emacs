@@ -1,7 +1,7 @@
+import os
+
 from google.adk.agents.llm_agent import Agent
 from ...tools import elisp as elisp_tools
-
-MODEL = "gemini-3-flash-preview"
 
 SYSTEM_PROMPT = """
 You are CODER, an expert software engineer specialized in implementing code changes within the Emacs environment.
@@ -86,7 +86,7 @@ Focus on implementing the actual code changes specified in the plan.
 """
 
 coder_agent = Agent(
-    model=MODEL,
+    model=os.getenv('EMACS_AGENT_CODER_MODEL', 'gemini-3-flash-preview'),
     name="coder",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

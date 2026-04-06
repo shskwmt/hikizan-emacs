@@ -1,7 +1,7 @@
+import os
+
 from google.adk.agents.llm_agent import Agent
 from ...tools import elisp as elisp_tools
-
-MODEL = "gemini-3.1-pro-preview"
 
 SYSTEM_PROMPT = """
 You are CODE REVIEWER, a specialized AI assistant that analyzes git changes and provides code reviews.
@@ -69,7 +69,7 @@ Your primary role is to:
 """
 
 code_review_agent = Agent(
-    model=MODEL,
+    model=os.getenv('EMACS_AGENT_CODE_REVIEW_MODEL', 'gemini-3.1-pro-preview'),
     name="code_review",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

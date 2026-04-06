@@ -1,7 +1,7 @@
+import os
+
 from google.adk.agents.llm_agent import Agent
 from ...tools import elisp as elisp_tools
-
-MODEL = "gemini-3.1-pro-preview"
 
 SYSTEM_PROMPT = """
 You are TASK PLANNER, a software architect specialized in project analysis and planning within the Emacs environment.
@@ -67,7 +67,7 @@ Do not write the final implementation yourself. Focus on the plan and architectu
 """
 
 task_planner_agent = Agent(
-    model=MODEL,
+    model=os.getenv('EMACS_AGENT_TASK_PLANNER_MODEL', 'gemini-3.1-pro-preview'),
     name="task_planner",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],
