@@ -14,5 +14,22 @@ dependencies = [
     "playwright",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.3.0",
+    "pytest>=8.0.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["emacs_agent"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -49,7 +50,7 @@ Do not write the final implementation yourself. Focus on the plan and architectu
       ```
     - To read a file:
       ```emacs-lisp
-      (with-current-buffer (find-file-noselect "path/to/file") 
+      (with-current-buffer (find-file-noselect "path/to/file")
         (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
       ```
 6.  **Output Format**: Provide a numbered list of steps. Each step should be clear enough for another agent to follow.
@@ -67,7 +68,7 @@ Do not write the final implementation yourself. Focus on the plan and architectu
 """
 
 task_planner_agent = Agent(
-    model=os.getenv('EMACS_AGENT_TASK_PLANNER_MODEL', 'gemini-3.1-pro-preview'),
+    model=os.getenv("EMACS_AGENT_TASK_PLANNER_MODEL", "gemini-3.1-pro-preview"),
     name="task_planner",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

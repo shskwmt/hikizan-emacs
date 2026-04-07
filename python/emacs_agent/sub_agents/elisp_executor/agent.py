@@ -58,7 +58,7 @@ example:
 """
 
 elisp_executor_agent = Agent(
-    model=os.getenv('EMACS_AGENT_ELISP_EXECUTOR_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_ELISP_EXECUTOR_MODEL", "gemini-3-flash-preview"),
     name="elisp_executor",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

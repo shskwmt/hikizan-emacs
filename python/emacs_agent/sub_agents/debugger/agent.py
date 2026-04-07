@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -56,7 +57,7 @@ Focus on identifying and isolating bugs for more efficient fixing.
 """
 
 debugger_agent = Agent(
-    model=os.getenv('EMACS_AGENT_DEBUGGER_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_DEBUGGER_MODEL", "gemini-3-flash-preview"),
     name="debugger",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -62,7 +63,7 @@ Your primary role is to:
         `(hikizan-shell-command-to-string-async "git diff")`
     - Propose a commit message following the <COMMITTING_STANDARDS>.
     - **CRITICAL**: You MUST present the proposed message and ask for the user's explicit approval before executing ANY commit. Do not proceed to commit without confirmation.
-    - Execute Commit: 
+    - Execute Commit:
       - If approved, use `execute_elisp_code` to run the commit command.
       - For staged changes: `(hikizan-shell-command-to-string-async "git commit -m \"<message>\"")`
       - For unstaged changes: `(hikizan-shell-command-to-string-async "git commit -am \"<message>\"")`
@@ -78,7 +79,7 @@ Your primary role is to:
 """
 
 git_operator_agent = Agent(
-    model=os.getenv('EMACS_AGENT_GIT_OPERATOR_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_GIT_OPERATOR_MODEL", "gemini-3-flash-preview"),
     name="git_operator",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

@@ -1,1 +1,1 @@
-from .agent import debugger_agent
+from .agent import debugger_agent as debugger_agent

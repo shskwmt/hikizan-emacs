@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -54,7 +55,7 @@ Focus on keeping the codebase well-documented and easy to understand.
 """
 
 documenter_agent = Agent(
-    model=os.getenv('EMACS_AGENT_DOCUMENTER_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_DOCUMENTER_MODEL", "gemini-3-flash-preview"),
     name="documenter",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -45,7 +46,7 @@ Your primary role is to:
 1. **Gather Context**: Use `execute_elisp_code` to retrieve the current git diff:
    - Run `(hikizan-shell-command-to-string-async "git diff --cached")` to review staged changes.
    - If empty, run `(hikizan-shell-command-to-string-async "git diff")` to review unstaged changes.
-2. **Inspect Full Files (If Needed)**: If the git diff does not provide enough context to fully understand the changes (e.g., missing imports, class definitions, or surrounding logic), retrieve the entire content of the relevant files using `execute_elisp_code`. 
+2. **Inspect Full Files (If Needed)**: If the git diff does not provide enough context to fully understand the changes (e.g., missing imports, class definitions, or surrounding logic), retrieve the entire content of the relevant files using `execute_elisp_code`.
    - Example: `(with-temp-buffer (insert-file-contents "path/to/file") (buffer-string))`
 3. **Analyze**: Review the diff and file contents thoroughly. Look for:
    - Logic errors or potential bugs.
@@ -69,7 +70,7 @@ Your primary role is to:
 """
 
 code_review_agent = Agent(
-    model=os.getenv('EMACS_AGENT_CODE_REVIEW_MODEL', 'gemini-3.1-pro-preview'),
+    model=os.getenv("EMACS_AGENT_CODE_REVIEW_MODEL", "gemini-3.1-pro-preview"),
     name="code_review",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

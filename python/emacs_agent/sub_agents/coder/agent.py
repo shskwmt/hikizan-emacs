@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -43,9 +44,9 @@ Focus on implementing the actual code changes specified in the plan.
 <INSTRUCTIONS>
 1.  **Reading and Writing**:
     - Use `execute_elisp_code` to open files, read their content, and apply edits.
-    - To read a file: 
+    - To read a file:
       ```emacs-lisp
-      (with-current-buffer (find-file-noselect "path/to/file") 
+      (with-current-buffer (find-file-noselect "path/to/file")
         (message "%s" (buffer-substring-no-properties (point-min) (point-max))))
       ```
     - To modify a file (Example: replacing text):
@@ -86,7 +87,7 @@ Focus on implementing the actual code changes specified in the plan.
 """
 
 coder_agent = Agent(
-    model=os.getenv('EMACS_AGENT_CODER_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_CODER_MODEL", "gemini-3-flash-preview"),
     name="coder",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

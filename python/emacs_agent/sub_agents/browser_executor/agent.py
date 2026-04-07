@@ -1,10 +1,11 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import browser as browser_tools
 
 SYSTEM_PROMPT = """
-You are the Browser Executor agent. Your job is to browse the web to find information, interact with web pages, and scrape data. 
+You are the Browser Executor agent. Your job is to browse the web to find information, interact with web pages, and scrape data.
 
 Follow these rules:
 1. Always use English for all your communications.
@@ -17,7 +18,7 @@ Follow these rules:
 """
 
 browser_executor_agent = Agent(
-    model=os.getenv('EMACS_AGENT_BROWSER_EXECUTOR_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_BROWSER_EXECUTOR_MODEL", "gemini-3-flash-preview"),
     name="browser_executor",
     instruction=SYSTEM_PROMPT,
     tools=[

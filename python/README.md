@@ -19,3 +19,16 @@ Before running the agent, ensure the following:
 
 - The `GOOGLE_API_KEY` environment variable is set with your Google API key.
 - Python dependencies are installed. Run `pip install .` and `playwright install` to install them.
+
+### Development
+
+To install development dependencies (including the linter):
+```shell
+pip install -e ".[dev]"
+```
+
+To format code and check for linting errors, use [Ruff](https://docs.astral.sh/ruff/):
+```shell
+ruff format .
+ruff check .
+```

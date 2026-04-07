@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -57,7 +58,7 @@ Your primary role is to:
 """
 
 project_manager_agent = Agent(
-    model=os.getenv('EMACS_AGENT_PROJECT_MANAGER_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_PROJECT_MANAGER_MODEL", "gemini-3-flash-preview"),
     name="project_manager",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

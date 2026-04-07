@@ -2,28 +2,29 @@
 Entry point for the Emacs Agent ADK application.
 Defines the root orchestrator agent that delegates tasks to specialized sub-agents.
 """
+
 import asyncio
 import os
 import sys
 
 # Ensure WindowsProactorEventLoopPolicy for Playwright/subprocess on Windows
-if sys.platform == 'win32':
+if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from google.adk import Agent
 
-from .sub_agents.elisp_executor import elisp_executor_agent
 from .sub_agents.browser_executor import browser_executor_agent
-from .sub_agents.git_operator import git_operator_agent
-from .sub_agents.project_manager import project_manager_agent
-from .sub_agents.task_planner import task_planner_agent
-from .sub_agents.coder import coder_agent
 from .sub_agents.code_review import code_review_agent
-from .sub_agents.self_reflection import self_reflection_agent
-from .sub_agents.tester import tester_agent
+from .sub_agents.coder import coder_agent
 from .sub_agents.debugger import debugger_agent
 from .sub_agents.documenter import documenter_agent
+from .sub_agents.elisp_executor import elisp_executor_agent
+from .sub_agents.git_operator import git_operator_agent
+from .sub_agents.project_manager import project_manager_agent
 from .sub_agents.refactor import refactor
+from .sub_agents.self_reflection import self_reflection_agent
+from .sub_agents.task_planner import task_planner_agent
+from .sub_agents.tester import tester_agent
 
 SYSTEM_PROMPT = """
 You are Emacs agent, a helpful AI assistant that acts as an orchestrator to solve tasks within the Emacs environment.
@@ -81,9 +82,9 @@ Always stay in control of the workflow and guide the user through the process un
 
 # --- Agent ---
 root_agent = Agent(
-    model=os.getenv('EMACS_AGENT_ROOT_MODEL', 'gemini-3.1-pro-preview'),
-    name='emacs_agent',
-    description='Root orchestrator agent that manages Emacs workflows, coding, and complex task planning by delegating to specialized sub-agents.',
+    model=os.getenv("EMACS_AGENT_ROOT_MODEL", "gemini-3.1-pro-preview"),
+    name="emacs_agent",
+    description="Root orchestrator agent that manages Emacs workflows, coding, and complex task planning by delegating to specialized sub-agents.",
     instruction=SYSTEM_PROMPT,
     sub_agents=[
         elisp_executor_agent,
@@ -94,9 +95,9 @@ root_agent = Agent(
         coder_agent,
         code_review_agent,
         self_reflection_agent,
-    tester_agent,
-    debugger_agent,
-    documenter_agent,
-    refactor,
+        tester_agent,
+        debugger_agent,
+        documenter_agent,
+        refactor,
     ],
 )

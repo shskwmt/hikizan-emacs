@@ -1,6 +1,7 @@
 import os
 
 from google.adk.agents.llm_agent import Agent
+
 from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = """
@@ -45,7 +46,7 @@ example:
 """
 
 self_reflection_agent = Agent(
-    model=os.getenv('EMACS_AGENT_SELF_REFLECTION_MODEL', 'gemini-3-flash-preview'),
+    model=os.getenv("EMACS_AGENT_SELF_REFLECTION_MODEL", "gemini-3-flash-preview"),
     name="self_reflection",
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],

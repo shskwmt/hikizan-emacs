@@ -1,1 +1,1 @@
-from .agent import refactor
+from .agent import refactor as refactor
