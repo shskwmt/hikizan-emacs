@@ -1,5 +1,7 @@
 ;;; hikizan-package-manager.el --- package manager -*- lexical-binding: t; -*-
 
+;;; Code:
+
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
@@ -10,3 +12,4 @@
 (require 'use-package)
 
 (provide 'hikizan-package-manager)
+;;; hikizan-package-manager.el ends here

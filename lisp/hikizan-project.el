@@ -9,3 +9,4 @@
 (recentf-mode +1)
 
 (provide 'hikizan-project)
+;;; hikizan-project.el ends here

@@ -8,6 +8,8 @@
 (require 'custom)
 (require 'comint)
 (require 'hikizan-adk-core)
+(require 'subr-x)
+(require 'pcase)
 
 (defgroup hikizan nil
   "Customization group for hikizan."
@@ -50,8 +52,9 @@ ATTEMPTS is the maximum number of seconds to wait."
           (run-with-timer 1 nil #'hikizan--wait-for-web-server url port (1- attempts) skip-browser)
         (message "Emacs Agent Web server didn't respond at port %s. Check the log buffer." port)))))
 
-(defun hikizan/run-emacs-agent-web (&optional skip-browser action)
-  "Run the Emacs agent with a web interface using AGENTS_DIR and session persistence.
+(defun hikizan-run-emacs-agent-web (&optional skip-browser action)
+  "Run the Emacs agent with a web interface.
+Uses AGENTS_DIR and session persistence.
 Dynamically waits for the server to be ready before opening the browser."
   (interactive)
   (unless (executable-find "adk")
@@ -85,7 +88,7 @@ Dynamically waits for the server to be ready before opening the browser."
          (kill-process proc)
          (while (process-live-p proc)
            (accept-process-output proc 0.1)))
-       (hikizan/run-emacs-agent-web skip-browser 'start))
+       (hikizan-run-emacs-agent-web skip-browser 'start))
       ('open
        (unless skip-browser (browse-url url))
        (message "Opened Emacs Agent Web in browser."))
@@ -110,15 +113,15 @@ Dynamically waits for the server to be ready before opening the browser."
 (defvar hikizan-emacs-agent-dir (expand-file-name "emacs_agent" hikizan-agent-python-dir)
   "Path to the Emacs agent.")
 
-(defun hikizan/emacs-agent-run ()
+(defun hikizan-emacs-agent-run ()
   "Run the Emacs agent. Always starts a new session."
   (interactive)
-  (hikizan/adk-run hikizan-emacs-agent-dir))
+  (hikizan-adk-run hikizan-emacs-agent-dir))
 
-(defun hikizan/emacs-agent-sessions ()
+(defun hikizan-emacs-agent-sessions ()
   "Show the dashboard for the Emacs agent."
   (interactive)
-  (hikizan/adk-sessions hikizan-emacs-agent-dir))
+  (hikizan-adk-sessions hikizan-emacs-agent-dir))
 (provide 'hikizan-agent)
 
 ;;; hikizan-agent.el ends here

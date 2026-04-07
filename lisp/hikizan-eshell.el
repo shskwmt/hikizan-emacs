@@ -8,3 +8,4 @@
       eshell-history-append t)
 
 (provide 'hikizan-eshell)
+;;; hikizan-eshell.el ends here

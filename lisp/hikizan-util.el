@@ -6,20 +6,22 @@
 ;;; Code:
 
 (require 'project)
+(require 'vc-git)
+(require 'diff-mode)
 
-(defun hikizan/copy-buffer-name ()
+(defun hikizan-copy-buffer-name ()
   "Copy buffer name."
   (interactive)
   (kill-new (buffer-name)))
 
-(defun hikizan/copy-buffer-file-name ()
+(defun hikizan-copy-buffer-file-name ()
   "Copy buffer file name."
   (interactive)
   (let ((file-name (buffer-file-name)))
     (if (stringp file-name)
 	(kill-new file-name))))
 
-(defun hikizan/copy-buffer-file-relative-path ()
+(defun hikizan-copy-buffer-file-relative-path ()
   "Copy buffer file relative path."
   (interactive)
   (let* ((project (project-current))
@@ -31,7 +33,7 @@
       (kill-new relative-path)
       (message "Copied: %s" relative-path))))
 
-(defun hikizan/--git-diff-buffer (args)
+(defun hikizan-util--git-diff-buffer (args)
   "Helper to show git diff with ARGS (a list of strings) in a read-only buffer."
   (unless (executable-find "git")
     (error "Git executable not found"))
@@ -61,17 +63,17 @@
         
     (pop-to-buffer buffer)))
 
-(defun hikizan/git-diff-staged ()
+(defun hikizan-git-diff-staged ()
   "Show git diff --staged in a read-only, dedicated buffer."
   (interactive)
-  (hikizan/--git-diff-buffer '("--staged")))
+  (hikizan-util--git-diff-buffer '("--staged")))
 
-(defun hikizan/git-diff ()
+(defun hikizan-git-diff ()
   "Show git diff in a read-only, dedicated buffer."
   (interactive)
-  (hikizan/--git-diff-buffer nil))
+  (hikizan-util--git-diff-buffer nil))
 
-(defun hikizan/switch-to-messages-buffer ()
+(defun hikizan-switch-to-messages-buffer ()
   "Display the *Messages* buffer in the selected window"
   (interactive)
   (let ((message-buffer (get-buffer "*Messages*")))
@@ -79,7 +81,7 @@
 
 ;; For EmacsAgent
 
-(defun hikizan/find-string-position-in-buffer (buffer search-string)
+(defun hikizan-find-string-position-in-buffer (buffer search-string)
   "Find the position of SEARCH-STRING in the specified BUFFER."
   (with-current-buffer buffer
     (save-excursion
@@ -88,20 +90,20 @@
 	  (1+ (point))
 	nil))))
 
-(defun hikizan/get-string-from-point (buffer point)
+(defun hikizan-get-string-from-point (buffer point)
   "Get the string from BUFFER starting at POINT."
   (with-current-buffer buffer
     (save-excursion
       (goto-char point)
       (buffer-substring-no-properties point (point-max)))))
 
-(defun hikizan/write-string-to-file (filename content)
+(defun hikizan-write-string-to-file (filename content)
   "Write CONTENT to FILENAME."
   (with-temp-buffer
     (insert content)
     (write-region (point-min) (point-max) filename)))
 
-(defun hikizan/eval-elisp-file (file-path)
+(defun hikizan-eval-elisp-file (file-path)
   "Evaluate the Elisp code in the specified FILE-PATH."
   (with-temp-buffer
     (insert-file-contents file-path)
@@ -112,56 +114,57 @@
 
 ;; reading-pacemaker
 
-(defgroup hikizan/reading-pacemaker nil
+(defgroup hikizan-reading-pacemaker nil
   "Automatically advance point to pace your reading."
   :group 'convenience)
 
-(defcustom hikizan/reading-pacemaker-interval 0.4
+(defcustom hikizan-reading-pacemaker-interval 0.4
   "Default interval, in seconds, between each word step."
   :type 'number
-  :group 'hikizan/reading-pacemaker)
+  :group 'hikizan-reading-pacemaker)
 
-(defvar hikizan/reading-pacemaker-timer nil
+(defvar hikizan-reading-pacemaker-timer nil
   "Timer object for the reading pacemaker.")
 
-(defun hikizan/reading-pacemaker--step ()
+(defun hikizan-reading-pacemaker--step ()
   "Move forward one word and recenter the window."
   (forward-word 1)
   (recenter))
 
-(defun hikizan/reading-pacemaker-start (&optional interval)
+(defun hikizan-reading-pacemaker-start (&optional _interval)
   "Start the reading pacemarker.
 
 Every INTERVAL seconds, move forward one word and recenter."
   (interactive
    (list (when current-prefix-arg
 	   (read-number
-	    (format "Interval between words (seconds) [%s]: " hikizan/reading-pacemaker-interval)
-	    hikizan/reading-pacemaker-interval))))
+	    (format "Interval between words (seconds) [%s]: " hikizan-reading-pacemaker-interval)
+	    hikizan-reading-pacemaker-interval))))
   ;; if already running, cancel first
-  (when (timerp hikizan/reading-pacemaker-timer)
-    (cancel-timer hikizan/reading-pacemaker-timer))
-  (setq hikizan/reading-pacemaker-timer
-	(run-with-timer 0 hikizan/reading-pacemaker-interval #'hikizan/reading-pacemaker--step))
-  (message "Reading pacemaker started: %s sec/word" hikizan/reading-pacemaker-interval))
+  (when (timerp hikizan-reading-pacemaker-timer)
+    (cancel-timer hikizan-reading-pacemaker-timer))
+  (setq hikizan-reading-pacemaker-timer
+	(run-with-timer 0 hikizan-reading-pacemaker-interval #'hikizan-reading-pacemaker--step))
+  (message "Reading pacemaker started: %s sec/word" hikizan-reading-pacemaker-interval))
 
-(defun hikizan/reading-pacemaker-stop ()
+(defun hikizan-reading-pacemaker-stop ()
   "Stop the reading pacemaker."
   (interactive)
-  (when (timerp hikizan/reading-pacemaker-timer)
-    (cancel-timer hikizan/reading-pacemaker-timer)
-    (setq hikizan/reading-pacemaker-timer nil)
+  (when (timerp hikizan-reading-pacemaker-timer)
+    (cancel-timer hikizan-reading-pacemaker-timer)
+    (setq hikizan-reading-pacemaker-timer nil)
     (message "Reading pacemaker stopped")))
 
 
-(defun hikizan/shell-command-to-string-async (command)
+(defun hikizan-shell-command-to-string-async (command)
   "Execute shell COMMAND asynchronously and return its output as a string.
 This avoids blocking the Emacs UI while the command runs."
   (let* ((output "")
          (proc (start-process-shell-command "hikizan-async-shell" nil command)))
-    (set-process-filter proc (lambda (p str) (setq output (concat output str))))
+    (set-process-filter proc (lambda (_p str) (setq output (concat output str))))
     (while (process-live-p proc)
       (accept-process-output proc 0.1))
     output))
 
 (provide 'hikizan-util)
+;;; hikizan-util.el ends here

@@ -1,5 +1,7 @@
 ;;; hikizan-adk-process.el --- Process runner for ADK -*- lexical-binding: t; -*-
 
+;;; Code:
+
 (require 'comint)
 (require 'cl-lib)
 (require 'server)
@@ -14,16 +16,14 @@
   :group 'hikizan-adk)
 
 (defvar-local hikizan-adk--agent-path nil)
-(defvar-local hikizan-adk--session-service-uri nil)
 (defvar-local hikizan-adk--session-id nil)
-(defvar-local hikizan-adk--client-buffer nil
-  "Process object for emacsclient started via async-shell-command.")
+(defvar-local hikizan-adk--client-buffer nil)
 
-(defun hikizan/adk--generate-session-id ()
+(defun hikizan-adk--generate-session-id ()
   "Generate a session ID in the format hikizan-YYYYMMDD-HHMMSS."
   (format-time-string "hikizan-%Y%m%d-%H%M%S"))
 
-(defun hikizan/adk--start-daemon (session-id)
+(defun hikizan-adk--start-daemon (session-id)
   "Start a new Emacs daemon with SESSION-ID as the server name."
   (message "Starting dedicated Emacs daemon: %s" session-id)
   (let* ((emacs-bin (expand-file-name invocation-name invocation-directory))
@@ -56,14 +56,14 @@
       (async-shell-command command)
       (setq hikizan-adk--client-buffer shell-command-buffer-name-async))))
 
-(defun hikizan/adk--kill-daemon (session-id)
+(defun hikizan-adk--kill-daemon (session-id)
   "Kill the Emacs daemon with SESSION-ID."
   (when (and session-id (server-running-p session-id))
     (call-process "emacsclient" nil nil nil
                   (if (eq system-type 'windows-nt) "-f" "-s")
                   session-id "-e" "(kill-emacs)")))
 
-(defun hikizan/adk--process-sentinel (proc event)
+(defun hikizan-adk--process-sentinel (proc _event)
   "Sentinel for ADK process to cleanup the daemon and client."
   (let ((buf (process-buffer proc)))
     (when (and (buffer-live-p buf)
@@ -72,10 +72,10 @@
         (when hikizan-adk--session-id
           (message "Cleaning up Emacs daemon for session: %s"
                    hikizan-adk--session-id)
-          (hikizan/adk--kill-daemon hikizan-adk--session-id))
-	(hikizan/adk--kill-client-if-needed)))))
+          (hikizan-adk--kill-daemon hikizan-adk--session-id))
+	(hikizan-adk--kill-client-if-needed)))))
 
-(defun hikizan/adk-exit ()
+(defun hikizan-adk-exit ()
   "Send exit command to the ADK process."
   (interactive)
   (let ((proc (get-buffer-process (current-buffer))))
@@ -83,25 +83,25 @@
         (comint-send-string proc "exit\n")
       (message "No active process to exit."))))
 
-(defun hikizan/adk-kill ()
+(defun hikizan-adk-kill ()
   "Kill the ADK process."
   (interactive)
   (let ((proc (get-buffer-process (current-buffer))))
     (if (and proc (process-live-p proc))
 	(progn
           (when hikizan-adk--session-id
-            (hikizan/adk--kill-daemon hikizan-adk--session-id))
+            (hikizan-adk--kill-daemon hikizan-adk--session-id))
           (delete-process proc))
       (message "No active process to kill."))))
 
-(defun hikizan/adk--kill-daemon-if-needed ()
+(defun hikizan-adk--kill-daemon-if-needed ()
   "Kill Emacs daemon associated with current ADK session."
   (when hikizan-adk--session-id
     (message "Cleaning up Emacs daemon (buffer kill): %s"
              hikizan-adk--session-id)
-    (hikizan/adk--kill-daemon hikizan-adk--session-id)))
+    (hikizan-adk--kill-daemon hikizan-adk--session-id)))
 
-(defun hikizan/adk--kill-client-if-needed ()
+(defun hikizan-adk--kill-client-if-needed ()
   "Kill emacsclient process and its buffer if present."
   (sleep-for 0.5)
   (when hikizan-adk--client-buffer
@@ -119,8 +119,8 @@
 
 (defvar hikizan-adk-run-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-q") #'hikizan/adk-exit)
-    (define-key map (kbd "C-c C-k") #'hikizan/adk-kill)
+    (define-key map (kbd "C-c C-q") #'hikizan-adk-exit)
+    (define-key map (kbd "C-c C-k") #'hikizan-adk-kill)
     map)
   "Keymap for `hikizan-adk-run-mode'.")
 
@@ -131,13 +131,14 @@
   (setq-local font-lock-defaults '(hikizan-adk-font-lock-keywords))
   (add-hook 'kill-buffer-hook
           (lambda ()
-            (hikizan/adk--kill-daemon-if-needed)
-            (hikizan/adk--kill-client-if-needed))
+            (hikizan-adk--kill-daemon-if-needed)
+            (hikizan-adk--kill-client-if-needed))
           nil t))
 
-(defun hikizan/adk--run-process (agent-path &optional extra-args new-session)
+(defun hikizan-adk--run-process (agent-path &optional extra-args new-session)
   "Run ADK in AGENT-PATH with EXTRA-ARGS.
-If NEW-SESSION is non-nil, force starting a new session even if an active one exists."
+If NEW-SESSION is non-nil, force starting a new session even if an
+active one exists."
   (let* ((agent-path (expand-file-name agent-path))
          (agent-name (file-name-nondirectory (directory-file-name agent-path)))
          (active-buf (unless new-session
@@ -154,7 +155,7 @@ If NEW-SESSION is non-nil, force starting a new session even if an active one ex
       (let* ((session-file (cadr (member "--replay" extra-args)))
              (session-id (if session-file
                              (file-name-base (file-name-sans-extension session-file))
-                           (hikizan/adk--generate-session-id)))
+                           (hikizan-adk--generate-session-id)))
              (buffer-name (format "*hikizan-adk:%s:%s*" agent-name session-id))
              (session-uri "memory://")
              (args (append (list "run"
@@ -171,10 +172,9 @@ If NEW-SESSION is non-nil, force starting a new session even if an active one ex
                 (pop-to-buffer (current-buffer))
               (setq hikizan-adk--agent-path agent-path)
               (setq hikizan-adk--session-id session-id)
-              (setq hikizan-adk--session-service-uri session-uri)
               
               ;; 1. Start the dedicated daemon
-              (hikizan/adk--start-daemon session-id)
+              (hikizan-adk--start-daemon session-id)
               
               ;; 2. Set the environment variable for the child process
               (let ((process-environment (cons (format "EMACS_SERVER_FILE=%s" session-id)
@@ -184,8 +184,9 @@ If NEW-SESSION is non-nil, force starting a new session even if an active one ex
               ;; 3. Set the sentinel for cleanup
               (let ((new-proc (get-buffer-process (current-buffer))))
                 (when new-proc
-                  (set-process-sentinel new-proc #'hikizan/adk--process-sentinel)))
+                  (set-process-sentinel new-proc #'hikizan-adk--process-sentinel)))
               
               (pop-to-buffer (current-buffer)))))))))
 
 (provide 'hikizan-adk-process)
+;;; hikizan-adk-process.el ends here

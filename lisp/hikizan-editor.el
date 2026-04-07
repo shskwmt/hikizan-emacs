@@ -63,8 +63,11 @@
              '("grep" . (utf-8-unix . utf-8-unix)))
 
 ;;; functions
-(defun hikizan/kill-ring-save-for-windows ()
-  "Copy region to the Windows clipboard with PowerShell synchronously without creating a buffer."
+;;; Code:
+
+(defun hikizan-kill-ring-save-for-windows ()
+  "Save the current region to the Windows clipboard via powershell.
+This is a workaround for some environments."
   (interactive)
   (if (use-region-p)
       (progn
@@ -83,3 +86,4 @@
     (message "No region selected")))
 
 (provide 'hikizan-editor)
+;;; hikizan-editor.el ends here

@@ -1,4 +1,8 @@
-;;; hikizan-programming.el --- programming  -*- lexical-binding: t; -*-
+;;; hikizan-programming.el --- programming -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(require 'use-package)
 
 ;; flycheck
 (use-package flycheck
@@ -36,7 +40,7 @@
 
 ;;; functions
 
-(defun hikizan/extract-golang-functions ()
+(defun hikizan-extract-golang-functions ()
   "Extract all Golang function names from the current buffer."
   (interactive)
   (let ((function-names '())
@@ -52,3 +56,4 @@
 	(pop-to-buffer new-buffer)))))
 
 (provide 'hikizan-programming)
+;;; hikizan-programming.el ends here
