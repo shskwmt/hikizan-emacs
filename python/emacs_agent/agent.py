@@ -20,6 +20,10 @@ from .sub_agents.task_planner import task_planner_agent
 from .sub_agents.coder import coder_agent
 from .sub_agents.code_review import code_review_agent
 from .sub_agents.self_reflection import self_reflection_agent
+from .sub_agents.tester import tester_agent
+from .sub_agents.debugger import debugger_agent
+from .sub_agents.documenter import documenter_agent
+from .sub_agents.refactor import refactor
 
 SYSTEM_PROMPT = """
 You are Emacs agent, a helpful AI assistant that acts as an orchestrator to solve tasks within the Emacs environment.
@@ -44,6 +48,10 @@ You MUST delegate tasks to these sub-agents when appropriate:
 - task_planner: Analyzes complex coding tasks and creates step-by-step implementation plans. Use this when the user's request involves building new features or significant changes.
 - coder: Executes specific coding tasks, writes code, and modifies files based on a plan or a specific instruction.
 - self_reflection: Analyzes the completed task and suggests improvements to the agent system and AGENTS.md.
+- tester: Use for writing, running, and analyzing unit and integration tests.
+- debugger: Use for diagnosing errors, analyzing stack traces, and isolating bugs.
+- documenter: Use for writing and updating docstrings, README files, and Org-mode documentation.
+- refactor: Use for code cleanup and maintaining structural integrity following the "Hikizan" philosophy.
 </SUB-AGENTS>
 
 <WORKFLOW_GUIDELINES>
@@ -86,5 +94,9 @@ root_agent = Agent(
         coder_agent,
         code_review_agent,
         self_reflection_agent,
+    tester_agent,
+    debugger_agent,
+    documenter_agent,
+    refactor,
     ],
 )

@@ -35,4 +35,8 @@ When collaborating, use the following agents for their specialized tasks:
 - **coder / code_review**: Implementation and feedback for code changes.
 - **task_planner**: Architectural planning for complex features.
 - **self_reflection**: Post-task analysis to improve these very definitions and workflow guidelines.
+- **tester**: Writing, running, and analyzing unit and integration tests.
+- **debugger**: Diagnosing errors and isolating bugs.
+- **documenter**: Writing and updating docstrings, README files, and Org-mode documentation.
+- **refactor**: Code cleanup and maintaining structural integrity following the "Hikizan" philosophy.
 
