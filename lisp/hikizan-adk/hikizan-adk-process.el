@@ -27,29 +27,36 @@
   "Start a new Emacs daemon with SESSION-ID as the server name."
   (message "Starting dedicated Emacs daemon: %s" session-id)
   (let* ((emacs-bin (expand-file-name invocation-name invocation-directory))
-         (daemon-name session-id))
-    ;; 1. start daemon
-    (start-process (format "emacs-daemon-%s" daemon-name)
-                   nil emacs-bin
-                   (format "--daemon=%s" daemon-name))
+         (daemon-name session-id)
+         (daemon-buf (format " *emacs-daemon-%s*" daemon-name))
+         (proc (start-process (format "emacs-daemon-%s" daemon-name)
+                              daemon-buf emacs-bin
+                              (format "--fg-daemon=%s" daemon-name))))
+    ;; 1. ensure daemon process won't block Emacs exit
+    (set-process-query-on-exit-flag proc nil)
 
     ;; 2. wait until daemon is ready
-    (let ((timeout 40))
+    (let ((timeout 120))
       (while (and (> timeout 0)
-                  (not (server-running-p daemon-name)))
+                  (not (server-running-p daemon-name))
+                  (process-live-p proc))
         (sleep-for 0.5)
         (setq timeout (1- timeout))))
+
     (unless (server-running-p daemon-name)
-      (error "Failed to start Emacs daemon: %s" daemon-name))
+      (let ((output (if (get-buffer daemon-buf)
+                        (with-current-buffer daemon-buf (buffer-string))
+                      "No output buffer found.")))
+        (error "Failed to start Emacs daemon: %s. Output:\n%s" daemon-name output)))
 
     ;; 3. start emacsclient
     (let* ((command
             (format "%s %s %s -t"
-                (if (eq system-type 'windows-nt)
-                    "emacsclientw"
-                  "emacsclient")
-                (if (eq system-type 'windows-nt) "-f" "-s")
-                session-id))
+                    (if (eq system-type 'windows-nt)
+			"emacsclientw"
+                      "emacsclient")
+                    (if (eq system-type 'windows-nt) "-f" "-s")
+                    session-id))
 	   (shell-command-buffer-name-async
             (format "*hikizan-emacsclient:%s*" session-id)))
       (message "Launching emacsclient via async-shell-command: %s" command)
