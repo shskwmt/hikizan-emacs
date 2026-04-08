@@ -28,6 +28,9 @@ example:
 - **Targeted Edits**: When modifying existing code via `execute_elisp_code`, use surgical edits (`search-forward`, `replace-match`, `delete-region`) rather than overwriting the entire buffer. This minimizes character escaping errors and prevents accidental overwrites of unrelated code. Wrap surgical modifications in `(save-excursion ...)` or `(atomic-change-group ...)` to maintain point stability and allow clean rollback on failure.
 - **Error Recovery**: If an Elisp command fails due to quoting or escaping issues, simplify the command or use `buffer-string` to inspect the state before retrying.
 - **Conventional Commits**: All project changes should be committed using Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) to maintain a clear history.
+- **Buffer Discovery**: When searching for diagnostic buffers (like warnings or logs), use case-insensitive searches and check for common variations (e.g., `*warning*`, `*Warnings*`, `*Messages*`).
+- **Asynchronous Capture**: When using project-defined commands (like those in `.dir-locals.el`) that trigger `compile` or `async-shell-command`, prefer `hikizan-shell-command-to-string-async` if the immediate textual output is required for verification.
+- **Staging Strategy**: When using `git_operator`, prefer staging specific files over `git commit -a` unless all modified files are strictly related to the task.
 </InstructionsOfExecuteElispCode>
 
 
