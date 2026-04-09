@@ -14,6 +14,7 @@ When operating in this project, adhere to the following principles and structure
 - `python/`: Contains the Python codebase for the AI agents (`emacs_agent`, etc.) operating in this system.
 - `~/.emacsenv`: Used by the user to set specific environment variables (loaded in `early-init.el`).
 - `python/emacs_agent/sessions/`: (Internal) Stores agent session data and JSON logs. Ignored by Git.
+- `python/emacs_agent/main.py`: Custom entry point for the agent to ensure robust session saving.
 
 ## 3. Emacs Lisp Coding Conventions
 - **Lexical Binding**: Always use `;;; -*- lexical-binding: t; -*-` at the top of any new `.el` file.
@@ -24,6 +25,7 @@ When operating in this project, adhere to the following principles and structure
 
 ## 4. Python Coding Conventions
 - When making changes in the `python/` directory, ensure compatibility with the existing agent architecture.
+- After modifying Python code, always run `ruff format .` and `ruff check . --fix` from the `python/` directory to ensure code quality.
 - Maintain clear separation between the orchestrator (`emacs_agent`) and sub-agents.
 
 ## 5. AI Sub-Agents & Roles
