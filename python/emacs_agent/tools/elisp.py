@@ -36,7 +36,12 @@ def write_elisp_code_to_temp_file(code: str) -> str:
 
     # Pass the result (path or None) to tempfile
     with tempfile.NamedTemporaryFile(
-        mode="w", delete=False, suffix=".el", dir=target_dir, encoding="utf-8"
+        mode="w",
+        delete=False,
+        suffix=".el",
+        dir=target_dir,
+        encoding="utf-8",
+        errors="replace",
     ) as temp_file:
         temp_file.write(code)
         return temp_file.name.replace("\\", "/")
@@ -52,18 +57,33 @@ def execute_elisp_code(code: str) -> str:
     command = f'{base_client} -e "(hikizan-eval-elisp-file \\"{temp_file_path}\\")"'
     try:
         subprocess.run(
-            command, shell=True, check=True, encoding="utf-8", capture_output=True
+            command,
+            shell=True,
+            check=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
         )
         time.sleep(0.5)
         target_dir = get_target_directory()
         temp_log_file_path = tempfile.NamedTemporaryFile(
-            mode="w", delete=False, suffix=".log", dir=target_dir, encoding="utf-8"
+            mode="w",
+            delete=False,
+            suffix=".log",
+            dir=target_dir,
+            encoding="utf-8",
+            errors="replace",
         ).name.replace("\\", "/")
         log_command = f'{base_client} -e "(hikizan-write-string-to-file \\"{temp_log_file_path}\\" (hikizan-get-string-from-point (get-buffer \\"*Messages*\\") (hikizan-find-string-position-in-buffer (get-buffer \\"*Messages*\\") \\"{temp_file_path}\\")))"'
         subprocess.run(
-            log_command, shell=True, check=True, encoding="utf-8", capture_output=True
+            log_command,
+            shell=True,
+            check=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
         )
-        with open(temp_log_file_path, encoding="utf-8") as log_file:
+        with open(temp_log_file_path, encoding="utf-8", errors="replace") as log_file:
             return log_file.read().strip()
     except Exception as e:
         return f"Error: {str(e)}"

@@ -53,7 +53,7 @@ async def run_input_file(
     try:
         with open(input_path, encoding="utf-8") as f:
             input_file = InputFile.model_validate_json(f.read())
-        input_file.state["_time"] = datetime.now().isoformat()
+            input_file.state["_time"] = datetime.now().isoformat()
 
         session = await session_service.create_session(
             app_name=app_name, user_id=user_id, state=input_file.state
@@ -66,12 +66,15 @@ async def run_input_file(
                     user_id=session.user_id, session_id=session.id, new_message=content
                 )
             ) as agen:
-                async for event in agen:
-                    if event.content and event.content.parts:
-                        if text := "".join(
-                            part.text or "" for part in event.content.parts
-                        ):
-                            click.echo(f"[{event.author}]: {text}")
+                try:
+                    async for event in agen:
+                        if event.content and event.content.parts:
+                            if text := "".join(
+                                part.text or "" for part in event.content.parts
+                            ):
+                                click.echo(f"[{event.author}]: {text}")
+                except Exception as e:
+                    click.echo(f"Error during agent execution: {e}")
         return session
     finally:
         await runner.close()
@@ -116,12 +119,15 @@ async def run_interactively(
                     ),
                 )
             ) as agen:
-                async for event in agen:
-                    if event.content and event.content.parts:
-                        if text := "".join(
-                            part.text or "" for part in event.content.parts
-                        ):
-                            click.echo(f"[{event.author}]: {text}")
+                try:
+                    async for event in agen:
+                        if event.content and event.content.parts:
+                            if text := "".join(
+                                part.text or "" for part in event.content.parts
+                            ):
+                                click.echo(f"[{event.author}]: {text}")
+                except Exception as e:
+                    click.echo(f"Error during agent execution: {e}")
     finally:
         await runner.close()
 
