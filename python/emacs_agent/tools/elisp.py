@@ -1,3 +1,4 @@
+MAX_OUTPUT_LENGTH = 3000
 import os
 import shlex
 import subprocess
@@ -84,7 +85,10 @@ def execute_elisp_code(code: str) -> str:
             capture_output=True,
         )
         with open(temp_log_file_path, encoding="utf-8", errors="replace") as log_file:
-            return log_file.read().strip()
+            output = log_file.read().strip()
+            if len(output) > MAX_OUTPUT_LENGTH:
+                return output[:MAX_OUTPUT_LENGTH] + "\n[Output truncated. Use specific searches or range-based reading to see more.]"
+            return output
     except Exception as e:
         return f"Error: {str(e)}"
 
