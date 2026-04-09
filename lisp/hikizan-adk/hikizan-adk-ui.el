@@ -12,7 +12,8 @@
   (setq tabulated-list-format [("State" 10 t)
                                ("Name" 30 t)
                                ("PID" 10 t)
-                               ("Updated" 20 t)])
+                               ("Updated" 20 t)
+                               ("Summary" 50 t)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key '("Name" . nil))
   (add-hook 'tabulated-list-revert-hook #'hikizan-adk-ui--refresh-entries nil t)
@@ -23,6 +24,35 @@
 (define-key hikizan-adk-ui-mode-map (kbd "k") #'hikizan-adk-ui-kill-session)
 (define-key hikizan-adk-ui-mode-map (kbd "D") #'hikizan-adk-ui-delete-session)
 (define-key hikizan-adk-ui-mode-map (kbd "o") #'hikizan-adk-ui-open-file)
+
+(defun hikizan-adk-ui--get-session-summary (file-path)
+  "Extract the second user message from session JSON at FILE-PATH.
+If there is only one user message, use that."
+  (condition-case err
+      (let* ((json-object (with-temp-buffer
+                            (insert-file-contents file-path)
+                            (json-parse-string (buffer-string) :object-type 'alist)))
+             (events (cdr (assoc 'events json-object)))
+             (user-messages '())
+             (text nil))
+        (when (vectorp events)
+          (seq-doseq (event events)
+            (let* ((author (cdr (assoc 'author event)))
+                   (content (cdr (assoc 'content event)))
+                   (parts (cdr (assoc 'parts content)))
+                   (first-part (and (vectorp parts) (> (length parts) 0) (aref parts 0)))
+                   (msg-text (cdr (assoc 'text first-part))))
+              (when (and (string= author "user") msg-text)
+                (push msg-text user-messages)))))
+        (setq user-messages (nreverse user-messages))
+        (setq text (or (nth 1 user-messages) (nth 0 user-messages)))
+        (if (and text (> (length text) 0))
+            (let ((first-line (car (split-string text "\n"))))
+              (if (> (length first-line) 60)
+                  (concat (substring (string-trim first-line) 0 57) "...")
+                (string-trim first-line)))
+          "No summary"))
+    (error (format "Error: %s" (error-message-string err)))))
 
 (defun hikizan-adk-ui--refresh-entries ()
   "Refresh the list of sessions for the current dashboard agent."
@@ -39,7 +69,7 @@
                    (live (and proc (process-live-p proc)))
                    (state (if live "running" "stopped"))
                    (pid (if live (format "%d" (process-id proc)) "-")))
-              (push (list buf (vector state (buffer-name buf) pid "")) entries)))))
+              (push (list buf (vector state (buffer-name buf) pid "" "-")) entries)))))
 
       ;; 2. Saved session files
       (when (file-directory-p agent-path)
@@ -50,7 +80,8 @@
                    (attrs (file-attributes file))
                    (mtime (nth 5 attrs))
                    (updated (format-time-string "%Y-%m-%d %H:%M" mtime)))
-              (push (list file (vector "saved" name "-" updated)) entries))))))
+              (let ((summary (hikizan-adk-ui--get-session-summary file)))
+                (push (list file (vector "saved" name "-" updated summary)) entries)))))))
     (setq tabulated-list-entries entries)))
 
 (defun hikizan-adk-ui-refresh ()
