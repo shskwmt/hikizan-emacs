@@ -10,7 +10,7 @@
   "ADK integration for Hikizan Emacs."
   :group 'external)
 
-(defcustom hikizan-adk-command "adk"
+(defcustom hikizan-adk-command "python"
   "The adk command to run."
   :type 'string
   :group 'hikizan-adk)
@@ -148,25 +148,33 @@ If NEW-SESSION is non-nil, force starting a new session even if an
 active one exists."
   (let* ((agent-path (expand-file-name agent-path))
          (agent-name (file-name-nondirectory (directory-file-name agent-path)))
+         (session-file (or (cadr (member "--replay" extra-args))
+                           (cadr (member "--resume" extra-args))))
+         (target-session-id (when session-file
+                              (file-name-base (file-name-sans-extension session-file))))
          (active-buf (unless new-session
                        (cl-find-if (lambda (buf)
                                      (with-current-buffer buf
                                        (and (derived-mode-p 'hikizan-adk-run-mode)
                                             hikizan-adk--agent-path
                                             (file-equal-p hikizan-adk--agent-path agent-path)
+                                            (or (not target-session-id)
+                                                (string= hikizan-adk--session-id target-session-id))
                                             (let ((proc (get-buffer-process buf)))
                                               (and proc (process-live-p proc))))))
                                    (buffer-list)))))
     (if active-buf
         (pop-to-buffer active-buf)
-      (let* ((session-file (cadr (member "--replay" extra-args)))
-             (session-id (if session-file
-                             (file-name-base (file-name-sans-extension session-file))
-                           (hikizan-adk--generate-session-id)))
+      (let* ((session-id (or target-session-id
+                             (hikizan-adk--generate-session-id)))
              (buffer-name (format "*hikizan-adk:%s:%s*" agent-name session-id))
              (session-uri "memory://")
-             (args (append (list "run"
-                                 "--save_session"
+
+             (use-python-m (string-match-p "python" hikizan-adk-command))
+             (args (append (if use-python-m
+                               (list "-m" "emacs_agent.main")
+                             (list "run"))
+                           (list "--save_session"
                                  "--session_id" session-id
                                  "--session_service_uri" session-uri)
                            extra-args
@@ -185,7 +193,10 @@ active one exists."
               
               ;; 2. Set the environment variable for the child process
               (let ((process-environment (cons (format "EMACS_SERVER_FILE=%s" session-id)
-                                               process-environment)))
+                                               process-environment))
+                    (default-directory (if use-python-m
+                                           (file-name-directory (directory-file-name agent-path))
+                                         default-directory)))
                 (apply #'make-comint-in-buffer "adk" (current-buffer) hikizan-adk-command nil args))
               
               ;; 3. Set the sentinel for cleanup
