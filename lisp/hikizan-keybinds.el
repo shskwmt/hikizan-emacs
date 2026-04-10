@@ -26,9 +26,6 @@
 (global-set-key (kbd "C-c <right>") 'windmove-right)
 (global-set-key (kbd "C-c <left>") 'windmove-left)
 
-;; Org-mode
-(global-set-key (kbd "C-c n") 'hikizan-open-org-notes)
-
 ;; LLM tools
 (global-set-key (kbd "C-c a w") 'hikizan-run-emacs-agent-web)
 (global-set-key (kbd "C-c a r") 'hikizan-emacs-agent-run)

@@ -8,13 +8,10 @@
 
 (add-to-list 'load-path (expand-file-name "hikizan-adk" hikizan-lisp-dir))
 (require 'hikizan-package-manager)
-(require 'hikizan-util)
+(require 'hikizan-core)
 (require 'hikizan-project)
-(require 'hikizan-editor)
-(require 'hikizan-org)
 (require 'hikizan-programming)
 (require 'hikizan-agent)
-(require 'hikizan-ui)
 (require 'hikizan-eshell)
 (require 'hikizan-keybinds)
 
@@ -24,4 +21,3 @@
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
-
