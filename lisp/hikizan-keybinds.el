@@ -20,7 +20,6 @@
 (global-set-key (kbd "C-<") 'text-scale-decrease)
 
 ;; Navigation
-(global-set-key (kbd "C-c j") 'avy-goto-char)
 (global-set-key (kbd "C-c <up>") 'windmove-up)
 (global-set-key (kbd "C-c <down>") 'windmove-down)
 (global-set-key (kbd "C-c <right>") 'windmove-right)
@@ -34,10 +33,6 @@
 ;; Project
 (global-set-key (kbd "C-x p g") 'vc-git-grep)
 
-;; Reading pacemaker
-(global-set-key (kbd "C-c r s") 'hikizan-reading-pacemaker-start)
-(global-set-key (kbd "C-c r t") 'hikizan-reading-pacemaker-stop)
-
 ;; Google Translate
 (global-set-key (kbd "C-c t") 'google-translate-at-point)
 (global-set-key (kbd "C-c T") 'google-translate-query-translate)
@@ -48,23 +43,6 @@
 (global-set-key (kbd "C-c c r") 'hikizan-copy-buffer-file-relative-path)
 (global-set-key (kbd "C-c g s") 'hikizan-git-diff-staged)
 (global-set-key (kbd "C-c g u") 'hikizan-git-diff)
-
-;;; which-key Configuration
-
-;; https://github.com/justbur/emacs-which-key
-(use-package which-key
-  :ensure t
-  :init
-  (setq which-key-sort-order #'which-key-key-order-alpha
-        which-key-sort-uppercase-first nil
-        which-key-add-column-padding 1
-        which-key-max-display-columns nil
-        which-key-min-display-lines 6
-        which-key-side-window-slot 10
-	which-key-idle-delay 0.1)
-  :config
-  (which-key-setup-side-window-bottom)
-  (which-key-mode))
 
 (provide 'hikizan-keybinds)
 

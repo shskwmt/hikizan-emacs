@@ -1,13 +1,60 @@
-;;; hikizan-util.el --- util -*- lexical-binding: t; -*-
+;;; hikizan-core.el --- util -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Utility functions
+;; Core features
 
 ;;; Code:
 
+;;; Require
 (require 'project)
 (require 'vc-git)
 (require 'diff-mode)
+(require 'dired)
+(require 'display-line-numbers)
+(require 'em-hist)
+
+;;; Packages
+(use-package mozc
+  :ensure t
+  :config
+  (setq default-input-method "japanese-mozc"))
+
+(use-package zenburn-theme
+  :ensure t
+  :config
+  (load-theme 'zenburn t))
+
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
+
+(use-package yasnippet
+  :ensure t
+  :config
+  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
+  (yas-global-mode 1))
+
+(use-package git-gutter
+  :ensure t
+  :config
+  (global-git-gutter-mode +1))
+
+(use-package which-key
+  :ensure t
+  :init
+  (setq which-key-sort-order #'which-key-key-order-alpha
+        which-key-sort-uppercase-first nil
+        which-key-add-column-padding 1
+        which-key-max-display-columns nil
+        which-key-min-display-lines 6
+        which-key-side-window-slot 10
+	which-key-idle-delay 0.1)
+  :config
+  (which-key-setup-side-window-bottom)
+  (which-key-mode))
+
+;;; Utility Functions
 
 (defun hikizan-copy-buffer-name ()
   "Copy buffer name."
@@ -33,7 +80,7 @@
       (kill-new relative-path)
       (message "Copied: %s" relative-path))))
 
-(defun hikizan-util--git-diff-buffer (args)
+(defun hikizan-git-diff-buffer (args)
   "Helper to show git diff with ARGS (a list of strings) in a read-only buffer."
   (unless (executable-find "git")
     (error "Git executable not found"))
@@ -66,113 +113,18 @@
 (defun hikizan-git-diff-staged ()
   "Show git diff --staged in a read-only, dedicated buffer."
   (interactive)
-  (hikizan-util--git-diff-buffer '("--staged")))
+  (hikizan-git-diff-buffer '("--staged")))
 
 (defun hikizan-git-diff ()
   "Show git diff in a read-only, dedicated buffer."
   (interactive)
-  (hikizan-util--git-diff-buffer nil))
+  (hikizan-git-diff-buffer nil))
 
 (defun hikizan-switch-to-messages-buffer ()
-  "Display the *Messages* buffer in the selected window"
+  "Display the *Messages* buffer in the selected window."
   (interactive)
   (let ((message-buffer (get-buffer "*Messages*")))
     (switch-to-buffer message-buffer)))
-
-;; For EmacsAgent
-
-(defun hikizan-find-string-position-in-buffer (buffer search-string)
-  "Find the position of SEARCH-STRING in the specified BUFFER."
-  (with-current-buffer buffer
-    (save-excursion
-      (goto-char (point-min))
-      (if (search-forward search-string nil t)
-	  (1+ (point))
-	nil))))
-
-(defun hikizan-get-string-from-point (buffer point)
-  "Get the string from BUFFER starting at POINT."
-  (with-current-buffer buffer
-    (save-excursion
-      (goto-char point)
-      (buffer-substring-no-properties point (point-max)))))
-
-(defun hikizan-write-string-to-file (filename content)
-  "Write CONTENT to FILENAME."
-  (with-temp-buffer
-    (insert content)
-    (write-region (point-min) (point-max) filename)))
-
-(defun hikizan-eval-elisp-file (file-path)
-  "Evaluate the Elisp code in the specified FILE-PATH."
-  (with-temp-buffer
-    (insert-file-contents file-path)
-    (print file-path)
-    (condition-case err
-	(eval-buffer)
-      (error (message "error: %s" (error-message-string err))))))
-
-;; reading-pacemaker
-
-(defgroup hikizan-reading-pacemaker nil
-  "Automatically advance point to pace your reading."
-  :group 'convenience)
-
-(defcustom hikizan-reading-pacemaker-interval 0.4
-  "Default interval, in seconds, between each word step."
-  :type 'number
-  :group 'hikizan-reading-pacemaker)
-
-(defvar hikizan-reading-pacemaker-timer nil
-  "Timer object for the reading pacemaker.")
-
-(defun hikizan-reading-pacemaker--step ()
-  "Move forward one word and recenter the window."
-  (forward-word 1)
-  (recenter))
-
-(defun hikizan-reading-pacemaker-start (&optional _interval)
-  "Start the reading pacemarker.
-
-Every INTERVAL seconds, move forward one word and recenter."
-  (interactive
-   (list (when current-prefix-arg
-	   (read-number
-	    (format "Interval between words (seconds) [%s]: " hikizan-reading-pacemaker-interval)
-	    hikizan-reading-pacemaker-interval))))
-  ;; if already running, cancel first
-  (when (timerp hikizan-reading-pacemaker-timer)
-    (cancel-timer hikizan-reading-pacemaker-timer))
-  (setq hikizan-reading-pacemaker-timer
-	(run-with-timer 0 hikizan-reading-pacemaker-interval #'hikizan-reading-pacemaker--step))
-  (message "Reading pacemaker started: %s sec/word" hikizan-reading-pacemaker-interval))
-
-(defun hikizan-reading-pacemaker-stop ()
-  "Stop the reading pacemaker."
-  (interactive)
-  (when (timerp hikizan-reading-pacemaker-timer)
-    (cancel-timer hikizan-reading-pacemaker-timer)
-    (setq hikizan-reading-pacemaker-timer nil)
-    (message "Reading pacemaker stopped")))
-
-
-(defun hikizan-shell-command-to-string-async (command)
-  "Execute shell COMMAND asynchronously and return its output as a string.
-This avoids blocking the Emacs UI while the command runs."
-  (let* ((output "")
-         (proc (start-process-shell-command "hikizan-async-shell" nil command)))
-    (set-process-filter proc (lambda (_p str) (setq output (concat output str))))
-    (while (process-live-p proc)
-      (accept-process-output proc 0.1))
-    output))
-
-;;; hikizan-editor.el --- editor  -*- lexical-binding: t; -*-
-
-;;; mozc
-(use-package mozc
-  :ensure t
-  :config
-  (setq default-input-method "japanese-mozc"))
 
 ;;; configurations
 
@@ -201,26 +153,15 @@ This avoids blocking the Emacs UI while the command runs."
 (setq display-line-numbers-type t)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
-;; editor config
-(use-package editorconfig
-  :ensure t
-  :config
-  (editorconfig-mode 1))
-
 ;; dired
 (setq dired-dwim-target t)
 (setq dired-recursive-copies 'always)
-(setq dired-isearch-filenames t)
 
-;; org
-(setq org-startup-truncated nil)
-
-;; snippet
-(use-package yasnippet
-  :ensure t
-  :config
-  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
-  (yas-global-mode 1))
+;; eshell
+(setq eshell-history-size 10000
+      eshell-save-history-on-exit t
+      eshell-hist-ignoredups t
+      eshell-history-append t)
 
 ;; others
 (delete-selection-mode t)
@@ -230,49 +171,14 @@ This avoids blocking the Emacs UI while the command runs."
 (add-to-list 'process-coding-system-alist
              '("grep" . (utf-8-unix . utf-8-unix)))
 
-;;; functions
-;;; Code:
-
-(defun hikizan-kill-ring-save-for-windows ()
-  "Save the current region to the Windows clipboard via powershell.
-This is a workaround for some environments."
-  (interactive)
-  (if (use-region-p)
-      (progn
-        (if (executable-find "powershell.exe")
-            (let ((text (buffer-substring-no-properties
-                         (region-beginning)
-                         (region-end))))
-	      (with-temp-buffer
-		(insert text)
-		(call-process-region (point-min) (point-max) "powershell.exe" nil nil nil
-				     "-command"
-				     "[Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -Assembly PresentationCore; [System.Windows.Clipboard]::SetText([Console]::In.ReadToEnd())")
-		(message "Text copied to Windows clipboard")))
-          (message "powershell.exe not found"))
-        (kill-ring-save (region-beginning) (region-end)))
-    (message "No region selected")))
-
-;;; hikizan-ui.el --- ui  -*- lexical-binding: t; -*-
-
-;;; Code:
-
-(use-package zenburn-theme
-  :ensure t
-  :config
-  (load-theme 'zenburn t))
-
-(use-package avy
-  :ensure t)
-
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-
 (which-function-mode t)
+
+(recentf-mode +1)
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
-
 
 (provide 'hikizan-core)
 ;;; hikizan-core.el ends here
