@@ -40,6 +40,28 @@
 (define-key hikizan-adk-ui-mode-map (kbd "o") #'hikizan-adk-ui-open-file)
 (define-key hikizan-adk-ui-mode-map (kbd "P") #'hikizan-adk-ui-open-planned-task)
 
+(defun hikizan-adk-ui--get-buffer-summary (buffer)
+  "Extract the second user message from the ADK comint BUFFER.
+If there is only one user message, use that."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (let ((user-messages '())
+            (prompt-regexp "^\\[user\\]: "))
+        (while (re-search-forward prompt-regexp nil t)
+          (let ((msg (buffer-substring-no-properties (point) (line-end-position))))
+            (setq msg (string-trim msg))
+            (when (> (length msg) 0)
+              (push msg user-messages))))
+        (setq user-messages (nreverse user-messages))
+        (let ((text (or (nth 1 user-messages) (nth 0 user-messages))))
+          (if (and text (> (length text) 0))
+              (let ((first-line (car (split-string text "\n"))))
+                (if (> (length first-line) 60)
+                    (concat (substring (string-trim first-line) 0 57) "...")
+                  (string-trim first-line)))
+            "No summary"))))))
+
 (defun hikizan-adk-ui--get-session-summary (file-path)
   "Extract the second user message from session JSON at FILE-PATH.
 If there is only one user message, use that."
@@ -85,8 +107,17 @@ If there is only one user message, use that."
                    (state (if live "running" "stopped" ))
                    (session-id hikizan-adk--session-id)
                    (has-plan (hikizan-adk-ui--plan-exists-p session-id))
-                   (pid (if live (format "%d" (process-id proc)) "-" )))
-              (push (list buf (vector state (if has-plan "[Y]" "   " ) (buffer-name buf) pid "" "-" )) entries)))))
+                   (pid (if live (format "%d" (process-id proc)) "-" ))
+                   (session-file (expand-file-name (concat session-id ".session.json") agent-path))
+                   (exists (file-exists-p session-file))
+                   (updated (cond
+                             (exists (format-time-string "%Y-%m-%d %H:%M" (nth 5 (file-attributes session-file))))
+                             (live "(active)")
+                             (t "")))
+                   (summary (cond
+                             (exists (hikizan-adk-ui--get-session-summary session-file))
+                             (t (hikizan-adk-ui--get-buffer-summary buf)))))
+              (push (list buf (vector state (if has-plan "[Y]" "   " ) (buffer-name buf) pid updated summary)) entries)))))
 
       ;; 2. Saved session files
       (when (file-directory-p agent-path)
