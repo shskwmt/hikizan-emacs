@@ -1,22 +1,22 @@
-;;; init.el --- -*- lexical-binding: t; -*-
-;;(setq debug-on-error t)
+;;; init.el --- Configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Configuration entry point.
 
 ;;; Code:
 
-(defvar hikizan-dir (file-name-directory load-file-name))
-(defvar hikizan-lisp-dir (expand-file-name "lisp" hikizan-dir))
+;; Add lisp directories to load-path
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "lisp/hikizan-adk" user-emacs-directory))
 
-(add-to-list 'load-path hikizan-lisp-dir)
-(add-to-list 'load-path (expand-file-name "hikizan-adk" hikizan-lisp-dir))
-
+;; Initialize packages
 (require 'hikizan-package-manager)
+
+;; Load core
 (require 'hikizan-core)
-(require 'hikizan-adk-core)
-(require 'hikizan-programming)
 (require 'hikizan-agent)
+(require 'hikizan-programming)
 (require 'hikizan-keybinds)
 
-(setq system-time-local "C") ;; to avoid Japanese in the time stamp
-
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-(load custom-file 'noerror)
+(provide 'init)
+;;; init.el ends here

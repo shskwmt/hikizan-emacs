@@ -1,5 +1,8 @@
 ;;; hikizan-programming.el --- programming -*- lexical-binding: t; -*-
 
+;;; Commentary:
+;; Programming language support
+
 ;;; Code:
 
 (require 'use-package)

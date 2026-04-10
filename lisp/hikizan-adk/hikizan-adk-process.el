@@ -1,5 +1,8 @@
 ;;; hikizan-adk-process.el --- Process runner for ADK -*- lexical-binding: t; -*-
 
+;;; Commentary:
+;; Process runner for ADK
+
 ;;; Code:
 
 (require 'comint)
@@ -23,7 +26,7 @@
   (format-time-string "hikizan-%Y%m%d-%H%M%S"))
 
 (defun hikizan-adk--process-sentinel (proc _event)
-  "Sentinel for ADK process to cleanup."
+  "Sentinel for ADK process PROC to cleanup."
   (let ((buf (process-buffer proc)))
     (when (and (buffer-live-p buf)
                (memq (process-status proc) '(exit signal)))

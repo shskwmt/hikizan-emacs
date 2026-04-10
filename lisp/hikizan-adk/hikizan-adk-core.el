@@ -1,5 +1,8 @@
 ;;; hikizan-adk-core.el --- Core commands for ADK -*- lexical-binding: t; -*-
 
+;;; Commentary:
+;; Core commands for ADK
+
 ;;; Code:
 
 (require 'hikizan-adk-process)

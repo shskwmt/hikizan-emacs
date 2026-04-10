@@ -10,6 +10,7 @@
 (require 'vc-git)
 (require 'diff-mode)
 (require 'dired)
+(require 'which-key)
 (require 'display-line-numbers)
 (require 'em-hist)
 

@@ -1,5 +1,8 @@
 ;;; hikizan-package-manager.el --- package manager -*- lexical-binding: t; -*-
 
+;;; Commentary:
+;; Package manager configuration
+
 ;;; Code:
 
 (require 'package)
