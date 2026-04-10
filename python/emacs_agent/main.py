@@ -309,6 +309,7 @@ def main(
             start_emacs_client(session_id)
             # Set EMACS_SERVER_FILE so that elisp tools know which server to use.
             os.environ["EMACS_SERVER_FILE"] = server_file
+            os.environ["SESSION_ID"] = session_id
 
         asyncio.run(
             run_main(
