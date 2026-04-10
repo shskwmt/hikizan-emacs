@@ -10,6 +10,14 @@
 
 (defvar-local hikizan-adk--dashboard-agent-path nil)
 
+(defcustom hikizan-adk-ui-refresh-interval 5
+  "Interval in seconds to refresh the ADK sessions dashboard."
+  :type 'integer
+  :group 'hikizan-adk)
+
+(defvar-local hikizan-adk-ui--refresh-timer nil
+  "Timer for automatic refresh of the ADK sessions dashboard.")
+
 (define-derived-mode hikizan-adk-ui-mode tabulated-list-mode "Hikizan-ADK-Dashboard"
   "Major mode for ADK sessions dashboard."
   (setq tabulated-list-format [("State" 10 t)
@@ -21,7 +29,9 @@
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key '("Name" . nil))
   (add-hook 'tabulated-list-revert-hook #'hikizan-adk-ui--refresh-entries nil t)
-  (tabulated-list-init-header))
+  (add-hook 'kill-buffer-hook #'hikizan-adk-ui--stop-refresh-timer nil t)
+  (tabulated-list-init-header)
+  (hikizan-adk-ui--start-refresh-timer))
 
 (define-key hikizan-adk-ui-mode-map (kbd "RET") #'hikizan-adk-ui-action)
 (define-key hikizan-adk-ui-mode-map (kbd "g") #'hikizan-adk-ui-refresh)
@@ -91,6 +101,24 @@ If there is only one user message, use that."
                    (summary (hikizan-adk-ui--get-session-summary file)))
               (push (list file (vector "saved" (if has-plan "[Y]" "   " ) name "-" updated summary)) entries))))))
     (setq tabulated-list-entries entries)))
+
+(defun hikizan-adk-ui--start-refresh-timer ()
+  "Start the automatic refresh timer for the current buffer."
+  (hikizan-adk-ui--stop-refresh-timer)
+  (setq hikizan-adk-ui--refresh-timer
+        (run-at-time hikizan-adk-ui-refresh-interval
+                     hikizan-adk-ui-refresh-interval
+                     (lambda (buf)
+                       (when (buffer-live-p buf)
+                         (with-current-buffer buf
+                           (hikizan-adk-ui-refresh))))
+                     (current-buffer))))
+
+(defun hikizan-adk-ui--stop-refresh-timer ()
+  "Stop the automatic refresh timer for the current buffer."
+  (when hikizan-adk-ui--refresh-timer
+    (cancel-timer hikizan-adk-ui--refresh-timer)
+    (setq hikizan-adk-ui--refresh-timer nil)))
 
 (defun hikizan-adk-ui-refresh ()
   "Refresh the dashboard."
