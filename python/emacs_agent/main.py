@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +22,8 @@ from google.adk.sessions.session import Session
 from google.adk.utils.context_utils import Aclosing
 from google.genai import types
 from pydantic import BaseModel
+
+from .emacs_manager import kill_emacs_daemon, start_emacs_client, start_emacs_daemon
 
 
 class InputFile(BaseModel):
@@ -275,6 +278,7 @@ async def run_main(
 )
 @click.option("--save_session", is_flag=True, default=False)
 @click.option("--session_id", type=str)
+@click.option("--emacs_server_file_dir", type=str)
 @click.option("--session_service_uri", type=str)
 @click.option("--artifact_service_uri", type=str)
 @click.option("--memory_service_uri", type=str)
@@ -286,6 +290,7 @@ def main(
     agent: str,
     save_session: bool,
     session_id: str | None,
+    emacs_server_file_dir: str | None,
     session_service_uri: str | None,
     artifact_service_uri: str | None,
     memory_service_uri: str | None,
@@ -293,19 +298,34 @@ def main(
     replay: str | None,
     resume: str | None,
 ):
-    asyncio.run(
-        run_main(
-            agent_path=agent,
-            save_session=save_session,
-            session_id=session_id,
-            session_service_uri=session_service_uri,
-            artifact_service_uri=artifact_service_uri,
-            memory_service_uri=memory_service_uri,
-            use_local_storage=use_local_storage,
-            replay=replay,
-            resume=resume,
+    try:
+        if session_id:
+            if not emacs_server_file_dir:
+                # Fallback to a sensible default if not provided
+                emacs_server_file_dir = os.path.expanduser("~/.emacs.d/server/")
+            os.makedirs(emacs_server_file_dir, exist_ok=True)
+            server_file = os.path.join(emacs_server_file_dir, session_id)
+            start_emacs_daemon(session_id, server_file)
+            start_emacs_client(session_id)
+            # Set EMACS_SERVER_FILE so that elisp tools know which server to use.
+            os.environ["EMACS_SERVER_FILE"] = server_file
+
+        asyncio.run(
+            run_main(
+                agent_path=agent,
+                save_session=save_session,
+                session_id=session_id,
+                session_service_uri=session_service_uri,
+                artifact_service_uri=artifact_service_uri,
+                memory_service_uri=memory_service_uri,
+                use_local_storage=use_local_storage,
+                replay=replay,
+                resume=resume,
+            )
         )
-    )
+    finally:
+        if session_id:
+            kill_emacs_daemon(session_id)
 
 
 if __name__ == "__main__":

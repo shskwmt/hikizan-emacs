@@ -2,8 +2,8 @@ import os
 
 from google.adk.agents.llm_agent import Agent
 
-from ...tools import elisp as elisp_tools
 from ...common_prompts import ELISP_INSTRUCTIONS
+from ...tools import elisp as elisp_tools
 
 SYSTEM_PROMPT = f"""
 You are REFACTOR, a specialist in code cleanup and structural integrity.
