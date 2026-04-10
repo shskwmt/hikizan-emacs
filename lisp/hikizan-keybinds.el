@@ -26,16 +26,11 @@
 (global-set-key (kbd "C-c <left>") 'windmove-left)
 
 ;; LLM tools
-(global-set-key (kbd "C-c a w") 'hikizan-run-emacs-agent-web)
 (global-set-key (kbd "C-c a r") 'hikizan-emacs-agent-run)
 (global-set-key (kbd "C-c a s") 'hikizan-emacs-agent-sessions)
 
 ;; Project
 (global-set-key (kbd "C-x p g") 'vc-git-grep)
-
-;; Google Translate
-(global-set-key (kbd "C-c t") 'google-translate-at-point)
-(global-set-key (kbd "C-c T") 'google-translate-query-translate)
 
 ;; Hikizan utils
 (global-set-key (kbd "C-c c b") 'hikizan-copy-buffer-name)
