@@ -24,3 +24,4 @@ tree-sitter/
 
 .adk/
 python/emacs_agent/hikizan-*.session.json
+python/emacs_agent/plans/
