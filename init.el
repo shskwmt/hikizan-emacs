@@ -18,5 +18,7 @@
 (require 'hikizan-programming)
 (require 'hikizan-keybinds)
 
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
 (provide 'init)
 ;;; init.el ends here
