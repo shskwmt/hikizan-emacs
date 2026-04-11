@@ -1,30 +1,43 @@
 import os
+import re
 from pathlib import Path
 
 
-def create_plan_file() -> str:
+def create_plan_file(new_task: bool = False) -> str:
     """
-    Creates an empty plan Org-Mode file for the current session and returns its path.
-    The path is relative to the agent's root directory.
+    Creates or returns a plan Org-Mode file for the current session.
+    If new_task is True, it creates a new versioned file if the base file exists.
+    Returns the absolute path.
     """
     session_id = os.environ.get("SESSION_ID", "default_session")
-    # We want the plan directory to be ~/.emacs.d/python/emacs_agent/plans/
-    # The agent's root directory is usually where main.py is, or its parent.
-    # From tools/plans.py, the agent root (emacs_agent/) is one level up.
-
-    # Let's find the absolute path of ~/.emacs.d/python/emacs_agent/plans/
     base_dir = Path(__file__).resolve().parent.parent
     plans_dir = base_dir / "plans"
     plans_dir.mkdir(parents=True, exist_ok=True)
 
-    plan_file_name = f"{session_id}_task_list.org"
-    plan_file_path = plans_dir / plan_file_name
+    base_name = f"{session_id}_task_list"
+    
+    # Find existing versions
+    existing_files = list(plans_dir.glob(f"{base_name}*.org"))
+    
+    # Helper to extract version number
+    def get_version(path):
+        match = re.search(r"_v(\d+)\.org$", path.name)
+        return int(match.group(1)) if match else 0
 
-    if not plan_file_path.exists():
+    existing_files.sort(key=get_version)
+    
+    if not existing_files:
+        # Create initial base file
+        plan_file_path = plans_dir / f"{base_name}.org"
         plan_file_path.touch()
+    elif new_task:
+        # Create new version
+        last_version = get_version(existing_files[-1])
+        new_version = last_version + 1
+        plan_file_path = plans_dir / f"{base_name}_v{new_version}.org"
+        plan_file_path.touch()
+    else:
+        # Use latest version
+        plan_file_path = existing_files[-1]
 
-    # Return the relative path from ~/.emacs.d/
-    # But wait, it might be simpler to return the absolute path or something consistent.
-    # Most agents use absolute paths via expand-file-name in elisp.
-    # Let's return the absolute path for clarity.
     return str(plan_file_path).replace("\\", "/")

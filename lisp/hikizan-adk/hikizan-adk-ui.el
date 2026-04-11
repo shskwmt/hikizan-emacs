@@ -22,6 +22,7 @@
   "Major mode for ADK sessions dashboard."
   (setq tabulated-list-format [("State" 10 t)
                                ("Plan" 6 t)
+                               ("Plan Title" 40 t)
                                ("Name" 30 t)
                                ("PID" 10 t)
                                ("Updated" 20 t)
@@ -91,6 +92,20 @@ If there is only one user message, use that."
           "No summary"))
     (error (format "Error: %s" (error-message-string err)))))
 
+(defun hikizan-adk-ui--get-plan-title (file-path)
+  "Extract the title from the Org plan file at FILE-PATH.
+It looks for #+TITLE: or the first first-level heading."
+  (when (and file-path (file-exists-p file-path))
+    (with-temp-buffer
+      (insert-file-contents file-path)
+      (goto-char (point-min))
+      (cond
+       ((re-search-forward "^#\\+TITLE: \\(.*\\)$" nil t)
+        (match-string 1))
+       ((re-search-forward "^\\* \\(.*\\)$" nil t)
+        (match-string 1))
+       (t "No title")))))
+
 (defun hikizan-adk-ui--refresh-entries ()
   "Refresh the list of sessions for the current dashboard agent."
   (let* ((agent-path hikizan-adk--dashboard-agent-path)
@@ -106,7 +121,12 @@ If there is only one user message, use that."
                    (live (and proc (process-live-p proc)))
                    (state (if live "running" "stopped" ))
                    (session-id hikizan-adk--session-id)
-                   (has-plan (hikizan-adk-ui--plan-exists-p session-id))
+                   (plans (hikizan-adk-ui--plan-exists-p session-id))
+                   (plan-count (length plans))
+                   (plan-str (cond ((= plan-count 0) "   ")
+                                   ((= plan-count 1) "[Y]")
+                                   (t (format "[%d]" plan-count))))
+                   (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
                    (pid (if live (format "%d" (process-id proc)) "-" ))
                    (session-file (expand-file-name (concat session-id ".session.json") agent-path))
                    (exists (file-exists-p session-file))
@@ -117,7 +137,7 @@ If there is only one user message, use that."
                    (summary (cond
                              (exists (hikizan-adk-ui--get-session-summary session-file))
                              (t (hikizan-adk-ui--get-buffer-summary buf)))))
-              (push (list buf (vector state (if has-plan "[Y]" "   " ) (buffer-name buf) pid updated summary)) entries)))))
+              (push (list buf (vector state plan-str plan-title (buffer-name buf) pid updated summary)) entries)))))
 
       ;; 2. Saved session files
       (when (file-directory-p agent-path)
@@ -128,9 +148,14 @@ If there is only one user message, use that."
                    (mtime (nth 5 attrs))
                    (updated (format-time-string "%Y-%m-%d %H:%M" mtime))
                    (session-id (file-name-base file))
-                   (has-plan (hikizan-adk-ui--plan-exists-p session-id))
+                   (plans (hikizan-adk-ui--plan-exists-p session-id))
+                   (plan-count (length plans))
+                   (plan-str (cond ((= plan-count 0) "   ")
+                                   ((= plan-count 1) "[Y]")
+                                   (t (format "[%d]" plan-count))))
+                   (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
                    (summary (hikizan-adk-ui--get-session-summary file)))
-              (push (list file (vector "saved" (if has-plan "[Y]" "   " ) name "-" updated summary)) entries))))))
+              (push (list file (vector "saved" plan-str plan-title name "-" updated summary)) entries))))))
     (setq tabulated-list-entries entries)))
 
 (defun hikizan-adk-ui--start-refresh-timer ()
@@ -215,39 +240,39 @@ If there is only one user message, use that."
       (message "Not a saved session file."))))
 
 (defun hikizan-adk-ui--plan-exists-p (session-id)
-  "Check if a plan file exists for SESSION-ID."
+  "Return a list of plan files for SESSION-ID, sorted by name."
   (let* ((clean-id (if (and session-id (string-match "\\.session$" session-id))
                        (replace-match "" t t session-id)
                      session-id))
          (task-dir (expand-file-name "~/.emacs.d/python/emacs_agent/plans/"))
-         (pattern (concat (regexp-quote clean-id) ".*\\.org$")))
-    (and clean-id
-         (file-directory-p task-dir)
-         (directory-files task-dir nil pattern))))
+         (pattern (concat (regexp-quote (or clean-id "")) ".*\\.org$")))
+    (if (and clean-id (file-directory-p task-dir))
+        (sort (directory-files task-dir t pattern) #'string-lessp)
+      nil)))
 
 (defun hikizan-adk-ui-open-planned-task ()
-  "Open the planned task Org-Mode file for the current session."
+  "Open the planned task Org-Mode file for the current session.
+If multiple plans exist, prompt for selection.
+With a prefix argument, open all plans."
   (interactive)
   (let* ((id (tabulated-list-get-id))
          (raw-session-id (cond
                           ((stringp id) (file-name-base id))
                           ((bufferp id) (with-current-buffer id hikizan-adk--session-id))))
-         (session-id (if (and raw-session-id (string-match "\\.session$" raw-session-id))
-                         (replace-match "" t t raw-session-id)
-                       raw-session-id))
-         (task-dir (expand-file-name "~/.emacs.d/python/emacs_agent/plans/")))
-    (if (and session-id (file-directory-p task-dir))
-        (let* ((pattern (concat (regexp-quote session-id) ".*\\.org$"))
-               (files (directory-files task-dir t pattern)))
-          (if files
-              (dolist (file files)
-                (let ((buf (find-file-noselect file)))
-                  (with-current-buffer buf
-                    (read-only-mode 1)
-                    (auto-revert-mode 1))
-                  (pop-to-buffer buf)))
-            (message "No task plans found for session: %s" session-id)))
-      (message "Session ID not found or task directory does not exist."))))
+         (plans (hikizan-adk-ui--plan-exists-p raw-session-id)))
+    (if plans
+        (cond
+         (current-prefix-arg
+          (dolist (file plans)
+            (pop-to-buffer (find-file-noselect file))))
+         ((= (length plans) 1)
+          (pop-to-buffer (find-file-noselect (car plans))))
+         (t
+          (let* ((choices (mapcar (lambda (f) (cons (file-name-nondirectory f) f)) plans))
+                 (selected (completing-read "Select plan: " choices nil t)))
+            (when (and selected (not (string-empty-p selected)))
+              (pop-to-buffer (find-file-noselect (cdr (assoc selected choices))))))))
+      (message "No task plans found for session: %s" raw-session-id))))
 
 (provide 'hikizan-adk-ui)
 ;;; hikizan-adk-ui.el ends here
