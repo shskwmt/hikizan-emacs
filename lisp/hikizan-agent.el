@@ -25,6 +25,13 @@
 (defvar hikizan-emacs-agent-dir (expand-file-name "emacs_agent" hikizan-agent-python-dir)
   "Path to the Emacs agent.")
 
+(defcustom hikizan-agent-sessions-dir 
+  (or (getenv "EMACS_AGENT_SESSIONS_BASE_DIR")
+      (expand-file-name "sessions/" hikizan-emacs-agent-dir))
+  "Directory where Emacs agent sessions are stored."
+  :type 'directory
+  :group 'hikizan-agent)
+
 (defun hikizan-emacs-agent-run ()
   "Run the Emacs agent.  Always start a new session."
   (interactive)
@@ -33,7 +40,7 @@
 (defun hikizan-emacs-agent-sessions ()
   "Show the dashboard for the Emacs agent."
   (interactive)
-  (hikizan-adk-sessions hikizan-emacs-agent-dir))
+  (hikizan-adk-sessions hikizan-emacs-agent-dir hikizan-agent-sessions-dir))
 
 ;; Functions for Agent
 

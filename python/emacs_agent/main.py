@@ -24,6 +24,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 from .emacs_manager import kill_emacs_daemon, start_emacs_client, start_emacs_daemon
+from .storage import get_session_dir
 
 
 class InputFile(BaseModel):
@@ -257,7 +258,8 @@ async def run_main(
                     session_id = "default_session"
 
             if session_id:
-                session_path = agent_path_obj / f"{session_id}.session.json"
+                session_dir = get_session_dir(session_id)
+                session_path = session_dir / "session.json"
 
                 # Fetch the session again to get all the details.
                 session = await session_service.get_session(
@@ -269,6 +271,11 @@ async def run_main(
                     session.model_dump_json(indent=2, exclude_none=True, by_alias=True),
                     encoding="utf-8",
                 )
+
+                # Clean up the library-created session file in the old location
+                library_session_path = agent_path_obj / f"{session.id}.session.json"
+                if library_session_path.exists() and library_session_path.resolve() != session_path.resolve():
+                    library_session_path.unlink()
 
                 print("Session saved to", session_path)
 
@@ -306,7 +313,7 @@ def main(
             os.makedirs(emacs_server_file_dir, exist_ok=True)
             server_file = os.path.join(emacs_server_file_dir, session_id)
             start_emacs_daemon(session_id, server_file)
-            start_emacs_client(session_id)
+            start_emacs_client(server_file)
             # Set EMACS_SERVER_FILE so that elisp tools know which server to use.
             os.environ["EMACS_SERVER_FILE"] = server_file
             os.environ["SESSION_ID"] = session_id

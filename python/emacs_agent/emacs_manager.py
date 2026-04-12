@@ -65,13 +65,13 @@ def start_emacs_daemon(session_id: str, server_file: str):
     raise RuntimeError(f"Timeout waiting for Emacs daemon {session_id} to start.")
 
 
-def start_emacs_client(session_id: str):
+def start_emacs_client(server_file: str):
     """Start emacsclient for the given session_id."""
     client_bin = get_emacsclient_bin()
     flag = get_emacsclient_flag()
 
     # Using -t for terminal mode as in the original Elisp code
-    command = [client_bin, flag, session_id, "-t"]
+    command = [client_bin, flag, server_file, "-t"]
 
     print(f"Launching emacsclient: {' '.join(command)}")
 

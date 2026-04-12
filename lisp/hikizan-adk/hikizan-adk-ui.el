@@ -7,8 +7,14 @@
 
 (require 'tabulated-list)
 (require 'hikizan-adk-process)
+(require 'seq)
+(require 'subr-x)
+(require 'json)
 
-(defvar-local hikizan-adk--dashboard-agent-path nil)
+(defvar-local hikizan-adk--dashboard-agent-path nil
+  "Path to the agent directory for the current dashboard.")
+(defvar-local hikizan-adk--dashboard-sessions-path nil
+  "Path where the dashboard looks for sessions.")
 
 (defcustom hikizan-adk-ui-refresh-interval 30
   "Interval in seconds to refresh the ADK sessions dashboard."
@@ -33,12 +39,38 @@
   (tabulated-list-init-header)
   (hikizan-adk-ui--start-refresh-timer))
 
-(define-key hikizan-adk-ui-mode-map (kbd "RET") #'hikizan-adk-ui-action)
+(define-key hikizan-adk-ui-mode-map (kbd "RET") #'hikizan-adk-ui-resume)
 (define-key hikizan-adk-ui-mode-map (kbd "g") #'hikizan-adk-ui-refresh)
 (define-key hikizan-adk-ui-mode-map (kbd "k") #'hikizan-adk-ui-kill-session)
 (define-key hikizan-adk-ui-mode-map (kbd "D") #'hikizan-adk-ui-delete-session)
 (define-key hikizan-adk-ui-mode-map (kbd "o") #'hikizan-adk-ui-open-file)
 (define-key hikizan-adk-ui-mode-map (kbd "P") #'hikizan-adk-ui-open-planned-task)
+
+(defun hikizan-adk-ui--plan-exists-p (session-id)
+  "Return a list of plan files for SESSION-ID, sorted by name."
+  (let* ((clean-id (if (and session-id
+                            (string-match "\\.session$" session-id))
+                       (replace-match "" t t session-id)
+                     session-id))
+         (session-dir (expand-file-name
+                       (concat (or clean-id "") "/")
+                       hikizan-adk--dashboard-sessions-path))
+         (pattern "^plan.*\\.org$"))
+    (if (and clean-id (file-directory-p session-dir))
+        (sort (directory-files session-dir t pattern) #'string-lessp)
+      nil)))
+
+(defun hikizan-adk-ui--get-session-id (id)
+  "Extract the session ID from the dashboard row ID.
+ID can be a buffer (running session) or a string path (saved session)."
+  (cond
+   ((bufferp id)
+    (with-current-buffer id hikizan-adk--session-id))
+   ((stringp id)
+    (if (string= (file-name-nondirectory id) "session.json")
+        (file-name-nondirectory (directory-file-name (file-name-directory id)))
+      (file-name-base id)))
+   (t nil)))
 
 (defun hikizan-adk-ui--get-buffer-summary (buffer)
   "Extract the second user message from the ADK comint BUFFER.
@@ -108,6 +140,7 @@ It looks for #+TITLE: or the first first-level heading."
 (defun hikizan-adk-ui--refresh-entries ()
   "Refresh the list of sessions for the current dashboard agent."
   (let* ((agent-path hikizan-adk--dashboard-agent-path)
+         (sessions-base hikizan-adk--dashboard-sessions-path)
          (entries nil))
     (when agent-path
       ;; 1. Running/Stopped buffer sessions
@@ -127,7 +160,7 @@ It looks for #+TITLE: or the first first-level heading."
                                    (t (format "[%d]" plan-count))))
                    (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
                    (pid (if live (format "%d" (process-id proc)) "-" ))
-                   (session-file (expand-file-name (concat session-id ".session.json") agent-path))
+                   (session-file (expand-file-name (concat session-id "/session.json") sessions-base))
                    (exists (file-exists-p session-file))
                    (updated (cond
                              (exists (format-time-string "%Y-%m-%d %H:%M" (nth 5 (file-attributes session-file))))
@@ -139,22 +172,23 @@ It looks for #+TITLE: or the first first-level heading."
               (push (list buf (vector state plan-str plan-title pid updated summary)) entries)))))
 
       ;; 2. Saved session files
-      (when (file-directory-p agent-path)
-        (let* ((files (directory-files agent-path t "\\.session\\.json$" )))
-          (dolist (file files)
-            (let* ((name (file-name-nondirectory file))
-                   (attrs (file-attributes file))
-                   (mtime (nth 5 attrs))
-                   (updated (format-time-string "%Y-%m-%d %H:%M" mtime))
-                   (session-id (file-name-base file))
-                   (plans (hikizan-adk-ui--plan-exists-p session-id))
-                   (plan-count (length plans))
-                   (plan-str (cond ((= plan-count 0) "   ")
-                                   ((= plan-count 1) "[Y]")
-                                   (t (format "[%d]" plan-count))))
-                   (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
-                   (summary (hikizan-adk-ui--get-session-summary file)))
-              (push (list file (vector "saved" plan-str plan-title "-" updated summary)) entries))))))
+      (when (and sessions-base (file-directory-p sessions-base))
+        (dolist (session-dir (directory-files sessions-base t "^[^.]"))
+          (when (file-directory-p session-dir)
+            (let* ((session-id (file-name-nondirectory session-dir))
+                   (session-file (expand-file-name "session.json" session-dir)))
+              (when (file-exists-p session-file)
+                (let* ((attrs (file-attributes session-file))
+                       (mtime (nth 5 attrs))
+                       (updated (format-time-string "%Y-%m-%d %H:%M" mtime))
+                       (plans (hikizan-adk-ui--plan-exists-p session-id))
+                       (plan-count (length plans))
+                       (plan-str (cond ((= plan-count 0) "   ")
+                                       ((= plan-count 1) "[Y]")
+                                       (t (format "[%d]" plan-count))))
+                       (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
+                       (summary (hikizan-adk-ui--get-session-summary session-file)))
+                  (push (list session-file (vector "saved" plan-str plan-title "-" updated summary)) entries))))))))
     (setq tabulated-list-entries entries)))
 
 (defun hikizan-adk-ui--start-refresh-timer ()
@@ -180,7 +214,7 @@ It looks for #+TITLE: or the first first-level heading."
   (interactive)
   (revert-buffer))
 
-(defun hikizan-adk-ui-action ()
+(defun hikizan-adk-ui-resume ()
   "Perform action on current session."
   (interactive)
   (let ((id (tabulated-list-get-id)))
@@ -202,26 +236,36 @@ It looks for #+TITLE: or the first first-level heading."
       (message "Not a running session buffer."))))
 
 (defun hikizan-adk-ui-delete-session ()
-  "Delete the selected saved session file."
+  "Delete the selected saved session file and its directory."
   (interactive)
   (let ((id (tabulated-list-get-id)))
     (cond
      ((stringp id)
-      (when (yes-or-no-p (format "Delete session file %s? " (file-name-nondirectory id)))
-        (delete-file id)
-        (message "Deleted %s" (file-name-nondirectory id))
-        (hikizan-adk-ui-refresh)))
+      (let* ((session-id (hikizan-adk-ui--get-session-id id))
+             (session-dir (file-name-directory id)))
+        (when (yes-or-no-p (format "Delete session %s and all its files? " session-id))
+          (if (and (file-directory-p session-dir)
+                   (not (file-equal-p session-dir hikizan-adk--dashboard-sessions-path)))
+              (progn
+                (delete-directory session-dir t)
+                (message "Deleted session directory %s" session-dir))
+            (delete-file id)
+            (message "Deleted session file %s" id))
+          (hikizan-adk-ui-refresh))))
      ((bufferp id)
       (message "Selected item is a buffer. Use 'k' to kill its process."))
      (t
       (message "No session selected.")))))
 
-(defun hikizan-adk-ui-open-dashboard (agent-path)
+(defun hikizan-adk-ui-open-dashboard (agent-path &optional sessions-path)
   "Open ADK sessions dashboard for AGENT-PATH."
   (let ((buffer (get-buffer-create "*hikizan-adk-sessions*")))
     (with-current-buffer buffer
       (hikizan-adk-ui-mode)
       (setq hikizan-adk--dashboard-agent-path (expand-file-name agent-path))
+      (setq hikizan-adk--dashboard-sessions-path
+            (or (and sessions-path (expand-file-name sessions-path))
+                (expand-file-name "sessions/" agent-path)))
       (hikizan-adk-ui-refresh)
       (pop-to-buffer buffer))))
 
@@ -238,16 +282,7 @@ It looks for #+TITLE: or the first first-level heading."
         (find-file id)
       (message "Not a saved session file."))))
 
-(defun hikizan-adk-ui--plan-exists-p (session-id)
-  "Return a list of plan files for SESSION-ID, sorted by name."
-  (let* ((clean-id (if (and session-id (string-match "\\.session$" session-id))
-                       (replace-match "" t t session-id)
-                     session-id))
-         (task-dir (expand-file-name "~/.emacs.d/python/emacs_agent/plans/"))
-         (pattern (concat (regexp-quote (or clean-id "")) ".*\\.org$")))
-    (if (and clean-id (file-directory-p task-dir))
-        (sort (directory-files task-dir t pattern) #'string-lessp)
-      nil)))
+
 
 (defun hikizan-adk-ui-open-planned-task ()
   "Open the planned task Org-Mode file for the current session.
@@ -255,10 +290,8 @@ If multiple plans exist, prompt for selection.
 With a prefix argument, open all plans."
   (interactive)
   (let* ((id (tabulated-list-get-id))
-         (raw-session-id (cond
-                          ((stringp id) (file-name-base id))
-                          ((bufferp id) (with-current-buffer id hikizan-adk--session-id))))
-         (plans (hikizan-adk-ui--plan-exists-p raw-session-id)))
+         (session-id (hikizan-adk-ui--get-session-id id))
+         (plans (hikizan-adk-ui--plan-exists-p session-id)))
     (if plans
         (cond
          (current-prefix-arg
@@ -271,7 +304,7 @@ With a prefix argument, open all plans."
                  (selected (completing-read "Select plan: " choices nil t)))
             (when (and selected (not (string-empty-p selected)))
               (pop-to-buffer (find-file-noselect (cdr (assoc selected choices))))))))
-      (message "No task plans found for session: %s" raw-session-id))))
+      (message "No task plans found for session: %s" session-id))))
 
 (provide 'hikizan-adk-ui)
 ;;; hikizan-adk-ui.el ends here

@@ -18,8 +18,10 @@
   :type 'string
   :group 'hikizan-adk)
 
-(defvar-local hikizan-adk--agent-path nil)
-(defvar-local hikizan-adk--session-id nil)
+(defvar-local hikizan-adk--agent-path nil
+  "Path to the agent directory for the current session.")
+(defvar-local hikizan-adk--session-id nil
+  "The session identifier for the current session.")
 
 (defun hikizan-adk--generate-session-id ()
   "Generate a session ID in the format hikizan-YYYYMMDD-HHMMSS."
@@ -78,7 +80,9 @@ active one exists."
          (session-file (or (cl-second (member "--replay" extra-args))
                            (cl-second (member "--resume" extra-args))))
          (target-session-id (when session-file
-                              (file-name-base (file-name-sans-extension session-file))))
+                              (if (string= (file-name-nondirectory session-file) "session.json")
+                                  (file-name-nondirectory (directory-file-name (file-name-directory session-file)))
+                                (file-name-base (file-name-sans-extension session-file)))))
          (active-buf (unless new-session
                        (cl-find-if (lambda (buf)
                                      (with-current-buffer buf

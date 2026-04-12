@@ -21,7 +21,10 @@ custom.el
 __pycache__/
 ~/
 tree-sitter/
+*.elc
 
 .adk/
 python/emacs_agent/hikizan-*.session.json
 python/emacs_agent/plans/
+
+python/emacs_agent/sessions/

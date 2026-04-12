@@ -16,10 +16,10 @@ This will always start a new session."
   (hikizan-adk--run-process agent-path nil t))
 
 ;;;###autoload
-(defun hikizan-adk-sessions (agent-path)
+(defun hikizan-adk-sessions (agent-path &optional sessions-path)
   "Open ADK sessions dashboard for AGENT-PATH."
   (interactive (list (read-directory-name "Agent directory: ")))
-  (hikizan-adk-ui-open-dashboard agent-path))
+  (hikizan-adk-ui-open-dashboard agent-path sessions-path))
 
 (provide 'hikizan-adk-core)
 ;;; hikizan-adk-core.el ends here

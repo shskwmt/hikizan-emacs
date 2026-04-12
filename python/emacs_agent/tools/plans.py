@@ -2,6 +2,8 @@ import os
 import re
 from pathlib import Path
 
+from ..storage import get_session_dir
+
 
 def create_plan_file(new_task: bool = False) -> str:
     """
@@ -10,11 +12,9 @@ def create_plan_file(new_task: bool = False) -> str:
     Returns the absolute path.
     """
     session_id = os.environ.get("SESSION_ID", "default_session")
-    base_dir = Path(__file__).resolve().parent.parent
-    plans_dir = base_dir / "plans"
-    plans_dir.mkdir(parents=True, exist_ok=True)
+    plans_dir = get_session_dir(session_id)
 
-    base_name = f"{session_id}_task_list"
+    base_name = "plan"
     
     # Find existing versions
     existing_files = list(plans_dir.glob(f"{base_name}*.org"))
