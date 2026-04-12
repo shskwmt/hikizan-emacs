@@ -12,6 +12,8 @@ dependencies = [
     "pydantic",
     "google-adk",
     "playwright",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
 ]
 
 [project.optional-dependencies]

@@ -15,17 +15,17 @@ def create_plan_file(new_task: bool = False) -> str:
     plans_dir = get_session_dir(session_id)
 
     base_name = "plan"
-    
+
     # Find existing versions
     existing_files = list(plans_dir.glob(f"{base_name}*.org"))
-    
+
     # Helper to extract version number
     def get_version(path):
         match = re.search(r"_v(\d+)\.org$", path.name)
         return int(match.group(1)) if match else 0
 
     existing_files.sort(key=get_version)
-    
+
     if not existing_files:
         # Create initial base file
         plan_file_path = plans_dir / f"{base_name}.org"

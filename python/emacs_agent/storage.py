@@ -4,8 +4,7 @@ from pathlib import Path
 # Base directory for all sessions. Can be overridden by EMACS_AGENT_SESSIONS_BASE_DIR env var.
 EMACS_AGENT_SESSIONS_BASE_DIR = Path(
     os.environ.get(
-        "EMACS_AGENT_SESSIONS_BASE_DIR", 
-        Path(__file__).resolve().parent / "sessions"
+        "EMACS_AGENT_SESSIONS_BASE_DIR", Path(__file__).resolve().parent / "sessions"
     )
 )
 
