@@ -164,6 +164,9 @@
       eshell-hist-ignoredups t
       eshell-history-append t)
 
+;; org
+(setq org-startup-folded nil)
+
 ;; others
 (delete-selection-mode t)
 (electric-pair-mode t)
