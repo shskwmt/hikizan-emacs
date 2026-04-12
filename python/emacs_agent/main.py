@@ -25,6 +25,7 @@ from pydantic import BaseModel
 
 from .emacs_manager import kill_emacs_daemon, start_emacs_client, start_emacs_daemon
 from .storage import get_session_dir
+from .telemetry import initialize_telemetry
 
 
 class InputFile(BaseModel):
@@ -150,6 +151,11 @@ async def run_main(
     logs.log_to_tmp_folder()
 
     agent_path_obj = Path(agent_path).resolve()
+    if session_id:
+        telemetry_path = get_session_dir(session_id) / "telemetry.jsonl"
+    else:
+        telemetry_path = agent_path_obj / ".adk" / "telemetry.jsonl"
+    initialize_telemetry(str(telemetry_path))
     agent_parent_folder = str(agent_path_obj.parent)
     agent_folder_name = agent_path_obj.name
 
@@ -274,7 +280,10 @@ async def run_main(
 
                 # Clean up the library-created session file in the old location
                 library_session_path = agent_path_obj / f"{session.id}.session.json"
-                if library_session_path.exists() and library_session_path.resolve() != session_path.resolve():
+                if (
+                    library_session_path.exists()
+                    and library_session_path.resolve() != session_path.resolve()
+                ):
                     library_session_path.unlink()
 
                 print("Session saved to", session_path)
