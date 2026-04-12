@@ -7,6 +7,7 @@
 
 (require 'hikizan-adk-process)
 (require 'hikizan-adk-ui)
+(require 'hikizan-adk-telemetry)
 
 ;;;###autoload
 (defun hikizan-adk-run (agent-path)
@@ -21,6 +22,12 @@ This will always start a new session."
 If SESSIONS-PATH is provided, use it as the base directory for sessions."
   (interactive (list (read-directory-name "Agent directory: ")))
   (hikizan-adk-ui-open-dashboard agent-path sessions-path))
+
+
+;;;###autoload
+(defun hikizan-adk-telemetry (file)
+  "Open telemetry viewer for FILE."
+  (hikizan-adk-telemetry-open file))
 
 (provide 'hikizan-adk-core)
 ;;; hikizan-adk-core.el ends here
