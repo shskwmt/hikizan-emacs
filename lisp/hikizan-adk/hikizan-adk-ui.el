@@ -10,7 +10,7 @@
 
 (defvar-local hikizan-adk--dashboard-agent-path nil)
 
-(defcustom hikizan-adk-ui-refresh-interval 5
+(defcustom hikizan-adk-ui-refresh-interval 30
   "Interval in seconds to refresh the ADK sessions dashboard."
   :type 'integer
   :group 'hikizan-adk)
@@ -23,12 +23,11 @@
   (setq tabulated-list-format [("State" 10 t)
                                ("Plan" 6 t)
                                ("Plan Title" 40 t)
-                               ("Name" 30 t)
                                ("PID" 10 t)
                                ("Updated" 20 t)
                                ("Summary" 50 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key '("Name" . nil))
+  (setq tabulated-list-sort-key '("Updated" . t))
   (add-hook 'tabulated-list-revert-hook #'hikizan-adk-ui--refresh-entries nil t)
   (add-hook 'kill-buffer-hook #'hikizan-adk-ui--stop-refresh-timer nil t)
   (tabulated-list-init-header)
@@ -132,12 +131,12 @@ It looks for #+TITLE: or the first first-level heading."
                    (exists (file-exists-p session-file))
                    (updated (cond
                              (exists (format-time-string "%Y-%m-%d %H:%M" (nth 5 (file-attributes session-file))))
-                             (live "(active)")
+                             (live (format-time-string "%Y-%m-%d %H:%M" (current-time)))
                              (t "")))
                    (summary (cond
                              (exists (hikizan-adk-ui--get-session-summary session-file))
                              (t (hikizan-adk-ui--get-buffer-summary buf)))))
-              (push (list buf (vector state plan-str plan-title (buffer-name buf) pid updated summary)) entries)))))
+              (push (list buf (vector state plan-str plan-title pid updated summary)) entries)))))
 
       ;; 2. Saved session files
       (when (file-directory-p agent-path)
@@ -155,7 +154,7 @@ It looks for #+TITLE: or the first first-level heading."
                                    (t (format "[%d]" plan-count))))
                    (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
                    (summary (hikizan-adk-ui--get-session-summary file)))
-              (push (list file (vector "saved" plan-str plan-title name "-" updated summary)) entries))))))
+              (push (list file (vector "saved" plan-str plan-title "-" updated summary)) entries))))))
     (setq tabulated-list-entries entries)))
 
 (defun hikizan-adk-ui--start-refresh-timer ()
