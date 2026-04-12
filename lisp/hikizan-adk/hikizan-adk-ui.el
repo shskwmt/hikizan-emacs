@@ -31,7 +31,7 @@
   "Major mode for ADK sessions dashboard."
   (setq tabulated-list-format [("State" 10 t)
                                ("Plan" 6 t)
-                               ("Plan Title" 40 t)
+                               ("Plan Title" 80 t)
                                ("PID" 10 t)
                                ("Updated" 20 t)
                                ("Summary" 50 t)])
@@ -48,20 +48,22 @@
 (define-key hikizan-adk-ui-mode-map (kbd "D") #'hikizan-adk-ui-delete-session)
 (define-key hikizan-adk-ui-mode-map (kbd "o") #'hikizan-adk-ui-open-session-file)
 (define-key hikizan-adk-ui-mode-map (kbd "P") #'hikizan-adk-ui-open-plan)
+(define-key hikizan-adk-ui-mode-map (kbd "T") #'hikizan-adk-ui-open-telemetry)
 
 (defun hikizan-adk-ui--plan-exists-p (session-id &optional sessions-path)
-  "Return a list of plan files for SESSION-ID, sorted by name.
-Use SESSIONS-PATH if provided, otherwise use the dashboard default."
-  (let* ((clean-id (if (and session-id
-                            (string-match "\\.session$" session-id))
-                       (replace-match "" t t session-id)
-                     session-id))
-         (session-dir (expand-file-name
-                       (concat (or clean-id "") "/")
-                       (or sessions-path hikizan-adk--dashboard-sessions-path)))
+  (let* ((clean-id (if (and session-id (string-match "\\.session$" session-id)) (replace-match "" t t session-id) session-id))
+         (session-dir (expand-file-name (concat (or clean-id "") "/") (or sessions-path hikizan-adk--dashboard-sessions-path)))
          (pattern "^plan.*\\.org$"))
     (if (and clean-id (file-directory-p session-dir))
         (sort (directory-files session-dir t pattern) #'string-lessp)
+      nil)))
+
+(defun hikizan-adk-ui--telemetry-exists-p (session-id &optional sessions-path)
+  (let* ((clean-id (if (and session-id (string-match "\\.session$" session-id)) (replace-match "" t t session-id) session-id))
+         (session-dir (expand-file-name (concat (or clean-id "") "/") (or sessions-path hikizan-adk--dashboard-sessions-path)))
+         (pattern "\\.jsonl$"))
+    (if (and clean-id (file-directory-p session-dir))
+        (directory-files session-dir t pattern)
       nil)))
 
 (defun hikizan-adk-ui--get-session-id (id)
@@ -158,10 +160,9 @@ It looks for #+TITLE: or the first first-level heading."
                    (state (if live "running" "stopped" ))
                    (session-id hikizan-adk--session-id)
                    (plans (hikizan-adk-ui--plan-exists-p session-id sessions-base))
-                   (plan-count (length plans))
-                   (plan-str (cond ((= plan-count 0) "   ")
-                                   ((= plan-count 1) "[Y]")
-                                   (t (format "[%d]" plan-count))))
+                   (plan-str (cond ((= (length plans) 0) "   ")
+                                   ((= (length plans) 1) "[Y]")
+                                   (t (format "[%d]" (length plans)))))
                    (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
                    (pid (if live (format "%d" (process-id proc)) "-" ))
                    (session-file (expand-file-name (concat session-id "/session.json") sessions-base))
@@ -186,10 +187,9 @@ It looks for #+TITLE: or the first first-level heading."
                        (mtime (nth 5 attrs))
                        (updated (format-time-string "%Y-%m-%d %H:%M" mtime))
                        (plans (hikizan-adk-ui--plan-exists-p session-id sessions-base))
-                       (plan-count (length plans))
-                       (plan-str (cond ((= plan-count 0) "   ")
-                                       ((= plan-count 1) "[Y]")
-                                       (t (format "[%d]" plan-count))))
+                       (plan-str (cond ((= (length plans) 0) "   ")
+                                       ((= (length plans) 1) "[Y]")
+                                       (t (format "[%d]" (length plans)))))
                        (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
                        (summary (hikizan-adk-ui--get-session-summary session-file)))
                   (push (list session-file (vector "saved" plan-str plan-title "-" updated summary)) entries))))))))
@@ -311,6 +311,24 @@ With a prefix argument, open all plans."
             (when (and selected (not (string-empty-p selected)))
               (pop-to-buffer (find-file-noselect (cdr (assoc selected choices))))))))
       (message "No task plans found for session: %s" session-id))))
+
+(defun hikizan-adk-ui-open-telemetry ()
+  "Open the telemetry JSONL file for the current session."
+  (interactive)
+  (let* ((id (tabulated-list-get-id))
+         (sessions-path hikizan-adk--dashboard-sessions-path)
+         (session-id (hikizan-adk-ui--get-session-id id))
+         (files (hikizan-adk-ui--telemetry-exists-p session-id sessions-path)))
+    (if files
+        (cond
+         ((= (length files) 1)
+          (hikizan-adk-telemetry (car files)))
+         (t
+          (let* ((choices (mapcar (lambda (f) (cons (file-name-nondirectory f) f)) files))
+                 (selected (completing-read "Select telemetry file: " choices nil t)))
+            (when (and selected (not (string-empty-p selected)))
+              (hikizan-adk-telemetry (cdr (assoc selected choices)))))))
+      (message "No telemetry files found for session: %s" session-id))))
 
 (provide 'hikizan-adk-ui)
 ;;; hikizan-adk-ui.el ends here

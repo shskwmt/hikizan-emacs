@@ -42,6 +42,11 @@
   (interactive)
   (hikizan-adk-sessions hikizan-emacs-agent-dir hikizan-agent-sessions-dir))
 
+(defun hikizan-emacs-agent-telemetry (file)
+  "Open telemetry viewer for the Emacs agent."
+  (interactive (list (read-file-name "Telemetry file: " hikizan-agent-sessions-dir nil t nil (lambda (f) (string-match-p "\\.jsonl$" f)))))
+  (hikizan-adk-telemetry file))
+
 ;; Functions for Agent
 
 (defun hikizan-find-string-position-in-buffer (buffer search-string)
