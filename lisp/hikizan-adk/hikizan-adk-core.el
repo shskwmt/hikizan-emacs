@@ -17,7 +17,8 @@ This will always start a new session."
 
 ;;;###autoload
 (defun hikizan-adk-sessions (agent-path &optional sessions-path)
-  "Open ADK sessions dashboard for AGENT-PATH."
+  "Open ADK sessions dashboard for AGENT-PATH.
+If SESSIONS-PATH is provided, use it as the base directory for sessions."
   (interactive (list (read-directory-name "Agent directory: ")))
   (hikizan-adk-ui-open-dashboard agent-path sessions-path))
 

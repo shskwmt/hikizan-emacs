@@ -51,7 +51,7 @@
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward regex nil t)
-	(push (substring-no-properties (match-string 1)) function-names)))
+	(push (substring-no-properties (or (match-string 1) "")) function-names)))
     (let ((new-buffer (generate-new-buffer "*Go Function Names*")))
       (with-current-buffer new-buffer
 	(dolist (name (reverse function-names))

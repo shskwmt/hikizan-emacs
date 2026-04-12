@@ -28,7 +28,8 @@
   (format-time-string "hikizan-%Y%m%d-%H%M%S"))
 
 (defun hikizan-adk--process-sentinel (proc _event)
-  "Sentinel for ADK process PROC to cleanup."
+  "Sentinel for ADK process PROC to cleanup.
+_EVENT is the process event string (unused)."
   (let ((buf (process-buffer proc)))
     (when (and (buffer-live-p buf)
                (memq (process-status proc) '(exit signal)))

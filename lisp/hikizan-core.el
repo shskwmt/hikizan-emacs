@@ -140,7 +140,7 @@
 (setq make-backup-files nil)
 
 ;; tab / indent
-(indent-tabs-mode t)
+(setq-default indent-tabs-mode t)
 (setq standard-indent 2)
 (setq tab-always-indent 'complete)
 (setq tab-width 4)
