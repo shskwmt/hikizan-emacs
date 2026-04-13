@@ -7,6 +7,7 @@ When operating in this project, adhere to the following principles and structure
 - **Minimalism (Hikizan)**: Keep configurations simple and avoid adding heavy, unnecessary dependencies. "Hikizan" implies subtraction.
 - **Modularity**: Configurations are broken down into specific topics (e.g., UI, programming, org-mode) inside the `lisp/` directory.
 - **Context from Structure**: Prefer generic filenames (e.g., `plan.org`, `session.json`) over prefixed ones when files are already isolated within scoped directories (e.g., `sessions/<id>/`).
+- **Reusability**: Before proposing or implementing new utilities or helper functions, explicitly search for existing generic patterns in `emacs_agent/storage.py` (Python) and `lisp/hikizan-adk/hikizan-adk-core.el` (Elisp).
 
 ## 2. Directory Structure
 - `init.el`: The main entry point that requires modules from the `lisp/` directory. Do not clutter this file with configuration logic.
@@ -23,7 +24,7 @@ When operating in this project, adhere to the following principles and structure
   - All custom files in `lisp/` must be prefixed with `hikizan-` (e.g., `hikizan-feature.el`).
   - All variables, functions, and custom groups defined in these files must use the `hikizan-` prefix.
 - **Provide/Require**: End each custom `.el` file with `(provide 'hikizan-feature)` and require it in `init.el` or where appropriate.
-- **Quality Assurance**: Always verify changes with `M-x byte-compile-file` to ensure no warnings (missing dependencies, forward references, or missing docstrings) remain.
+- **Quality Assurance**: Always verify changes with `M-x byte-compile-file` to ensure no warnings (missing dependencies, forward references, or missing docstrings) remain. Note that this is merely a syntax check. For interactive UI functions or complex logic, require "dry-runs" or explicit function signature verification (e.g., using `symbol-function` or `help-function-arglist`) to ensure correctness.
 
 ## 4. Python Coding Conventions
 - **Cross-Layer Impact Analysis**: When modifying data structures, storage paths, or file formats, explicitly check both Python and Emacs Lisp codebases for dependencies or UI display logic that may be affected.
