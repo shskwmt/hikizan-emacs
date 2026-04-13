@@ -166,6 +166,8 @@
 
 ;; org
 (setq org-startup-folded nil)
+(with-eval-after-load 'org
+  (require 'ox-md))
 
 ;; others
 (delete-selection-mode t)

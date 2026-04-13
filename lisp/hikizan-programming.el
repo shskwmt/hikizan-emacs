@@ -41,6 +41,10 @@
 (use-package terraform-mode
   :ensure t)
 
+;; markdown
+(use-package markdown-mode
+  :ensure t)
+
 ;;; functions
 
 (defun hikizan-extract-golang-functions ()
