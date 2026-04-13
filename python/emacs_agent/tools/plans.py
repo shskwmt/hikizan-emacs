@@ -1,8 +1,6 @@
 import os
-import re
-from pathlib import Path
 
-from ..storage import get_session_dir
+from ..storage import create_versioned_file
 
 
 def create_plan_file(new_task: bool = False) -> str:
@@ -12,32 +10,4 @@ def create_plan_file(new_task: bool = False) -> str:
     Returns the absolute path.
     """
     session_id = os.environ.get("SESSION_ID", "default_session")
-    plans_dir = get_session_dir(session_id)
-
-    base_name = "plan"
-
-    # Find existing versions
-    existing_files = list(plans_dir.glob(f"{base_name}*.org"))
-
-    # Helper to extract version number
-    def get_version(path):
-        match = re.search(r"_v(\d+)\.org$", path.name)
-        return int(match.group(1)) if match else 0
-
-    existing_files.sort(key=get_version)
-
-    if not existing_files:
-        # Create initial base file
-        plan_file_path = plans_dir / f"{base_name}.org"
-        plan_file_path.touch()
-    elif new_task:
-        # Create new version
-        last_version = get_version(existing_files[-1])
-        new_version = last_version + 1
-        plan_file_path = plans_dir / f"{base_name}_v{new_version}.org"
-        plan_file_path.touch()
-    else:
-        # Use latest version
-        plan_file_path = existing_files[-1]
-
-    return str(plan_file_path).replace("\\", "/")
+    return create_versioned_file(session_id, "plan", "org", new_task)

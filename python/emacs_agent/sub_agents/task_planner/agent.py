@@ -2,7 +2,7 @@ import os
 
 from google.adk.agents.llm_agent import Agent
 
-from ...common_prompts import ELISP_INSTRUCTIONS, HIKIZAN_PHILOSOPHY, GLOBAL_CONTEXT
+from ...common_prompts import ELISP_INSTRUCTIONS, GLOBAL_CONTEXT, HIKIZAN_PHILOSOPHY
 from ...tools import elisp as elisp_tools
 from ...tools import plans as plan_tools
 

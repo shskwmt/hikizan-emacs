@@ -31,6 +31,7 @@ When operating in this project, adhere to the following principles and structure
 - **Modularity**: Maintain clear separation between the orchestrator (`emacs_agent`) and sub-agents.
 
 ## 5. AI Sub-Agents & Roles
+- **issue_creator**: Creates and structures Org-mode issue documents as formal inputs for task_planner.
 When collaborating, use the following agents for their specialized tasks:
 - **elisp_executor**: Direct Emacs Lisp execution and buffer manipulation.
 - **browser_executor**: Web searching and internet interaction.

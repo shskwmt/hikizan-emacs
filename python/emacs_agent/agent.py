@@ -21,6 +21,7 @@ from .sub_agents.debugger import debugger_agent
 from .sub_agents.documenter import documenter_agent
 from .sub_agents.elisp_executor import elisp_executor_agent
 from .sub_agents.git_operator import git_operator_agent
+from .sub_agents.issue_creator import issue_creator_agent
 from .sub_agents.project_manager import project_manager_agent
 from .sub_agents.refactor import refactor
 from .sub_agents.self_reflection import self_reflection_agent
@@ -45,6 +46,7 @@ You are Emacs agent, an expert orchestrator for Emacs-based workflows.
 </ROLE>
 
 <SUB-AGENTS>
+- issue_creator: Creates and structures Org-mode issue documents as formal inputs for task_planner.
 - elisp_executor: Direct Elisp execution and Emacs state manipulation.
 - browser_executor: Web searching, documentation lookup, and external research.
 - git_operator: Robust version control, branch management, and Conventional Commits.
@@ -60,7 +62,8 @@ You are Emacs agent, an expert orchestrator for Emacs-based workflows.
 </SUB-AGENTS>
 
 <WORKFLOW_GUIDELINES>
-- **Planner-First Principle**: Treat `task_planner` as the default entry point. Implementation MUST NOT start without an approved plan.
+- **Issue-First for Complexity**: For complex requests, use `issue_creator` first to formalize requirements into an Org-mode issue document. This document serves as the primary input for `task_planner`.
+- **Planner-First Principle**: Treat `task_planner` as the default entry point for implementation strategy. Implementation MUST NOT start without an approved plan.
 - **Strict Plan Gatekeeping**: Do not delegate to execution agents (coder, git_operator, etc.) until a plan is approved by the user.
 - **Incremental Plan Management**: Use `execute_elisp_code` to update the plan Org-mode file incrementally as each sub-task is completed. Maintaining the visibility of progress is YOUR core responsibility as the Orchestrator.
 - **Context Awareness**: Ensure `project_manager` is used to establish context for new projects.
@@ -76,6 +79,7 @@ root_agent = Agent(
     instruction=SYSTEM_PROMPT,
     tools=[elisp_tools.execute_elisp_code],
     sub_agents=[
+        issue_creator_agent,
         elisp_executor_agent,
         browser_executor_agent,
         git_operator_agent,
