@@ -30,8 +30,10 @@
 (define-derived-mode hikizan-adk-ui-mode tabulated-list-mode "Hikizan-ADK-Dashboard"
   "Major mode for ADK sessions dashboard."
   (setq tabulated-list-format [("State" 10 t)
+                               ("Issue" 7 t)
+                               ("Issue Title" 40 t)
                                ("Plan" 6 t)
-                               ("Plan Title" 80 t)
+                               ("Plan Title" 40 t)
                                ("PID" 10 t)
                                ("Updated" 20 t)
                                ("Summary" 50 t)])
@@ -48,12 +50,12 @@
 (define-key hikizan-adk-ui-mode-map (kbd "D") #'hikizan-adk-ui-delete-session)
 (define-key hikizan-adk-ui-mode-map (kbd "o") #'hikizan-adk-ui-open-session-file)
 (define-key hikizan-adk-ui-mode-map (kbd "P") #'hikizan-adk-ui-open-plan)
+(define-key hikizan-adk-ui-mode-map (kbd "i") #'hikizan-adk-ui-open-issue)
 (define-key hikizan-adk-ui-mode-map (kbd "T") #'hikizan-adk-ui-open-telemetry)
 
-(defun hikizan-adk-ui--plan-exists-p (session-id &optional sessions-path)
+(defun hikizan-adk-ui--get-session-files (session-id pattern &optional sessions-path)
   (let* ((clean-id (if (and session-id (string-match "\\.session$" session-id)) (replace-match "" t t session-id) session-id))
-         (session-dir (expand-file-name (concat (or clean-id "") "/") (or sessions-path hikizan-adk--dashboard-sessions-path)))
-         (pattern "^plan.*\\.org$"))
+         (session-dir (expand-file-name (concat (or clean-id "") "/") (or sessions-path hikizan-adk--dashboard-sessions-path))))
     (if (and clean-id (file-directory-p session-dir))
         (sort (directory-files session-dir t pattern) #'string-lessp)
       nil)))
@@ -129,8 +131,8 @@ If there is only one user message, use that."
           "No summary"))
     (error (format "Error: %s" (error-message-string err)))))
 
-(defun hikizan-adk-ui--get-plan-title (file-path)
-  "Extract the title from the Org plan file at FILE-PATH.
+(defun hikizan-adk-ui--get-org-title (file-path)
+  "Extract the title from the Org file at FILE-PATH.
 It looks for #+TITLE: or the first first-level heading."
   (when (and file-path (file-exists-p file-path))
     (with-temp-buffer
@@ -142,6 +144,7 @@ It looks for #+TITLE: or the first first-level heading."
        ((re-search-forward "^\\* \\(.*\\)$" nil t)
         (match-string 1))
        (t "No title")))))
+
 
 (defun hikizan-adk-ui--refresh-entries ()
   "Refresh the list of sessions for the current dashboard agent."
@@ -159,11 +162,16 @@ It looks for #+TITLE: or the first first-level heading."
                    (live (and proc (process-live-p proc)))
                    (state (if live "running" "stopped" ))
                    (session-id hikizan-adk--session-id)
-                   (plans (hikizan-adk-ui--plan-exists-p session-id sessions-base))
+                   (plans (hikizan-adk-ui--get-session-files session-id "^plan.*\.org$" sessions-base))
                    (plan-str (cond ((= (length plans) 0) "   ")
                                    ((= (length plans) 1) "[Y]")
                                    (t (format "[%d]" (length plans)))))
-                   (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
+                   (plan-title (if plans (hikizan-adk-ui--get-org-title (car plans)) ""))
+                   (issues (hikizan-adk-ui--get-session-files session-id "^issue.*\.org$" sessions-base))
+                   (issue-str (cond ((= (length issues) 0) "   ")
+                                    ((= (length issues) 1) "[Y]")
+                                    (t (format "[%d]" (length issues)))))
+                   (issue-title (if issues (hikizan-adk-ui--get-org-title (car issues)) ""))
                    (pid (if live (format "%d" (process-id proc)) "-" ))
                    (session-file (expand-file-name (concat session-id "/session.json") sessions-base))
                    (exists (file-exists-p session-file))
@@ -174,7 +182,7 @@ It looks for #+TITLE: or the first first-level heading."
                    (summary (cond
                              (exists (hikizan-adk-ui--get-session-summary session-file))
                              (t (hikizan-adk-ui--get-buffer-summary buf)))))
-              (push (list buf (vector state plan-str plan-title pid updated summary)) entries)))))
+              (push (list buf (vector state issue-str issue-title plan-str plan-title pid updated summary)) entries)))))
 
       ;; 2. Saved session files
       (when (and sessions-base (file-directory-p sessions-base))
@@ -186,13 +194,18 @@ It looks for #+TITLE: or the first first-level heading."
                 (let* ((attrs (file-attributes session-file))
                        (mtime (nth 5 attrs))
                        (updated (format-time-string "%Y-%m-%d %H:%M" mtime))
-                       (plans (hikizan-adk-ui--plan-exists-p session-id sessions-base))
+                       (plans (hikizan-adk-ui--get-session-files session-id "^plan.*\.org$" sessions-base))
                        (plan-str (cond ((= (length plans) 0) "   ")
                                        ((= (length plans) 1) "[Y]")
                                        (t (format "[%d]" (length plans)))))
-                       (plan-title (if plans (hikizan-adk-ui--get-plan-title (car plans)) ""))
+                       (plan-title (if plans (hikizan-adk-ui--get-org-title (car plans)) ""))
+                       (issues (hikizan-adk-ui--get-session-files session-id "^issue.*\.org$" sessions-base))
+                       (issue-str (cond ((= (length issues) 0) "   ")
+                                        ((= (length issues) 1) "[Y]")
+                                        (t (format "[%d]" (length issues)))))
+                       (issue-title (if issues (hikizan-adk-ui--get-org-title (car issues)) ""))
                        (summary (hikizan-adk-ui--get-session-summary session-file)))
-                  (push (list session-file (vector "saved" plan-str plan-title "-" updated summary)) entries))))))))
+                  (push (list session-file (vector "saved" issue-str issue-title plan-str plan-title "-" updated summary)) entries))))))))
     (setq tabulated-list-entries entries)))
 
 (defun hikizan-adk-ui--start-refresh-timer ()
@@ -297,7 +310,7 @@ With a prefix argument, open all plans."
   (let* ((id (tabulated-list-get-id))
          (sessions-path hikizan-adk--dashboard-sessions-path)
          (session-id (hikizan-adk-ui--get-session-id id))
-         (plans (hikizan-adk-ui--plan-exists-p session-id sessions-path)))
+         (plans (hikizan-adk-ui--get-session-files session-id "^plan.*\.org$" sessions-path)))
     (if plans
         (cond
          (current-prefix-arg
@@ -311,6 +324,29 @@ With a prefix argument, open all plans."
             (when (and selected (not (string-empty-p selected)))
               (pop-to-buffer (find-file-noselect (cdr (assoc selected choices))))))))
       (message "No task plans found for session: %s" session-id))))
+
+(defun hikizan-adk-ui-open-issue ()
+  "Open the issue Org-Mode file for the current session.
+If multiple issues exist, prompt for selection.
+With a prefix argument, open all issues."
+  (interactive)
+  (let* ((id (tabulated-list-get-id))
+         (sessions-path hikizan-adk--dashboard-sessions-path)
+         (session-id (hikizan-adk-ui--get-session-id id))
+         (issues (hikizan-adk-ui--get-session-files session-id "^issue.*\.org$" sessions-path)))
+    (if issues
+        (cond
+         (current-prefix-arg
+          (dolist (file issues)
+            (pop-to-buffer (find-file-noselect file))))
+         ((= (length issues) 1)
+          (pop-to-buffer (find-file-noselect (car issues))))
+         (t
+          (let* ((choices (mapcar (lambda (f) (cons (file-name-nondirectory f) f)) issues))
+                 (selected (completing-read "Select issue: " choices nil t)))
+            (when (and selected (not (string-empty-p selected)))
+              (pop-to-buffer (find-file-noselect (cdr (assoc selected choices))))))))
+      (message "No issue files found for session: %s" session-id))))
 
 (defun hikizan-adk-ui-open-telemetry ()
   "Open the telemetry JSONL file for the current session."

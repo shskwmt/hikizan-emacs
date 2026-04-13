@@ -2,8 +2,8 @@ import os
 
 from google.adk.agents.llm_agent import Agent
 
+from ...common_prompts import GLOBAL_CONTEXT, HIKIZAN_PHILOSOPHY
 from ...tools import browser as browser_tools
-from ...common_prompts import HIKIZAN_PHILOSOPHY, GLOBAL_CONTEXT
 
 SYSTEM_PROMPT = f"""
 You are BROWSER EXECUTOR, a specialist in web research and external data retrieval.

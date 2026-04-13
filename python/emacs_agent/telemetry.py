@@ -1,13 +1,13 @@
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 
+from google.adk.telemetry.setup import OTelHooks, maybe_set_otel_providers
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     SpanExporter,
     SpanExportResult,
 )
-from google.adk.telemetry.setup import maybe_set_otel_providers, OTelHooks
 
 logger = logging.getLogger(__name__)
 
