@@ -7,7 +7,8 @@ ELISP_INSTRUCTIONS = """
     - Prefer surgical edits with `search-forward`, `replace-match`, and `atomic-change-group`.
     - Always `(save-buffer)` after modifications.
     - Explicitly set `default-directory` or use absolute paths via `expand-file-name` to ensure correct context.
-- **String Literals**: Double escape backslashes (e.g., `\\\\`) in Python strings for Elisp.
+- **String Literals**: Double escape backslashes (e.g., `\\\\`) in Python strings for Elisp to ensure they are received correctly. To avoid `Symbol's value as variable is void: n` errors, ensure backslashes meant for Elisp are properly doubled in Python strings.
+- **Multi-line Content**: For multi-line file content (like `.org` files), prefer `with-temp-buffer`, `insert`, and `write-region` over complex `search-forward`/`replace-match` chains when rewriting large blocks.
 - **Path Handling**: Use `expand-file-name` for absolute paths and `file-equal-p` for comparisons.
 - **Git Integration**: Follow Conventional Commits. Use `git status` to verify state.
 - **Verification**: After any edit, verify the buffer state (e.g., search for the changed text) and ensure syntax is correct.
