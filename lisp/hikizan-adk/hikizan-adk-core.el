@@ -23,7 +23,6 @@ If SESSIONS-PATH is provided, use it as the base directory for sessions."
   (interactive (list (read-directory-name "Agent directory: ")))
   (hikizan-adk-ui-open-dashboard agent-path sessions-path))
 
-
 ;;;###autoload
 (defun hikizan-adk-telemetry (file)
   "Open telemetry viewer for FILE."
