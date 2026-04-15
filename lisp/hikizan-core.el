@@ -186,5 +186,13 @@
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ring-bell-function #'ignore)
 
+;; Window Management
+(setq split-height-threshold nil
+      split-width-threshold nil
+      switch-to-buffer-obey-display-actions t)
+
+(setq display-buffer-alist
+      '((".*" (display-buffer-same-window))))
+
 (provide 'hikizan-core)
 ;;; hikizan-core.el ends here
