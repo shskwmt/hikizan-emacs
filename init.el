@@ -5,6 +5,10 @@
 
 ;;; Code:
 
+;; ~/.emacs.d/init.el
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file 'noerror)
+
 ;; Add lisp directories to load-path
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "lisp/hikizan-adk" user-emacs-directory))
@@ -17,8 +21,6 @@
 (require 'hikizan-agent)
 (require 'hikizan-programming)
 (require 'hikizan-keybinds)
-
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
 (provide 'init)
 ;;; init.el ends here
