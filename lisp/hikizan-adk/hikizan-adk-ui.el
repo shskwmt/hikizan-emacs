@@ -19,7 +19,7 @@
 (defvar-local hikizan-adk--dashboard-sessions-path nil
   "Path where the dashboard looks for sessions.")
 
-(defcustom hikizan-adk-ui-refresh-interval 30
+(defcustom hikizan-adk-ui-refresh-interval 300
   "Interval in seconds to refresh the ADK sessions dashboard."
   :type 'integer
   :group 'hikizan-adk)
@@ -40,9 +40,10 @@
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key '("Updated" . t))
   (add-hook 'tabulated-list-revert-hook #'hikizan-adk-ui--refresh-entries nil t)
-  (add-hook 'kill-buffer-hook #'hikizan-adk-ui--stop-refresh-timer nil t)
-  (tabulated-list-init-header)
-  (hikizan-adk-ui--start-refresh-timer))
+  ;; disable refresh timer
+  ;;(add-hook 'kill-buffer-hook #'hikizan-adk-ui--stop-refresh-timer nil t)
+  ;;(hikizan-adk-ui--start-refresh-timer)
+  (tabulated-list-init-header))
 
 (define-key hikizan-adk-ui-mode-map (kbd "RET") #'hikizan-adk-ui-resume)
 (define-key hikizan-adk-ui-mode-map (kbd "g") #'hikizan-adk-ui-refresh)
